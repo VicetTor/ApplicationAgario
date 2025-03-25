@@ -1,5 +1,10 @@
 package com.example.agario.utils;
 
+import com.example.agario.models.Entity;
+import com.example.agario.models.EntityFactory;
+import com.example.agario.models.PelletFactory;
+import com.example.agario.models.PlayerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,12 +34,12 @@ public class QuadTree {
         if (tree == null)
             return;
 
-        System.out.printf("\nDepth = %d [XMin = %d YMin = %d] \t[XMax = %d YMax = %d] ",
+        System.out.printf("\nDepth = %d [XMin = %f YMin = %f] \t[XMax = %f YMax = %f] ",
                 tree.depth, tree.dimension.getxMin(), tree.dimension.getyMin(),
                 tree.dimension.getxMax(), tree.dimension.getyMax());
 
         for (Entity entity : tree.entities) {
-            System.out.printf("\n\t  x = %d   y = %d", entity.getX(), entity.getY());
+            System.out.printf("\n\t  x = %f   y = %f", entity.getPosX(), entity.getPosY());
         }
 
         if (tree.entities.size() == 0) {
@@ -45,13 +50,12 @@ public class QuadTree {
         DepthFirstSearch(tree.northEast);
         DepthFirstSearch(tree.southWest);
         DepthFirstSearch(tree.southEast);
-
     }
 
     void splitQuadTree() {
-        int xOffset = this.dimension.getxMin() + (this.dimension.getxMax() - this.dimension.getxMin()) / 2;
+        double xOffset = this.dimension.getxMin() + (this.dimension.getxMax() - this.dimension.getxMin()) / 2;
 
-        int yOffset = this.dimension.getyMin() + (this.dimension.getyMax() - this.dimension.getyMin()) / 2;
+        double yOffset = this.dimension.getyMin() + (this.dimension.getyMax() - this.dimension.getyMin()) / 2;
 
         northWest = new QuadTree(this.depth + 1, new Dimension(this.dimension.getxMin(), this.dimension.getyMin(), xOffset, yOffset));
 
@@ -63,8 +67,8 @@ public class QuadTree {
     }
 
     void insertNode(Entity entity) {
-        int x = entity.getPosX();
-        int y = entity.getPosY();
+        double x = entity.getPosX();
+        double y = entity.getPosY();
         if (entity == null)
             return;
 
@@ -97,5 +101,48 @@ public class QuadTree {
 
         else
             System.out.printf("ERROR : Unhandled partition x : %d   y : %d", x, y);
+    }
+
+    public static void DFSChunk(QuadTree tree, Dimension dimension, List<Entity> resultat) {
+        if (tree == null)
+            return;
+
+        System.out.printf("\nDepth = %d [XMin = %f YMin = %f] \t[XMax = %f YMax = %f] ",
+                tree.depth, tree.dimension.getxMin(), tree.dimension.getyMin(),
+                tree.dimension.getxMax(), tree.dimension.getyMax());
+
+        for (Entity entity : tree.entities) {
+            if(dimension.inRange(entity.getPosX(), entity.getPosY())){
+                System.out.printf("\n\t  x = %f   y = %f", entity.getPosX(), entity.getPosY());
+                resultat.add(entity);
+            }
+        }
+
+        if (tree.entities.size() == 0) {
+            System.out.printf(" \n\t  Leaf Node.");
+        }
+
+        DFSChunk(tree.northWest, dimension, resultat);
+        DFSChunk(tree.northEast, dimension, resultat);
+        DFSChunk(tree.southWest, dimension, resultat);
+        DFSChunk(tree.southEast, dimension, resultat);
+    }
+
+    public static void main(String args[]) {
+        QuadTree anySpace = new QuadTree(1, new Dimension(0, 0, 1000, 1000));
+        anySpace.insertNode(new PelletFactory(0, 0).launchFactory());
+        anySpace.insertNode(new PelletFactory(1, 0).launchFactory());
+        anySpace.insertNode(new PelletFactory(10, 5).launchFactory());
+        anySpace.insertNode(new PelletFactory(0, 10).launchFactory());
+
+        //Traveling the graph
+        List<Entity> liste = new ArrayList<>();
+        QuadTree.DepthFirstSearch(anySpace);
+        System.out.println();
+        QuadTree.DFSChunk(anySpace, new Dimension(0, 0, 5, 6),liste);
+        System.out.println();
+        for (Entity ent : liste){
+            System.out.println(ent.getPosX() + ", " + ent.getPosY());
+        }
     }
 }
