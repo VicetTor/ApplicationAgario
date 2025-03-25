@@ -4,7 +4,7 @@ import com.example.agario.input.PlayerInput;
 import com.example.agario.models.Entity;
 import com.example.agario.models.Player;
 import com.example.agario.models.PlayerFactory;
-import com.example.agario.models.World;
+import com.example.agario.models.Game;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
@@ -43,7 +43,7 @@ public class GameController implements Initializable {
 
         Camera cam = new Camera(player);
         List<Entity> liste = new ArrayList<>();
-        World gameModel= new World(new QuadTree(1, new Dimension(0,0,getPaneWidth(),getPaneHeight())));
+        Game gameModel= new Game(new QuadTree(1, new Dimension(0,0,getPaneWidth(),getPaneHeight())));
         gameModel.getQuadTree().DFSChunk(gameModel.getQuadTree() ,cam , liste );
 
         GamePane.setOnMouseMoved(playerInput);
