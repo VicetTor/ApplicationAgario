@@ -47,11 +47,24 @@ public class LauncherController {
         PlayerFactory p = new PlayerFactory("oui");
         Player pl = (Player) p.launchFactory();
 
+        new Thread(()->{
+            while(true){
+                pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+                System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
+                try {
+                    Thread.sleep(150);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+
+
+
         scene.setOnMouseMoved(event ->{
             playerInput.handle(event);
             pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
-            pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
-            System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
+            System.out.println("Mouse moved : " + pl.getPosX() + " Y : " + pl.getPosY());
         });
 
         stage.show();

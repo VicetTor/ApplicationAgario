@@ -16,7 +16,7 @@ public class MovableEntity extends Entity{
         double maxSpeed = 150 - this.getMass(); // vitesse maximale à ajuster selon le rendu, plus la pastille est grosse plus elle est lente (vitesse à l'apparition - masse)
         double speedX = Math.abs(percentageX) * maxSpeed;
         double speedY = Math.abs(percentageY) * maxSpeed;
-        this.speed = (speedX + speedY)/2;
+        this.speed = 2;//(speedX + speedY)/2;
     }
 
 
