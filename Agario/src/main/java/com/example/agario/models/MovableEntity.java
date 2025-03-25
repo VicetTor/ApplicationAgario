@@ -3,20 +3,23 @@ package com.example.agario.models;
 public class MovableEntity extends Entity{
 
     private String name;
-    private double speed = 10;
+    private final double initialSpeed = 13;
+    private double speed = initialSpeed;
 
     public MovableEntity(double x, double y, double mass) {
         super(x, y, mass);
     }
 
 
-    public void setSpeed(double xCursor, double yCursor, double screenWidth, double screenHeight){
-        double percentageX = xCursor/screenWidth;
-        double percentageY = yCursor/screenHeight;
-        double maxSpeed = 150 - this.getMass(); // vitesse maximale à ajuster selon le rendu, plus la pastille est grosse plus elle est lente (vitesse à l'apparition - masse)
-        double speedX = Math.abs(percentageX) * maxSpeed;
-        double speedY = Math.abs(percentageY) * maxSpeed;
-        this.speed = 2;//(speedX + speedY)/2;
+    public void setSpeed(double xCursor, double yCursor){
+        double dx = xCursor - this.getPosX();
+        double dy = yCursor - this.getPosY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        double maxSpeed = (initialSpeed+15 - (this.getMass()/2));
+        double minSpeed = 2;
+
+        this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
     }
 
 
@@ -28,23 +31,17 @@ public class MovableEntity extends Entity{
         double dx = xCursor - currentPosXPoint;
         double dy = yCursor - currentPosYPoint;
 
-        double moyenneX = xCursor;
-        double moyenneY = yCursor;
-
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
-        while(distanceEuclidienne > speed){
-            moyenneX = ((moyenneX + currentPosXPoint)/2);
-            moyenneY = ((moyenneY + currentPosYPoint)/2);
+        if (distanceEuclidienne < 1) return;
 
-            dx = moyenneX - currentPosXPoint;
-            dy = moyenneY - currentPosYPoint;
+        double dirX = dx / distanceEuclidienne;
+        double dirY = dy / distanceEuclidienne;
 
-            distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
-        }
+        double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
 
-        this.setPosX(moyenneX);
-        this.setPosY(moyenneY);
+        this.setPosX(currentPosXPoint + dirX * adjustedSpeed);
+        this.setPosY(currentPosYPoint + dirY * adjustedSpeed);
 
     }
 
