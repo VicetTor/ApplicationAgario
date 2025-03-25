@@ -1,5 +1,8 @@
 package com.example.agario.controllers;
 
+import com.example.agario.input.PlayerInput;
+import com.example.agario.models.Player;
+import com.example.agario.models.PlayerFactory;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ListView;
@@ -27,5 +30,6 @@ public class GameController implements Initializable {
     public double getPaneHeight(){
         return GamePane.getBoundsInParent().getHeight();
     }
+
 
 }

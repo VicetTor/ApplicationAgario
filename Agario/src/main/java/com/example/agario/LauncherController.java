@@ -15,7 +15,6 @@ import java.io.IOException;
 public class LauncherController {
     @FXML private Button OfflineGameButton;
     @FXML private Button OnlineGameButton;
-
     @FXML private AnchorPane LauncherAnchorPane;
 
     @FXML
