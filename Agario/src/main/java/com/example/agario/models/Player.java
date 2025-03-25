@@ -5,7 +5,7 @@ import com.example.agario.input.PlayerInput;
 public class Player extends MovableEntity{
 
     public Player(double x, double y,String name) {
-        super(x, y,50);
+        super(x, y,25);
         this.setName(name);
     }
 
