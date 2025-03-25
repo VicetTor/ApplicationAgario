@@ -35,7 +35,6 @@ public class MovableEntity extends Entity{
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
-
         if (distanceEuclidienne > 1) {
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
