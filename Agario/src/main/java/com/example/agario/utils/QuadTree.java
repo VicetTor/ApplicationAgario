@@ -26,11 +26,15 @@ public class QuadTree {
 
     public QuadTree(int level, Dimension dimension, int MAX_DEPTH) {
         this(level, dimension);
-        this.MAX_DEPTH = MAX_DEPTH;
+        QuadTree.MAX_DEPTH = MAX_DEPTH;
+    }
+
+    public Dimension getDimension(){
+        return dimension;
     }
 
     /* Traveling the Graph using Depth First Search*/
-    static void DepthFirstSearch(QuadTree tree) {
+    public static void DepthFirstSearch(QuadTree tree) {
         if (tree == null)
             return;
 
@@ -43,7 +47,7 @@ public class QuadTree {
         }
 
         if (tree.entities.size() == 0) {
-            System.out.printf(" \n\t  Leaf Node.");
+            System.out.print(" \n\t  Leaf Node.");
         }
 
         DepthFirstSearch(tree.northWest);
@@ -52,25 +56,23 @@ public class QuadTree {
         DepthFirstSearch(tree.southEast);
     }
 
-    void splitQuadTree() {
+    public void splitQuadTree() {
         double xOffset = this.dimension.getxMin() + (this.dimension.getxMax() - this.dimension.getxMin()) / 2;
 
         double yOffset = this.dimension.getyMin() + (this.dimension.getyMax() - this.dimension.getyMin()) / 2;
 
         northWest = new QuadTree(this.depth + 1, new Dimension(this.dimension.getxMin(), this.dimension.getyMin(), xOffset, yOffset));
 
-        northEast = new QuadTree(this.depth + 1, new Dimension(xOffset, this.dimension.getyMin(), xOffset, yOffset));
+        northEast = new QuadTree(this.depth + 1, new Dimension(xOffset, this.dimension.getyMin(), this.dimension.getxMax(), yOffset));
 
-        southWest = new QuadTree(this.depth + 1, new Dimension(this.dimension.getxMin(), xOffset, xOffset, this.dimension.getyMax()));
+        southWest = new QuadTree(this.depth + 1, new Dimension(this.dimension.getxMin(), yOffset, xOffset, this.dimension.getyMax()));
 
         southEast = new QuadTree(this.depth + 1, new Dimension(xOffset, yOffset, this.dimension.getxMax(), this.dimension.getyMax()));
     }
 
-    void insertNode(Entity entity) {
+    public void insertNode(Entity entity) {
         double x = entity.getPosX();
         double y = entity.getPosY();
-        if (entity == null)
-            return;
 
         if (!this.dimension.inRange(x, y)) {
             return;
@@ -80,12 +82,10 @@ public class QuadTree {
             entities.add(entity);
             return;
         }
-
         // Exceeded the capacity so split it in FOUR
         if (northWest == null) {
             splitQuadTree();
         }
-
         // Check coordinates belongs to which partition
         if (this.northWest.dimension.inRange(x, y))
             this.northWest.insertNode(entity);
@@ -100,7 +100,7 @@ public class QuadTree {
             this.southEast.insertNode(entity);
 
         else
-            System.out.printf("ERROR : Unhandled partition x : %d   y : %d", x, y);
+            System.out.printf("ERROR : Unhandled partition x : %f   y : %f", x, y);
     }
 
     public static void DFSChunk(QuadTree tree, Dimension dimension, List<Entity> resultat) {
@@ -128,8 +128,8 @@ public class QuadTree {
         DFSChunk(tree.southEast, dimension, resultat);
     }
 
-    public static void main(String args[]) {
-        QuadTree anySpace = new QuadTree(1, new Dimension(0, 0, 1000, 1000));
+    /*public static void main(String args[]) {
+        QuadTree anySpace = new QuadTree(0, new Dimension(0, 0, 1000, 1000));
         anySpace.insertNode(new PelletFactory(0, 0).launchFactory());
         anySpace.insertNode(new PelletFactory(1, 0).launchFactory());
         anySpace.insertNode(new PelletFactory(10, 5).launchFactory());
@@ -139,10 +139,10 @@ public class QuadTree {
         List<Entity> liste = new ArrayList<>();
         QuadTree.DepthFirstSearch(anySpace);
         System.out.println();
-        QuadTree.DFSChunk(anySpace, new Dimension(0, 0, 5, 6),liste);
+        QuadTree.DFSChunk(anySpace, camera,liste);
         System.out.println();
         for (Entity ent : liste){
             System.out.println(ent.getPosX() + ", " + ent.getPosY());
         }
-    }
+    }*/
 }

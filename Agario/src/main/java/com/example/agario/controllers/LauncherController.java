@@ -43,7 +43,7 @@ public class LauncherController {
 
         PlayerInput playerInput = new PlayerInput();
 
-        scene.setOnMouseMoved(playerInput);
+        /*scene.setOnMouseMoved(playerInput);
         PlayerFactory p = new PlayerFactory("oui");
         Player pl = (Player) p.launchFactory();
 
@@ -59,13 +59,11 @@ public class LauncherController {
             }
         }).start();
 
-
-
         scene.setOnMouseMoved(event ->{
             playerInput.handle(event);
             pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
             System.out.println("Mouse moved : " + pl.getPosX() + " Y : " + pl.getPosY());
-        });
+        });*/
 
         stage.show();
     }
