@@ -57,14 +57,15 @@ public class GameController implements Initializable {
         Camera cam = new Camera(player);
         List<Entity> liste = new ArrayList<>();
         Game gameModel= new Game(new QuadTree(1, new Dimension(0,0,getPaneWidth(),getPaneHeight())));
-        gameModel.getQuadTree().DFSChunk(gameModel.getQuadTree() ,cam , liste );
+        QuadTree.DFSChunk(gameModel.getQuadTree() ,cam , liste );
 
-        GamePane.setOnMouseMoved(playerInput);
+
 
         new Thread(()->{
             playerInput.setMouseX(getPaneWidth()/2);
             playerInput.setMouseY(getPaneHeight()/2);
             while(true){
+                GamePane.setOnMouseMoved(playerInput);
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
 
                 System.out.println("Player position: " + player.getPosX() + ", " + player.getPosY());
@@ -73,7 +74,7 @@ public class GameController implements Initializable {
                 GamePane.setTranslateX(lst.get(0));
                 GamePane.setTranslateY(lst.get(1));
 
-                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
+                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
 
                 System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
                 try {
