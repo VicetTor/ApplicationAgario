@@ -4,5 +4,6 @@ module com.example.agario {
 
 
     opens com.example.agario to javafx.fxml;
+    opens com.example.agario.controllers to javafx.fxml;
     exports com.example.agario;
 }
