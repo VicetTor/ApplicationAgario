@@ -54,7 +54,6 @@ public class GameController implements Initializable {
 
     public void ecoute() {
         PlayerInput playerInput = new PlayerInput();
-
         Camera cam = new Camera(player);
         List<Entity> liste = new ArrayList<>();
         Game gameModel= new Game(new QuadTree(1, new Dimension(0,0,getPaneWidth(),getPaneHeight())));
@@ -66,18 +65,17 @@ public class GameController implements Initializable {
             playerInput.setMouseX(getPaneWidth()/2);
             playerInput.setMouseY(getPaneHeight()/2);
             while(true){
-
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
 
                 System.out.println("Player position: " + player.getPosX() + ", " + player.getPosY());
 
-                List<Double> lst = cam.updateCameraPosition(getPaneWidth(),getPaneHeight());
-                GamePane.setTranslateX(lst.get(0) );
-                GamePane.setTranslateY(lst.get(1) );
+                List<Double> lst = cam.updateCameraPosition(getPaneWidth(), getPaneHeight());
+                GamePane.setTranslateX(lst.get(0));
+                GamePane.setTranslateY(lst.get(1));
 
-                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
 
-                 //System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
+                System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
                 try {
                     Thread.sleep(33);
                 } catch (InterruptedException e) {
@@ -85,27 +83,16 @@ public class GameController implements Initializable {
                 }
             }
         }).start();
+
     }
 
     public double getPaneWidth() {
-        return GamePane.getBoundsInParent().getWidth();
+        return GamePane.getWidth();
     }
 
     public double getPaneHeight() {
-        return GamePane.getBoundsInParent().getHeight();
+        return GamePane.getHeight();
     }
 
-    /*public static void delay(long millis, Runnable continuation) {
-        Task<Void> sleeper = new Task<Void>() {
-            @Override
-            protected Void call() throws Exception {
-                try { Thread.sleep(millis); }
-                catch (InterruptedException e) { }
-                return null;
-            }
-        };
-        sleeper.setOnSucceeded(event -> continuation.run());
-        new Thread(sleeper).start();
-    }*/
 
 }
