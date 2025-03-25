@@ -11,9 +11,9 @@ public class MovableEntity extends Entity{
     }
 
 
-    public void setSpeed(double xCursor, double yCursor){
-        double dx = xCursor - this.getPosX();
-        double dy = yCursor - this.getPosY();
+    public void setSpeed(double xCursor, double yCursor, double width, double height){
+        double dx = xCursor - width;
+        double dy = yCursor - height;
         double distance = Math.sqrt(dx * dx + dy * dy);
 
         double maxSpeed = (initialSpeed+15 - (this.getMass()/2));
@@ -21,8 +21,6 @@ public class MovableEntity extends Entity{
 
         this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
     }
-
-
 
     public void updatePosition(double xCursor, double yCursor){
         double currentPosXPoint = this.getPosX();

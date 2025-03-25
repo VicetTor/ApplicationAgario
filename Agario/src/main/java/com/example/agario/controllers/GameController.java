@@ -67,7 +67,7 @@ public class GameController implements Initializable {
             playerInput.setMouseY(getPaneHeight()/2);
             while(true){
 
-                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY());
+                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
 
                 System.out.println("Player position: " + player.getPosX() + ", " + player.getPosY());
 
@@ -77,7 +77,7 @@ public class GameController implements Initializable {
 
                 player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
 
-                // System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
+                 //System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
                 try {
                     Thread.sleep(33);
                 } catch (InterruptedException e) {
