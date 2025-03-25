@@ -3,7 +3,7 @@ package com.example.agario.models;
 public class MovableEntity extends Entity{
 
     private String name;
-    private final double initialSpeed = 13;
+    private final double initialSpeed = 1;
     private double speed = initialSpeed;
 
     public MovableEntity(double x, double y, double mass) {
