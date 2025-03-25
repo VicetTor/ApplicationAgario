@@ -1,4 +1,4 @@
-package com.example.agario;
+package com.example.agario.controllers;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
