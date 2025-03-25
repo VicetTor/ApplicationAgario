@@ -1,6 +1,9 @@
-package com.example.agario;
+package com.example.agario.controllers;
 
 import com.example.agario.controllers.GameController;
+import com.example.agario.input.PlayerInput;
+import com.example.agario.models.Player;
+import com.example.agario.models.PlayerFactory;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -30,13 +33,27 @@ public class LauncherController {
     public void changeScene() throws IOException {
         Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
 
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("game.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/agario/game.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         GameController controller = fxmlLoader.getController();
 
         stage.setResizable(true);
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
+
+        PlayerInput playerInput = new PlayerInput();
+
+        scene.setOnMouseMoved(playerInput);
+        PlayerFactory p = new PlayerFactory("oui");
+        Player pl = (Player) p.launchFactory();
+
+        scene.setOnMouseMoved(event ->{
+            playerInput.handle(event);
+            pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
+            pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+            System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
+        });
+
         stage.show();
     }
 }

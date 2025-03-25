@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="LauncherAnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="300" minWidth="350" prefHeight="300.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.LauncherController">
+<AnchorPane fx:id="LauncherAnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="300" minWidth="350" prefHeight="300.0" prefWidth="350.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.controllers.LauncherController">
    <children>
       <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="350.0" AnchorPane.bottomAnchor="6.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-6.0">
         <columnConstraints>
