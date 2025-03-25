@@ -1,5 +1,6 @@
 package com.example.agario;
 
+import com.example.agario.controllers.GameController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;

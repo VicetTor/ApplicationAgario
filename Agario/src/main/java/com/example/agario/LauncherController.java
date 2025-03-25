@@ -1,10 +1,12 @@
 package com.example.agario;
 
+import com.example.agario.controllers.GameController;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -31,6 +33,7 @@ public class LauncherController {
 
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("game.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+        GameController controller = fxmlLoader.getController();
 
         stage.setResizable(true);
         stage.setScene(scene);
