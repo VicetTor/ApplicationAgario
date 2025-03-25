@@ -14,7 +14,7 @@
 
 <AnchorPane minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.controllers.GameController">
    <children>
-      <GridPane fx:id="RightGridPane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <GridPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <columnConstraints>
           <ColumnConstraints hgrow="ALWAYS" minWidth="600.0" prefWidth="600.0" />
           <ColumnConstraints halignment="RIGHT" hgrow="NEVER" maxWidth="300.0" minWidth="200.0" prefWidth="200.0" />
@@ -59,7 +59,7 @@
                 <RowConstraints maxHeight="95.0" minHeight="10.0" prefHeight="28.0" vgrow="ALWAYS" />
               </rowConstraints>
                <children>
-                  <TextField GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
+                  <TextField fx:id="TchatTextField" GridPane.rowIndex="1" GridPane.valignment="BOTTOM" />
                   <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                     <content>
                       <AnchorPane>
