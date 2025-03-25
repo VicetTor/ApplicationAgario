@@ -1,27 +1,31 @@
 package com.example.agario.models;
 
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.Property;
+import javafx.beans.property.SimpleDoubleProperty;
+
 public abstract class Entity {
 
     private static int id = 0;
-    private double posX;
-    private double posY;
+    private DoubleProperty posX = new SimpleDoubleProperty();
+    private DoubleProperty posY = new SimpleDoubleProperty();
     private double mass;
-    private double radius;
+    private DoubleProperty radius = new SimpleDoubleProperty();
 
     public Entity(double x, double y, double mass){
         this.id = ++this.id;
-        this.posX =x;
-        this.posY =y;
+        this.posX.set(x);
+        this.posY.set(y);
         this.mass = mass;
-        this.radius = 10*Math.sqrt(this.mass);
+        this.radius.set(10*Math.sqrt(this.mass));
     }
 
     public double getRadius() {
-        return radius;
+        return radius.get();
     }
 
     public void setRadius(double radius) {
-        this.radius = radius;
+        this.radius.set(radius);
     }
 
     public int getId() {
@@ -33,11 +37,23 @@ public abstract class Entity {
     }
 
     public double getPosX() {
-        return posX;
+        return posX.get();
     }
 
     public double getPosY() {
+        return posY.get();
+    }
+
+    public DoubleProperty getPosXProperty() {
+        return posX;
+    }
+
+    public DoubleProperty getPosYProperty() {
         return posY;
+    }
+
+    public DoubleProperty getRadiusProperty() {
+        return radius;
     }
 
     public void setMass(double mass) {
@@ -45,11 +61,11 @@ public abstract class Entity {
     }
 
     public void setPosX(double posX) {
-        this.posX = posX;
+        this.posX.set(posX);
     }
 
     public void setPosY(double posY) {
-        this.posY = posY;
+        this.posY.set(posY);
     }
 
     public void setId(int id) {
