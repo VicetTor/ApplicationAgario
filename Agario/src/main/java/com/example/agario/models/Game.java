@@ -46,6 +46,8 @@ public class Game {
                 double squareDistance = dx*dx + dy*dy;
                 if(squareDistance <= player.getRadius()*player.getRadius()){
                     quadTree.removeNode(pellet, quadTree);
+                    double newRadius = player.getRadius()+1;
+                    player.setRadius(newRadius);
                 }
             }
         }

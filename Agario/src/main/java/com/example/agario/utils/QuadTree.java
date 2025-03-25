@@ -121,26 +121,20 @@ public class QuadTree {
             System.out.printf("ERROR : Unhandled partition x : %f   y : %f", x, y);
     }
 
-    public void removeNode(Entity pellet, QuadTree tree) {
-        if (tree == null)
-            return;
+    public synchronized void removeNode(Entity pellet, QuadTree tree) {
+        if (tree == null) return;
 
-        /*System.out.printf("\nDepth = %d [XMin = %f YMin = %f] \t[XMax = %f YMax = %f] ",
-                tree.depth, tree.dimension.getxMin(), tree.dimension.getyMin(),
-                tree.dimension.getxMax(), tree.dimension.getyMax());*/
+        // Remove the entity safely using removeIf
+        tree.entities.removeIf(entity ->
+                entity.getPosX() == pellet.getPosX() && entity.getPosY() == pellet.getPosY());
 
-        for (Entity entity : tree.entities) {
-            if(entity.getPosX() == pellet.getPosX() && entity.getPosY() == pellet.getPosY()){
-                System.out.printf("\n\t  x = %f   y = %f", entity.getPosX(), entity.getPosY());
-                tree.entities.remove(pellet);
-            }
-        }
-
+        // Recursively check and remove from child nodes
         removeNode(pellet, tree.northWest);
         removeNode(pellet, tree.northEast);
         removeNode(pellet, tree.southWest);
         removeNode(pellet, tree.southEast);
     }
+
 
     public static void DFSChunk(QuadTree tree, Dimension dimension, List<Entity> resultat) {
         if (tree == null)

@@ -19,17 +19,15 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class GameController implements Initializable {
     @FXML private TextField TchatTextField;
     @FXML private Pane GamePane;
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
+
+    private Map<Entity, String> pelletColors = new HashMap<>();
 
     private Game gameModel;
 
@@ -43,7 +41,6 @@ public class GameController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("Initialisation");
 
-        // Ajustement de la taille de la carte
         dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0,dimension));
         gameModel.createRandomPellets();
@@ -60,8 +57,6 @@ public class GameController implements Initializable {
             while (true) {
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
 
-                // Mise à jour de la position de la caméra
-                // Mise à jour de la position du joueur
                 player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
 
                 Platform.runLater(() -> {
@@ -78,10 +73,8 @@ public class GameController implements Initializable {
                             -GamePane.getTranslateY() + getPaneHeight()
                     );
 
-                    // Générer des pellets dans le QuadTree si nécessaire
-                    gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 5);
+                    gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
 
-                    // Récupérer les pellets dans la zone visible
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, liste);
 
                     gameModel.eatPellet(liste, player);
@@ -105,14 +98,15 @@ public class GameController implements Initializable {
 
     public double getPaneHeight(){return GamePane.getHeight(); }
 
-    public void displayPellets(List<Entity> liste){
-        for(Entity pellet : liste){
+    public void displayPellets(List<Entity> liste) {
+        List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
+
+        for (Entity pellet : liste) {
             Circle pelletCircle = new Circle();
 
-            List<String> colors = new ArrayList<>();
-            colors.add("#951b8a");colors.add("#4175ba");colors.add("#12b1af");
+            pelletColors.putIfAbsent(pellet, colors.get(new Random().nextInt(colors.size())));
 
-            pelletCircle.setFill(Paint.valueOf("#4175ba"/*colors.get(new Random().nextInt(3))*/));
+            pelletCircle.setFill(Paint.valueOf(pelletColors.get(pellet)));
             pelletCircle.centerXProperty().bind(pellet.getPosXProperty());
             pelletCircle.centerYProperty().bind(pellet.getPosYProperty());
             pelletCircle.radiusProperty().bind(pellet.getRadiusProperty());
@@ -121,7 +115,8 @@ public class GameController implements Initializable {
         }
     }
 
-    public void displayPlayer(){
+
+    public void displayPlayer() {
         Circle playerCircle = new Circle();
         playerCircle.setFill(Paint.valueOf("#251256"));
         playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
@@ -129,5 +124,6 @@ public class GameController implements Initializable {
         playerCircle.radiusProperty().bindBidirectional(player.getRadiusProperty());
         GamePane.getChildren().add(playerCircle);
     }
+
 
 }
