@@ -63,7 +63,7 @@ public class LauncherController {
 
         scene.setOnMouseMoved(event ->{
             playerInput.handle(event);
-            pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
+            pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 600, 600);
             System.out.println("Mouse moved : " + pl.getPosX() + " Y : " + pl.getPosY());
         });
 
