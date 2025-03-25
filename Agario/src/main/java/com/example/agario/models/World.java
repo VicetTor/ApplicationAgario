@@ -12,6 +12,10 @@ public class World {
         this.quadTree = quadTree;
     }
 
+    public QuadTree getQuadTree() {
+        return quadTree;
+    }
+
     public void UpdateWorld(){
         HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
     }
