@@ -27,7 +27,7 @@ public class Game {
     }
 
     public void createRandomPellets(){
-        for (int nb = 0; nb < 150; nb++){
+        for (int nb = 0; nb < 1000; nb++){
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
             System.out.println(nb);

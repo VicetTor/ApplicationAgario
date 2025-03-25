@@ -7,6 +7,7 @@ import com.example.agario.models.PlayerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class QuadTree {
     private static int MAX_DEPTH = 6;
@@ -70,6 +71,23 @@ public class QuadTree {
         southEast = new QuadTree(this.depth + 1, new Dimension(xOffset, yOffset, this.dimension.getxMax(), this.dimension.getyMax()));
     }
 
+    public void generatePelletsIfNeeded(Dimension cameraView, int minPellets) {
+        List<Entity> visiblePellets = new ArrayList<>();
+        DFSChunk(this, cameraView, visiblePellets);
+
+        if (visiblePellets.size() < minPellets) {
+            Random rand = new Random();
+            int pelletsToAdd = minPellets - visiblePellets.size();
+            for (int i = 0; i < pelletsToAdd; i++) {
+                double x = cameraView.getxMin() + rand.nextDouble() * (cameraView.getxMax() - cameraView.getxMin());
+                double y = cameraView.getyMin() + rand.nextDouble() * (cameraView.getyMax() - cameraView.getyMin());
+
+                PelletFactory pelletFactory = new PelletFactory(x, y);
+                Entity newPellet = pelletFactory.launchFactory();
+                insertNode(newPellet);
+            }
+        }
+    }
     public void insertNode(Entity entity) {
         double x = entity.getPosX();
         double y = entity.getPosY();
@@ -107,9 +125,9 @@ public class QuadTree {
         if (tree == null)
             return;
 
-        System.out.printf("\nDepth = %d [XMin = %f YMin = %f] \t[XMax = %f YMax = %f] ",
+        /*System.out.printf("\nDepth = %d [XMin = %f YMin = %f] \t[XMax = %f YMax = %f] ",
                 tree.depth, tree.dimension.getxMin(), tree.dimension.getyMin(),
-                tree.dimension.getxMax(), tree.dimension.getyMax());
+                tree.dimension.getxMax(), tree.dimension.getyMax());*/
 
         for (Entity entity : tree.entities) {
             if(dimension.inRange(entity.getPosX(), entity.getPosY())){
@@ -119,7 +137,7 @@ public class QuadTree {
         }
 
         if (tree.entities.size() == 0) {
-            System.out.printf(" \n\t  Leaf Node.");
+            //System.out.printf(" \n\t  Leaf Node.");
         }
 
         DFSChunk(tree.northWest, dimension, resultat);
