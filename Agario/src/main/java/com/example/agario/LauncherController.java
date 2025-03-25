@@ -36,6 +36,7 @@ public class LauncherController {
         GameController controller = fxmlLoader.getController();
 
         stage.setResizable(true);
+        stage.setTitle("Agar.Io");
         stage.setScene(scene);
         stage.show();
     }
