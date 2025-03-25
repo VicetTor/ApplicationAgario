@@ -40,31 +40,6 @@ public class LauncherController {
         stage.setResizable(true);
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
-
-        PlayerInput playerInput = new PlayerInput();
-
-        /*scene.setOnMouseMoved(playerInput);
-        PlayerFactory p = new PlayerFactory("oui");
-        Player pl = (Player) p.launchFactory();
-
-        new Thread(()->{
-            while(true){
-                pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
-                System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
-                try {
-                    Thread.sleep(150);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }).start();
-
-        scene.setOnMouseMoved(event ->{
-            playerInput.handle(event);
-            pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
-            System.out.println("Mouse moved : " + pl.getPosX() + " Y : " + pl.getPosY());
-        });*/
-
         stage.show();
     }
 }

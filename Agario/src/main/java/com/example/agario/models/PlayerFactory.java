@@ -11,6 +11,6 @@ public class PlayerFactory extends EntityFactory{
 
     @Override
     public Entity launchFactory() {
-        return new Player(300, 300, nom);
+        return new Player(300,300, nom);
     }
 }
