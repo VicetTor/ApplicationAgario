@@ -34,7 +34,20 @@ public class Game {
         }
     }
 
-    public void UpdateWorld(){
+    public void updateWorld(){
         HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
+    }
+
+    public void eatPellet(List<Entity> liste, Player player){
+        for(Entity pellet : liste){
+            if(pellet instanceof Pellet){
+                double dx = (player.getPosX() - pellet.getPosX());
+                double dy = (player.getPosY() - pellet.getPosY());
+                double squareDistance = dx*dx + dy*dy;
+                if(squareDistance <= player.getRadius()*player.getRadius()){
+                    quadTree.removeNode(pellet, quadTree);
+                }
+            }
+        }
     }
 }

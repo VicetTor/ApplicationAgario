@@ -17,7 +17,7 @@ public class PlayerInput implements EventHandler<MouseEvent> {
         mouseX = mouseEvent.getX();
         mouseY = mouseEvent.getY();
 
-        System.out.println("Mouse moved to: X = " + mouseX + ", Y = " + mouseY);
+        //System.out.println("Mouse moved to: X = " + mouseX + ", Y = " + mouseY);
 
     }
 

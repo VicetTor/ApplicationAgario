@@ -11,6 +11,7 @@ import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -53,7 +54,6 @@ public class GameController implements Initializable {
         PlayerInput playerInput = new PlayerInput();
         Camera cam = new Camera(player);
 
-
         GamePane.setOnMouseMoved(playerInput);
 
         new Thread(() -> {
@@ -70,6 +70,7 @@ public class GameController implements Initializable {
                     GamePane.setTranslateX(offsetX);
                     GamePane.setTranslateY(offsetY);
                     List<Entity> liste = new ArrayList<>();
+
                     Dimension cameraView = new Dimension(
                             -GamePane.getTranslateX(),
                             -GamePane.getTranslateY(),
@@ -83,11 +84,12 @@ public class GameController implements Initializable {
                     // Récupérer les pellets dans la zone visible
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, liste);
 
+                    gameModel.eatPellet(liste, player);
+
                     GamePane.getChildren().clear();
                     displayPlayer();
                     displayPellets(liste);
                 });
-
 
                 try {
                     Thread.sleep(33);
@@ -110,7 +112,7 @@ public class GameController implements Initializable {
             List<String> colors = new ArrayList<>();
             colors.add("#951b8a");colors.add("#4175ba");colors.add("#12b1af");
 
-            pelletCircle.setFill(Paint.valueOf("#736fad"));
+            pelletCircle.setFill(Paint.valueOf("#4175ba"/*colors.get(new Random().nextInt(3))*/));
             pelletCircle.centerXProperty().bind(pellet.getPosXProperty());
             pelletCircle.centerYProperty().bind(pellet.getPosYProperty());
             pelletCircle.radiusProperty().bind(pellet.getRadiusProperty());
