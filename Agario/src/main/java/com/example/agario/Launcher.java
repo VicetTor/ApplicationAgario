@@ -4,6 +4,7 @@ import com.example.agario.input.PlayerInput;
 import com.example.agario.models.Player;
 import com.example.agario.models.PlayerFactory;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.input.MouseEvent;
@@ -23,11 +24,16 @@ public class Launcher extends Application {
         PlayerFactory p = new PlayerFactory("oui");
         Player pl = (Player) p.launchFactory();
 
+        new Thread(() ->{
+            while(true) {
+                pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+                System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
+            }
+        }).start();
+
         scene.setOnMouseMoved(event ->{
-            playerInput.handle(event);
-            pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
-            pl.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
-            System.out.println("NewX : " + pl.getPosX() + " NewY : " + pl.getPosY());
+                playerInput.handle(event);
+                pl.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), 320, 240);
         });
 
         stage.setTitle("Hello!");
