@@ -3,6 +3,9 @@ package com.example.agario.controllers;
 import com.example.agario.input.PlayerInput;
 import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
+import com.example.agario.models.Entity;
+import com.example.agario.models.Player;
+import com.example.agario.models.Game;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
@@ -16,6 +19,7 @@ import javafx.scene.shape.Circle;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
     @FXML private TextField TchatTextField;
@@ -41,16 +45,24 @@ public class GameController implements Initializable {
         gameModel = new Game(new QuadTree(0, dimension), player);
 
         gameModel.createRandomPellets();
-        gameModel.getQuadTree().insertNode(player);
 
         PlayerInput playerInput = new PlayerInput();
 
         GamePane.setOnMouseMoved(playerInput);
 
         new Thread(() -> {
+            AtomicReference<Double> dx = new AtomicReference<>(playerInput.getMouseX() - player.getPosX());
+            AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
+                GamePane.setOnMouseMoved(e -> {
+                    playerInput.handle(e);
+                    dx.set(playerInput.getMouseX() - player.getPosX());
+                    dy.set(playerInput.getMouseY() - player.getPosY());
+                });
+                System.out.println(dx);
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
-                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+
+                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
                 for (Entity robot : gameModel.getRobots()){
                     if(robot instanceof IA){
@@ -145,4 +157,38 @@ public class GameController implements Initializable {
     public double getPaneHeight(){return GamePane.getHeight(); }
 
 
+    /*public void ecoute() {
+        PlayerInput playerInput = new PlayerInput();
+        Camera cam = new Camera(player);
+        List<Entity> liste = new ArrayList<>();
+        Game gameModel= new Game(new QuadTree(1, new Dimension(0,0,getPaneWidth(),getPaneHeight())));
+        QuadTree.DFSChunk(gameModel.getQuadTree() ,cam , liste );
+
+
+
+        new Thread(()->{
+            playerInput.setMouseX(getPaneWidth()/2);
+            playerInput.setMouseY(getPaneHeight()/2);
+            while(true){
+                GamePane.setOnMouseMoved(playerInput);
+                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), getPaneWidth(), getPaneHeight());
+
+                System.out.println("Player position: " + player.getPosX() + ", " + player.getPosY());
+
+                List<Double> lst = cam.updateCameraPosition(getPaneWidth(), getPaneHeight());
+                GamePane.setTranslateX(lst.get(0));
+                GamePane.setTranslateY(lst.get(1));
+
+                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+
+                System.out.println("NewX : " + player.getPosX() + " NewY : " + player.getPosY());
+                try {
+                    Thread.sleep(33);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+
+    }*/
 }

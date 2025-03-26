@@ -27,10 +27,16 @@ public class Game {
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
         this.player = player;
+        quadTree.insertNode(player);
 
         //initialisation des IA
         this.robots = new ArrayList<>();
         robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
+        robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
+        robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
+        for(Entity entity : robots){
+            quadTree.insertNode(entity);
+        }
     }
 
     public Player getPlayer() {
