@@ -41,7 +41,6 @@ public class GameController implements Initializable {
         gameModel = new Game(new QuadTree(0, dimension), player);
 
         gameModel.createRandomPellets();
-        gameModel.getQuadTree().insertNode(player);
 
         PlayerInput playerInput = new PlayerInput();
 
