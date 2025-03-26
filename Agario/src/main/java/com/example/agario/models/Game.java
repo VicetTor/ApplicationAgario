@@ -1,5 +1,6 @@
 package com.example.agario.models;
 
+import com.example.agario.controllers.GameController;
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
@@ -73,7 +74,7 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
     }
 
-    public void eatPellet(List<Entity> pellets, MovableEntity movableEntity) {
+    public void eatPellet(List<Entity> pellets, MovableEntity movableEntity, GameController g) {
         List<Entity> pelletsToRemove = new ArrayList<>();
 
         for (Entity pellet : pellets) {
@@ -81,7 +82,8 @@ public class Game {
             double dy = movableEntity.getPosY() - pellet.getPosY();
             double squareDistance = dx * dx + dy * dy;
 
-            if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()) {
+            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius() *2) ) {
+                g.animatePelletConsumption(pellet);
                 // Ajouter à la liste de suppression
                 pelletsToRemove.add(pellet);
 

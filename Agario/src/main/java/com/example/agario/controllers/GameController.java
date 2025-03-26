@@ -6,6 +6,8 @@ import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
+import javafx.animation.Interpolator;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -20,6 +22,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.*;
@@ -36,8 +39,8 @@ public class GameController implements Initializable {
     @FXML private GridPane gridPane;
     @FXML private BorderPane GameBorderPane;
 
-    private final Map<Entity, Circle> entityCircles = new HashMap<>();
-    private final Map<Entity, String> pelletColors = new HashMap<>();
+    private Map<Entity, Circle> entityCircles = new HashMap<>();
+    private Map<Entity, String> pelletColors = new HashMap<>();
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private Player player;
@@ -104,10 +107,11 @@ public class GameController implements Initializable {
                 player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
                 updateRobots();
 
-                Platform.runLater(() -> setEntities((HashMap<Entity, Circle>) entityCircles));
+                Platform.runLater(() -> {
+                    setEntities((HashMap<Entity, Circle>) entityCircles);
+                    updateGameDisplay(camera, dx.get(), dy.get());
+                });
 
-                // Update display
-                Platform.runLater(() -> updateGameDisplay(camera, dx.get(), dy.get()));
 
                 try {
                     Thread.sleep(33); // ~30 FPS
@@ -142,11 +146,23 @@ public class GameController implements Initializable {
         // Update player speed
         player.setSpeed(dx, dy, stage.getHeight()/2, stage.getWidth()/2);
 
-        // Handle collisions
-        gameModel.eatPellet(visibleEntities, player);
-
         // Render all entities
         renderEntities(visibleEntities);
+
+        // Handle collisions
+        gameModel.eatPellet(visibleEntities, player,this);
+    }
+
+
+    public void animatePelletConsumption(Entity pellet) {
+        TranslateTransition transition = new TranslateTransition();
+        transition.setNode(entityCircles.get(pellet));
+        transition.setDuration(Duration.millis(50));
+        transition.setToX(player.getPosX() - entityCircles.get(pellet).getCenterX());
+        transition.setToY(player.getPosY() - entityCircles.get(pellet).getCenterY());
+        transition.setAutoReverse(true);
+        transition.setInterpolator(Interpolator.EASE_OUT);
+        transition.play();
     }
 
     private void applyCameraTransform(Camera camera) {
