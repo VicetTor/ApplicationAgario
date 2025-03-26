@@ -16,6 +16,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 
 import java.net.URL;
 import java.util.*;
@@ -65,29 +67,42 @@ public class GameController implements Initializable {
                 player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY(),WIDTH, HEIGHT);
 
                 Platform.runLater(() -> {
-                    double offsetX = getPaneWidth() / 2 - player.getPosX();
-                    double offsetY = getPaneHeight() / 2 - player.getPosY();
-                    GamePane.setTranslateX(offsetX);
-                    GamePane.setTranslateY(offsetY);
-                    List<Entity> liste = new ArrayList<>();
+                    cam.updateCameraDimensions();
 
-                    Dimension cameraView = new Dimension(
-                            -GamePane.getTranslateX(),
-                            -GamePane.getTranslateY(),
-                            -GamePane.getTranslateX() + getPaneWidth(),
-                            -GamePane.getTranslateY() + getPaneHeight()
+                    double screenCenterX = getPaneWidth() / 2;
+                    double screenCenterY = getPaneHeight() / 2;
+
+                    double scale = 1.0 / cam.getZoomFactor();
+                    double translateX = screenCenterX - (player.getPosX() * scale);
+                    double translateY = screenCenterY - (player.getPosY() * scale);
+
+                    GamePane.getTransforms().clear();
+                    GamePane.getTransforms().addAll(
+                            new Translate(translateX, translateY),
+                            new Scale(scale, scale, 0, 0)
                     );
+
+                    double inverseScale = 1.0 / scale;
+                    Dimension cameraView = new Dimension(
+                            -translateX * inverseScale,
+                            -translateY * inverseScale,
+                            (-translateX + getPaneWidth()) * inverseScale,
+                            (-translateY + getPaneHeight()) * inverseScale
+                    );
+
 
                     gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
 
-                    QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, liste);
+                    List<Entity> entities = new ArrayList<>();
+                    QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, entities);
 
-                    gameModel.eatPellet(liste, player);
+                    gameModel.eatPellet(entities, player);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
-                    displayPellets(liste);
+                    displayPellets(entities);
                 });
+
 
                 try {
                     Thread.sleep(33);
