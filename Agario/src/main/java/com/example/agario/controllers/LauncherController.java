@@ -31,11 +31,11 @@ public class LauncherController {
         Scene scene = new Scene(fxmlLoader.load());
         GameController controller = fxmlLoader.getController();
 
-
         stage.setResizable(true);
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
 
+        controller.setStage(stage);
         //controller.ecoute();
 
         stage.show();

@@ -1,5 +1,6 @@
 package com.example.agario.controllers;
 
+import com.example.agario.Launcher;
 import com.example.agario.input.PlayerInput;
 import com.example.agario.models.Entity;
 import com.example.agario.models.Player;
@@ -12,6 +13,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
@@ -22,6 +24,7 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.*;
@@ -32,6 +35,9 @@ public class GameController implements Initializable {
     private TextField TchatTextField;
     @FXML
     private Pane GamePane;
+
+    @FXML
+    private AnchorPane OuterPane;
     @FXML
     private GridPane gridPane;
 
@@ -54,12 +60,19 @@ public class GameController implements Initializable {
 
     private Circle playerCircle;
 
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    private Stage stage;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
         GamePane.setStyle("-fx-background-color:white;");
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
+
 
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
@@ -88,6 +101,17 @@ public class GameController implements Initializable {
             }
         }).start();
 
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(2);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
 
 
         new Thread(() -> {
@@ -95,20 +119,15 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
                 GamePane.setOnMouseMoved(e -> {
-
+                    System.out.println("sfsfdfd");
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
-
-
-                double maxDistanceCursor = getPaneWidth();
-                if (maxDistanceCursor < getPaneHeight()) maxDistanceCursor = getPaneHeight();
-                player.setSpeed(dx.get(), dy.get(), maxDistanceCursor);
-
-                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
+                player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
 
                 Platform.runLater(() -> {
+
                     cam.updateCameraDimensions();
 
                     double screenCenterX = getPaneWidth() / 2;
@@ -123,6 +142,11 @@ public class GameController implements Initializable {
                             new Translate(translateX, translateY),
                             new Scale(scale, scale, 0, 0)
                     );
+
+                    double x = stage.getHeight()/2;
+                    double y = stage.getWidth()/2;
+
+                    player.setSpeed(dx.get(), dy.get(), x,y);
 
 
                     double inverseScale = 1.0 / scale;
