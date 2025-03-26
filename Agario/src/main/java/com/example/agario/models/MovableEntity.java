@@ -25,31 +25,42 @@ public class MovableEntity extends Entity{
         this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
     }
 
-    public void updatePosition(double xCursor, double yCursor) {
-        double dx = xCursor - this.getPosX();
-        double dy = yCursor - this.getPosY();
+    public void updatePosition(double xCursor, double yCursor, double screenWidth, double screenHeight){
+
+        double currentPosXPoint = screenWidth / 2;
+        double currentPosYPoint = screenHeight / 2;
+
+        double dx = xCursor - currentPosXPoint;
+        double dy = yCursor - currentPosYPoint;
+
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
-        // Vérification pour éviter la division par zéro
+
         if (distanceEuclidienne > 1) {
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
         }
 
-        double newX = this.getPosX() + dirX * speed;
-        double newY = this.getPosY() + dirY * speed;
+        // double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
 
-        // Obtenir les dimensions réelles de la zone de jeu
-        double maxX = 600;
-        double maxY = 600;
+        double q = this.getPosX() + dirX * speed;
+        double a = this.getPosY() + dirY * speed;
 
-        // Limiter le joueur aux bords du jeu
-        newX = Math.max(0, Math.min(newX, maxX - 1));
-        newY = Math.max(0, Math.min(newY, maxY - 1));
+        // 🚀
+        if (q <= 0) {
+            q = 1;
+        } else if (q >= screenWidth - 1) {
+            q = screenWidth - 2;
+        }
 
-        // Mise à jour des coordonnées
-        this.setPosX(newX);
-        this.setPosY(newY);
+        if (a <= 0) {
+            a = 1;
+        } else if (a >= screenHeight - 1) {
+            a = screenHeight - 2;
+        }
+
+        this.setPosX(q);
+        this.setPosY(a);
     }
 
 

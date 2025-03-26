@@ -29,6 +29,22 @@ public class Dimension {
         return yMax;
     }
 
+    public void setxMin(double xMin) {
+        this.xMin = xMin;
+    }
+
+    public void setyMin(double yMin) {
+        this.yMin = yMin;
+    }
+
+    public void setxMax(double xMax) {
+        this.xMax = xMax;
+    }
+
+    public void setyMax(double yMax) {
+        this.yMax = yMax;
+    }
+
     public boolean inRange(double x, double y) {
         return (x >= this.getxMin() && x <= this.getxMax() && y >= this.getyMin() && y <= this.getyMax());
     }

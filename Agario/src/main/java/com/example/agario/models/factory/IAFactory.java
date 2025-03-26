@@ -1,4 +1,7 @@
-package com.example.agario.models;
+package com.example.agario.models.factory;
+
+import com.example.agario.models.Entity;
+import com.example.agario.models.IA;
 
 public class IAFactory extends EntityFactory{
     @Override
