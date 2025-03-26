@@ -50,15 +50,20 @@ public class GameController implements Initializable {
         new Thread(() -> {
             while (true) {
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
-
                 player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY());
+
+                for (Entity robot : gameModel.getRobots()){
+                    if(robot instanceof IA){
+                        ((IA) robot).IAstart();
+                    }
+                }
 
                 Platform.runLater(() -> {
                     double offsetX = getPaneWidth() / 2 - player.getPosX();
                     double offsetY = getPaneHeight() / 2 - player.getPosY();
                     GamePane.setTranslateX(offsetX);
                     GamePane.setTranslateY(offsetY);
-                    List<Entity> liste = new ArrayList<>();
+                    List<Entity> pelletsList = new ArrayList<>();
 
                     Dimension cameraView = new Dimension(
                             -GamePane.getTranslateX(),
@@ -69,16 +74,19 @@ public class GameController implements Initializable {
 
                     gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
 
-                    QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, liste);
+                    QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, pelletsList);
 
-                    gameModel.eatPellet(liste, player);
+                    for (Entity robot : gameModel.getRobots()){
+                        if(robot instanceof IA){
+                            gameModel.eatPellet(pelletsList, (IA) robot);
+                        }
+                    }
+                    gameModel.eatPellet(pelletsList, player);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
-                    displayPellets(liste);
-                    for (Entity robot : gameModel.getRobots()){
-                        displayRobot(robot);
-                    }
+                    displayPellets(pelletsList);
+                    displayRobot(gameModel.getRobots());
                 });
 
                 try {
@@ -91,10 +99,10 @@ public class GameController implements Initializable {
 
     }
 
-    public void displayPellets(List<Entity> liste) {
+    public void displayPellets(List<Entity> pelletsList) {
         List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
 
-        for (Entity pellet : liste) {
+        for (Entity pellet : pelletsList) {
             Circle pelletCircle = new Circle();
 
             pelletColors.putIfAbsent(pellet, colors.get(new Random().nextInt(colors.size())));
@@ -119,15 +127,17 @@ public class GameController implements Initializable {
         GamePane.getChildren().add(playerCircle);
     }
 
-    public void displayRobot(Entity robot) {
-        Circle robotCircle = new Circle();
+    public void displayRobot(List<Entity> robotsList) {
+        for (Entity robot : robotsList) {
+            Circle robotCircle = new Circle();
 
-        robotCircle.setFill(Paint.valueOf("#8cb27a"));
-        robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
-        robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
-        robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
+            robotCircle.setFill(Paint.valueOf("#8cb27a"));
+            robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
+            robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
+            robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
 
-        GamePane.getChildren().add(robotCircle);
+            GamePane.getChildren().add(robotCircle);
+        }
     }
 
     public double getPaneWidth(){return GamePane.getWidth();}

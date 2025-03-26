@@ -53,21 +53,15 @@ public class Game {
         }
     }
 
-    public void updateWorld(){
-        HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
-    }
-
-    public void eatPellet(List<Entity> liste, Player player){
+    public void eatPellet(List<Entity> liste, MovableEntity movableEntity){
         for(Entity pellet : liste){
-            if(pellet instanceof Pellet){
-                double dx = (player.getPosX() - pellet.getPosX());
-                double dy = (player.getPosY() - pellet.getPosY());
-                double squareDistance = dx*dx + dy*dy;
-                if(squareDistance <= player.getRadius()*player.getRadius()){
-                    quadTree.removeNode(pellet, quadTree);
-                    double newRadius = player.getRadius()+1;
-                    player.setRadius(newRadius);
-                }
+            double dx = (movableEntity.getPosX() - pellet.getPosX());
+            double dy = (movableEntity.getPosY() - pellet.getPosY());
+            double squareDistance = dx*dx + dy*dy;
+            if(squareDistance <= movableEntity.getRadius()*player.getRadius()){
+                quadTree.removeNode(pellet, quadTree);
+                double newRadius = movableEntity.getRadius()+1;
+                movableEntity.setRadius(newRadius);
             }
         }
     }
