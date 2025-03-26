@@ -46,10 +46,10 @@ public class Game {
     }
 
     public void createRandomPellets(){
-        for (int nb = 0; nb < 1000; nb++){
+        for (int nb = 0; nb < 500; nb++){
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
-            System.out.println(nb);
+            //System.out.println(nb);
         }
     }
 
@@ -57,17 +57,15 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
     }
 
-    public void eatPellet(List<Entity> liste, Entity entity){
+    public void eatPellet(List<Entity> liste, MovableEntity movableEntity){
         for(Entity pellet : liste){
-            if(pellet instanceof Pellet){
-                double dx = (entity.getPosX() - pellet.getPosX());
-                double dy = (entity.getPosY() - pellet.getPosY());
-                double squareDistance = dx*dx + dy*dy;
-                if(squareDistance <= entity.getRadius()*entity.getRadius()){
-                    quadTree.removeNode(pellet, quadTree);
-                    double newRadius = entity.getRadius()+1;
-                    entity.setRadius(newRadius);
-                }
+            double dx = (movableEntity.getPosX() - pellet.getPosX());
+            double dy = (movableEntity.getPosY() - pellet.getPosY());
+            double squareDistance = dx*dx + dy*dy;
+            if(squareDistance <= movableEntity.getRadius()*player.getRadius()){
+                quadTree.removeNode(pellet, quadTree);
+                double newRadius = movableEntity.getRadius()+1;
+                movableEntity.setRadius(newRadius);
             }
         }
     }
