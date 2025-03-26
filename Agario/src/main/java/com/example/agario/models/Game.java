@@ -34,14 +34,10 @@ public class Game {
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
         this.player = player;
-        quadTree.insertNode(player);
 
         //initialisation des IA
         this.robots = new ArrayList<>();
         robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
-        for(Entity entity : robots){
-            quadTree.insertNode(entity);
-        }
     }
 
     public Player getPlayer() {
@@ -60,21 +56,21 @@ public class Game {
         for (int nb = 0; nb < limite; nb++){
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
-            System.out.println(nb);
+            //System.out.println(nb);
         }
     }
 
-
-
     public void eatPellet(List<Entity> liste, MovableEntity movableEntity) {
         for (Entity pellet : liste) {
-            double dx = (movableEntity.getPosX() - pellet.getPosX());
-            double dy = (movableEntity.getPosY() - pellet.getPosY());
-            double squareDistance = dx * dx + dy * dy;
-            if (squareDistance <= movableEntity.getRadius() * player.getRadius()) {
-                quadTree.removeNode(pellet, quadTree);
-                double newMass = player.getMass() + 1;
-                player.setMass(newMass);
+            if(pellet instanceof Pellet){
+                double dx = (movableEntity.getPosX() - pellet.getPosX());
+                double dy = (movableEntity.getPosY() - pellet.getPosY());
+                double squareDistance = dx * dx + dy * dy;
+                if (squareDistance <= movableEntity.getRadius() * player.getRadius()) {
+                    quadTree.removeNode(pellet, quadTree);
+                    double newMass = player.getMass() + 1;
+                    player.setMass(newMass);
+                }
             }
         }
     }

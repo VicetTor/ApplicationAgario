@@ -9,14 +9,17 @@ import javafx.util.Duration;
 
 public abstract class Entity {
 
-    private static int id = 0;
+    private static int entitiesCounter = 0;
+
+    private int id;
     private DoubleProperty posX = new SimpleDoubleProperty();
     private DoubleProperty posY = new SimpleDoubleProperty();
     private double mass;
     private DoubleProperty radius = new SimpleDoubleProperty();
 
     public Entity(double x, double y, double mass){
-        this.id = ++this.id;
+        entitiesCounter++;
+        this.id = entitiesCounter;
         this.posX.set(x);
         this.posY.set(y);
         this.mass = mass;
@@ -70,9 +73,5 @@ public abstract class Entity {
 
     public void setPosY(double posY) {
         this.posY.set(posY);
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 }
