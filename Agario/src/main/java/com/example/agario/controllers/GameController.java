@@ -72,7 +72,7 @@ public class GameController implements Initializable {
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
                 System.out.println(dx);
-                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
+                player.setSpeed(dx.get(), dy.get());
 
                 player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 

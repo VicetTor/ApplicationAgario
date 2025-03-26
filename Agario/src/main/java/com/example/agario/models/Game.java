@@ -56,15 +56,6 @@ public class Game {
                     double newMass = player.getMass() + 0.5;
                     player.setMass(newMass);
 
-                    FillTransition colorTransition = new FillTransition(Duration.seconds(1), playerCircle);
-                    colorTransition.setFromValue(Color.BLUE);  // Couleur avant
-                    colorTransition.setToValue(Color.RED);     // Couleur après
-                    colorTransition.setCycleCount(2); // Revenir à la couleur initiale
-                    colorTransition.setAutoReverse(true);
-                    colorTransition.play();
-
-
-
                 }
             }
         }
