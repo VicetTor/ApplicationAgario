@@ -146,7 +146,7 @@ public class GameController implements Initializable {
 
                     for (Entity robot : gameModel.getRobots()){
                         if(robot instanceof IA){
-                           // gameModel.eatPellet(pelletsList, (IA) robot, entitieCircles.get(player));
+                           //gameModel.eatPellet(pelletsList, (IA) robot, entitieCircles.get(player), entitieCircles);
                         }
                     }
 
