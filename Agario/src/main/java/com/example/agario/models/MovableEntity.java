@@ -5,12 +5,21 @@ public class MovableEntity extends Entity{
     private String name;
     private final double initialSpeed = 10;
     private double speed = initialSpeed;
+
     private double dirX = 0;
     private double dirY = 0;
 
 
     public MovableEntity(double x, double y, double mass) {
         super(x, y, mass);
+    }
+
+    public double getDirX() {
+        return dirX;
+    }
+
+    public double getDirY() {
+        return dirY;
     }
 
     public void setSpeed(double dx, double dy, double x, double y){

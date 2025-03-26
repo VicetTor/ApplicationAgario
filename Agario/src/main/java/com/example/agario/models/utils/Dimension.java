@@ -1,4 +1,4 @@
-package com.example.agario.utils;
+package com.example.agario.models.utils;
 
 public class Dimension {
     private double xMin;
@@ -47,5 +47,12 @@ public class Dimension {
 
     public boolean inRange(double x, double y) {
         return (x >= this.getxMin() && x <= this.getxMax() && y >= this.getyMin() && y <= this.getyMax());
+    }
+    public double getWidth() {
+        return this.getxMax() - this.getxMin();
+    }
+
+    public double getHeight() {
+        return this.getyMax() - this.getyMin();
     }
 }

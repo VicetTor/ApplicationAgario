@@ -2,7 +2,7 @@ package com.example.agario.models;
 
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
-import com.example.agario.utils.QuadTree;
+import com.example.agario.models.utils.QuadTree;
 
 import java.util.ArrayList;
 import java.util.HashMap;

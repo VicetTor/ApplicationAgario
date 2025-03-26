@@ -1,4 +1,4 @@
-package com.example.agario.utils;
+package com.example.agario.models.utils;
 
 import com.example.agario.models.Entity;
 import com.example.agario.models.factory.PelletFactory;
@@ -157,6 +157,10 @@ public class QuadTree {
         DFSChunk(tree.northEast, dimension, resultat);
         DFSChunk(tree.southWest, dimension, resultat);
         DFSChunk(tree.southEast, dimension, resultat);
+    }
+
+    public static void setMAX_DEPTH(int maxDepth) {
+        MAX_DEPTH = maxDepth;
     }
 
     /*public static void main(String args[]) {
