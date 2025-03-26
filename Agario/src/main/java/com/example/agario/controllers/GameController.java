@@ -6,16 +6,23 @@ import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.Entity;
 import com.example.agario.models.Player;
 import com.example.agario.models.Game;
+import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 
 import java.net.URL;
 import java.util.*;
@@ -27,79 +34,132 @@ public class GameController implements Initializable {
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
 
+    @FXML
+    private GridPane gridPane;
+
+    @FXML
+    private BorderPane GameBorderPane;
+
     private final Map<Entity, String> pelletColors = new HashMap<>();
+
+    private final Map<Entity, Circle> entitieCircles = new HashMap<>();
 
     private Game gameModel;
 
     // Taille plus grande de la carte
-    public final int HEIGHT = 2000;
-    public final int WIDTH = 2000;
+    public final int HEIGHT = 10000;
+    public final int WIDTH = 10000;
+    private Dimension dimension;
     private Player player;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+
+        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
+
+        GamePane.setStyle("-fx-background-color:white;");
+        GamePane.setMinWidth(WIDTH);
+        GamePane.setMinHeight(HEIGHT);
+
+        GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+
         System.out.println("Initialisation");
 
-        Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
-        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
-        gameModel = new Game(new QuadTree(0, dimension), player);
+        dimension = new Dimension(0, 0, WIDTH, HEIGHT);
+        gameModel = new Game(new QuadTree(0,dimension), player);
+        gameModel.createRandomPellets(1000);
 
-        gameModel.createRandomPellets();
 
         PlayerInput playerInput = new PlayerInput();
+        Camera cam = new Camera(player);
 
         GamePane.setOnMouseMoved(playerInput);
+
+
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(2);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
 
         new Thread(() -> {
             AtomicReference<Double> dx = new AtomicReference<>(playerInput.getMouseX() - player.getPosX());
             AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
                 GamePane.setOnMouseMoved(e -> {
+
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
-                System.out.println(dx);
-                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
+
+
+                player.setSpeed(dx.get(), dy.get(), getPaneWidth(), getPaneHeight());
 
                 player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
                 for (Entity robot : gameModel.getRobots()){
                     if(robot instanceof IA){
-                        ((IA) robot).IAstart();
+                        ((IA) robot).setPositionIA();
                     }
                 }
 
                 Platform.runLater(() -> {
-                    double offsetX = getPaneWidth() / 2 - player.getPosX();
-                    double offsetY = getPaneHeight() / 2 - player.getPosY();
-                    GamePane.setTranslateX(offsetX);
-                    GamePane.setTranslateY(offsetY);
+
                     List<Entity> pelletsList = new ArrayList<>();
 
-                    Dimension cameraView = new Dimension(
-                            -GamePane.getTranslateX(),
-                            -GamePane.getTranslateY(),
-                            -GamePane.getTranslateX() + getPaneWidth(),
-                            -GamePane.getTranslateY() + getPaneHeight()
+                    cam.updateCameraDimensions();
+
+
+                    double screenCenterX = getPaneWidth() / 2;
+                    double screenCenterY = getPaneHeight() / 2;
+
+                    double scale = 1.0 / cam.getZoomFactor();
+                    double translateX = screenCenterX - (player.getPosX() * scale);
+                    double translateY = screenCenterY - (player.getPosY() * scale);
+
+                    GamePane.getTransforms().clear();
+                    GamePane.getTransforms().addAll(
+                            new Translate(translateX, translateY),
+                            new Scale(scale, scale, 0, 0)
                     );
 
-                    gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
+
+                    double inverseScale = 1.0 / scale;
+                    Dimension cameraView = new Dimension(
+                            -translateX * inverseScale,
+                            -translateY * inverseScale,
+                            (-translateX + getPaneWidth()) * inverseScale,
+                            (-translateY + getPaneHeight()) * inverseScale
+                    );
 
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, pelletsList);
 
                     for (Entity robot : gameModel.getRobots()){
                         if(robot instanceof IA){
-                            gameModel.eatPellet(pelletsList, (IA) robot);
+                           //gameModel.eatPellet(pelletsList, (IA) robot, entitieCircles.get(player), entitieCircles);
                         }
                     }
-                    gameModel.eatPellet(pelletsList, player);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
+
+                    gameModel.eatPellet(pelletsList, player, entitieCircles.get(player), entitieCircles);
+
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
+
                 });
+
 
                 try {
                     Thread.sleep(33);
@@ -115,38 +175,40 @@ public class GameController implements Initializable {
         List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
 
         for (Entity pellet : pelletsList) {
-            Circle pelletCircle = new Circle();
+
+            entitieCircles.putIfAbsent(pellet,new Circle());
 
             pelletColors.putIfAbsent(pellet, colors.get(new Random().nextInt(colors.size())));
 
-            pelletCircle.setFill(Paint.valueOf(pelletColors.get(pellet)));
-            pelletCircle.centerXProperty().bind(pellet.getPosXProperty());
-            pelletCircle.centerYProperty().bind(pellet.getPosYProperty());
-            pelletCircle.radiusProperty().bind(pellet.getRadiusProperty());
+            entitieCircles.get(pellet).setFill(Paint.valueOf(pelletColors.get(pellet)));
+            entitieCircles.get(pellet).centerXProperty().bind(pellet.getPosXProperty());
+            entitieCircles.get(pellet).centerYProperty().bind(pellet.getPosYProperty());
+            entitieCircles.get(pellet).radiusProperty().bind(pellet.getRadiusProperty());
 
-            GamePane.getChildren().add(pelletCircle);
+            GamePane.getChildren().add(entitieCircles.get(pellet));
         }
     }
 
     public void displayPlayer() {
-        Circle playerCircle = new Circle();
 
-        playerCircle.setFill(Paint.valueOf("#251256"));
-        playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
-        playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
-        playerCircle.radiusProperty().bindBidirectional(player.getRadiusProperty());
+        entitieCircles.putIfAbsent(player,new Circle());
+        entitieCircles.get(player).setFill(Paint.valueOf("#251256"));
+        entitieCircles.get(player).centerXProperty().bind(player.getPosXProperty());
+        entitieCircles.get(player).centerYProperty().bind(player.getPosYProperty());
+        entitieCircles.get(player).radiusProperty().bind(player.getRadiusProperty());
 
-        GamePane.getChildren().add(playerCircle);
+        GamePane.getChildren().add(entitieCircles.get(player));
     }
+
 
     public void displayRobot(List<Entity> robotsList) {
         for (Entity robot : robotsList) {
             Circle robotCircle = new Circle();
 
             robotCircle.setFill(Paint.valueOf("#8cb27a"));
-            robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
-            robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
-            robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
+            robotCircle.centerXProperty().bind(robot.getPosXProperty());
+            robotCircle.centerYProperty().bind(robot.getPosYProperty());
+            robotCircle.radiusProperty().bind(robot.getRadiusProperty());
 
             GamePane.getChildren().add(robotCircle);
         }
@@ -155,6 +217,7 @@ public class GameController implements Initializable {
     public double getPaneWidth(){return GamePane.getWidth();}
 
     public double getPaneHeight(){return GamePane.getHeight(); }
+
 
 
     /*public void ecoute() {

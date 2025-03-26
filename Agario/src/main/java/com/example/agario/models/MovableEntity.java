@@ -3,7 +3,7 @@ package com.example.agario.models;
 public class MovableEntity extends Entity{
 
     private String name;
-    private final double initialSpeed = 1;
+    private final double initialSpeed = 10;
     private double speed = initialSpeed;
     private double dirX = 0;
     private double dirY = 0;
@@ -13,20 +13,26 @@ public class MovableEntity extends Entity{
         super(x, y, mass);
     }
 
-    public void setSpeed(double xCursor, double yCursor, double width, double height){
-        double dx = xCursor - width;
-        double dy = yCursor - height;
-        double distance = Math.sqrt(dx * dx + dy * dy);
+    public void setSpeed(double dx, double dy, double width, double height){
 
-        double maxSpeed = (initialSpeed+15 - (this.getMass()/2));
-        double minSpeed = 2;
+        double maxDistanceCursor = width;
+        if (maxDistanceCursor < height) maxDistanceCursor = height;
 
-        this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
+        double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
+
+        double percentageDistance = distancePlayerCursor/(maxDistanceCursor/2);
+
+        double maxSpeed = (initialSpeed  *  15/(this.getMass()*0.5) );
+        System.out.println(maxSpeed);
+        if(maxSpeed > initialSpeed){
+            maxSpeed = initialSpeed;
+        }
+        double minSpeed = 1;
+
+        this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
     }
 
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){
-        // double dx = xCursor - this.getPosX();
-        //double dy = yCursor - this.getPosY();
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
@@ -35,8 +41,7 @@ public class MovableEntity extends Entity{
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
         }
-
-        // double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
+        speed = 10 ;
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
