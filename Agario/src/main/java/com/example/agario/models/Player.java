@@ -9,6 +9,4 @@ public class Player extends MovableEntity{
         this.setName(name);
     }
 
-
-
 }

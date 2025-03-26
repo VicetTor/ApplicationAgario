@@ -29,11 +29,6 @@ public class PlayerInput implements EventHandler<MouseEvent> {
         return mouseY;
     }
 
-    public void setMouseX(double mouseX) {
-        this.mouseX = mouseX;
-    }
 
-    public void setMouseY(double mouseY) {
-        this.mouseY = mouseY;
-    }
+
 }
