@@ -21,6 +21,7 @@ public class MovableEntity extends Entity{
         double percentageDistance = distancePlayerCursor/(maxDistance/2);
 
         double maxSpeed = (initialSpeed  *  15/(this.getMass()*0.5) );
+        System.out.println(maxSpeed);
         if(maxSpeed > initialSpeed){
             maxSpeed = initialSpeed;
         }
@@ -33,8 +34,6 @@ public class MovableEntity extends Entity{
 
 
 
-       // double dx = xCursor - this.getPosX();
-        //double dy = yCursor - this.getPosY();
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
@@ -43,8 +42,7 @@ public class MovableEntity extends Entity{
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
         }
-
-
+        speed = 10 ;
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
