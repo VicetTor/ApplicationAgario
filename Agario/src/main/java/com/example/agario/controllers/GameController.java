@@ -128,17 +128,20 @@ public class GameController implements Initializable {
     }
 
     private void updateLeaderBoard(){
+        int counter = 0;
         LeaderBoardListView.getItems().clear();
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
         allPlayers.add(player);
-        Collections.sort(allPlayers, new Comparator<Entity>() {
+        allPlayers.sort(new Comparator<Entity>() {
             @Override
             public int compare(Entity e1, Entity e2) {
                 return Double.compare(e2.getMass(), e1.getMass());
             }
         });
-        for(int i = 0; i < 10; i++){
-            LeaderBoardListView.getItems().add(i+"- "+allPlayers.get(i).getId()+" = "+allPlayers.get(i).getMass());
+        for(Entity entity : allPlayers){
+            counter++;
+            LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+entity.getId()+", score : "+entity.getMass());
+            if(counter == 10) break;
         }
 
     }
