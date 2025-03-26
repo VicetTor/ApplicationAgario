@@ -1,7 +1,6 @@
 package com.example.agario.models.strategy;
 
 import com.example.agario.models.Entity;
-import com.example.agario.models.Pellet;
 import com.example.agario.models.Player;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;

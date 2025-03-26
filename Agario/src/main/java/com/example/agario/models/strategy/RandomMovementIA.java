@@ -35,8 +35,8 @@ public class RandomMovementIA implements Strategy{
     private List<Double> randomDirection(){
         int randomTime = new Random().nextInt(maxTime - minTime + 1) + minTime;
         if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
-            if (new Random().nextInt(100) < 50) {movingRight = !movingRight;}
-            if (new Random().nextInt(100) < 50) {movingDown = !movingDown;}
+            if (new Random().nextInt(100) < 50) { movingRight = !movingRight;}
+            if (new Random().nextInt(100) < 50) { movingDown = !movingDown;}
 
             x = (movingRight)? + 100 : new Random().nextDouble(dimension.getxMax());
             y = (movingDown)? + 100 : new Random().nextDouble(dimension.getyMax());

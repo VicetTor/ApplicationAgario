@@ -1,11 +1,7 @@
 package com.example.agario.models;
 
-import javafx.animation.*;
 import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.transform.Rotate;
-import javafx.util.Duration;
 
 public abstract class Entity {
 

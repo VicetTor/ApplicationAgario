@@ -2,9 +2,6 @@ package com.example.agario.utils;
 
 import com.example.agario.models.Player;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class Camera extends Dimension {
 
     private Player player;

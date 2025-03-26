@@ -76,6 +76,8 @@ public class GameController implements Initializable {
         //GamePane.setStyle("-fx-background-color:white;");
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
+        GamePane.setStyle(null);
+
         Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
         BackgroundImage BgImg = new BackgroundImage(
                 backgroundImage,
@@ -86,6 +88,7 @@ public class GameController implements Initializable {
         );
         GamePane.setBackground(new Background(BgImg));
         System.out.println(backgroundImage.isError());
+        GamePane.toFront();
 
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
@@ -197,6 +200,8 @@ public class GameController implements Initializable {
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
 
+                    updateLeaderBoard();
+
                 });
 
 
@@ -211,7 +216,7 @@ public class GameController implements Initializable {
     }
 
     public void displayPellets(List<Entity> pelletsList) {
-        List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
+        List<String> colors = List.of("#caff07", "#F80000", "#ED760E","#F8F32B","#4e07ff","#ff07dc","#07ff88","#d307ff","#07a8ff");
 
         for (Entity pellet : pelletsList) {
 
@@ -228,10 +233,17 @@ public class GameController implements Initializable {
         }
     }
 
+    public void updateLeaderBoard(){
+        LeaderBoardListView.getItems().clear();
+        LeaderBoardListView.getItems().add("NE FONCTIONNE PAS ENCORE");
+        Circle test = entitieCircles.get(player);
+        LeaderBoardListView.getItems().add("RAYON : "+test.getRadius());
+    }
+
     public void displayPlayer() {
 
         entitieCircles.putIfAbsent(player,new Circle());
-        entitieCircles.get(player).setFill(Paint.valueOf("#251256"));
+        entitieCircles.get(player).setFill(Paint.valueOf("#07ff82"));
         entitieCircles.get(player).centerXProperty().bind(player.getPosXProperty());
         entitieCircles.get(player).centerYProperty().bind(player.getPosYProperty());
         entitieCircles.get(player).radiusProperty().bind(player.getRadiusProperty());

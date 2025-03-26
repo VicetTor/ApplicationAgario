@@ -2,17 +2,12 @@ package com.example.agario.models;
 
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
-import com.example.agario.utils.Camera;
 import com.example.agario.utils.QuadTree;
 import javafx.animation.*;
-import javafx.scene.Node;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import java.util.*;
-import java.security.Key;
 
 public class Game {
     private QuadTree quadTree;
