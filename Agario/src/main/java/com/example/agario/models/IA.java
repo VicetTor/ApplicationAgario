@@ -42,7 +42,7 @@ public class IA extends MovableEntity{
         this.strategy = strategy;
     }
 
-    public void IAstart(){
+    public void setPositionIA(){
         List<Double> newCoord = strategy.behaviorIA();
         dx.set(newCoord.get(0) - this.getPosX());
         dy.set(newCoord.get(1) - this.getPosY());

@@ -42,6 +42,8 @@ public class GameController implements Initializable {
 
     private final Map<Entity, String> pelletColors = new HashMap<>();
 
+    private final Map<Entity, Circle> entitieCircles = new HashMap<>();
+
     private Game gameModel;
 
     // Taille plus grande de la carte
@@ -50,7 +52,6 @@ public class GameController implements Initializable {
     private Dimension dimension;
     private Player player;
 
-    private Circle playerCircle;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -69,6 +70,7 @@ public class GameController implements Initializable {
         dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0,dimension), player);
         gameModel.createRandomPellets(500);
+
 
         PlayerInput playerInput = new PlayerInput();
         Camera cam = new Camera(player);
@@ -107,16 +109,12 @@ public class GameController implements Initializable {
 
                 for (Entity robot : gameModel.getRobots()){
                     if(robot instanceof IA){
-                        ((IA) robot).IAstart();
+                        ((IA) robot).setPositionIA();
                     }
                 }
 
                 Platform.runLater(() -> {
 
-                    double offsetX = getPaneWidth() / 2 - player.getPosX();
-                    double offsetY = getPaneHeight() / 2 - player.getPosY();
-                    GamePane.setTranslateX(offsetX);
-                    GamePane.setTranslateY(offsetY);
                     List<Entity> pelletsList = new ArrayList<>();
 
                     cam.updateCameraDimensions();
@@ -175,27 +173,29 @@ public class GameController implements Initializable {
         List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
 
         for (Entity pellet : pelletsList) {
-            Circle pelletCircle = new Circle();
+
+            entitieCircles.putIfAbsent(pellet,new Circle());
 
             pelletColors.putIfAbsent(pellet, colors.get(new Random().nextInt(colors.size())));
 
-            pelletCircle.setFill(Paint.valueOf(pelletColors.get(pellet)));
-            pelletCircle.centerXProperty().bind(pellet.getPosXProperty());
-            pelletCircle.centerYProperty().bind(pellet.getPosYProperty());
-            pelletCircle.radiusProperty().bind(pellet.getRadiusProperty());
+            entitieCircles.get(pellet).setFill(Paint.valueOf(pelletColors.get(pellet)));
+            entitieCircles.get(pellet).centerXProperty().bind(pellet.getPosXProperty());
+            entitieCircles.get(pellet).centerYProperty().bind(pellet.getPosYProperty());
+            entitieCircles.get(pellet).radiusProperty().bind(pellet.getRadiusProperty());
 
-            GamePane.getChildren().add(pelletCircle);
+            GamePane.getChildren().add(entitieCircles.get(pellet));
         }
     }
 
     public void displayPlayer() {
-        Circle playerCircle = new Circle();
-        playerCircle.setFill(Paint.valueOf("#251256"));
-        playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
-        playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
-        playerCircle.radiusProperty().bindBidirectional(player.getRadiusProperty());
 
-        GamePane.getChildren().add(playerCircle);
+        entitieCircles.putIfAbsent(player,new Circle());
+        entitieCircles.get(player).setFill(Paint.valueOf("#251256"));
+        entitieCircles.get(player).centerXProperty().bind(player.getPosXProperty());
+        entitieCircles.get(player).centerYProperty().bind(player.getPosYProperty());
+        entitieCircles.get(player).radiusProperty().bind(player.getRadiusProperty());
+
+        GamePane.getChildren().add(entitieCircles.get(player));
     }
 
 
