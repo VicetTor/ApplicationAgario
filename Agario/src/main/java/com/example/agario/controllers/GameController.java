@@ -1,5 +1,6 @@
 package com.example.agario.controllers;
 
+import com.example.agario.Launcher;
 import com.example.agario.input.PlayerInput;
 import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
@@ -13,6 +14,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -21,16 +23,23 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
-    @FXML private TextField TchatTextField;
-    @FXML private Pane GamePane;
+    @FXML
+    private TextField TchatTextField;
+    @FXML
+    private Pane GamePane;
+
+    @FXML
+    private AnchorPane OuterPane;
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
+
 
     @FXML
     private GridPane gridPane;
@@ -51,6 +60,13 @@ public class GameController implements Initializable {
     private Player player;
 
 
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    private Stage stage;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -70,6 +86,7 @@ public class GameController implements Initializable {
         );
         GamePane.setBackground(new Background(BgImg));
         System.out.println(backgroundImage.isError());
+
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
 
@@ -98,6 +115,17 @@ public class GameController implements Initializable {
             }
         }).start();
 
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(2);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
 
 
         new Thread(() -> {
@@ -105,16 +133,12 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
                 GamePane.setOnMouseMoved(e -> {
-
+                    System.out.println("sfsfdfd");
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
-
-
-                player.setSpeed(dx.get(), dy.get(), getPaneWidth(), getPaneHeight());
-
-                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
+                player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
 
                 for (Entity robot : gameModel.getRobots()){
                     if(robot instanceof IA){
@@ -123,6 +147,7 @@ public class GameController implements Initializable {
                 }
 
                 Platform.runLater(() -> {
+
 
                     List<Entity> pelletsList = new ArrayList<>();
 
@@ -141,6 +166,11 @@ public class GameController implements Initializable {
                             new Translate(translateX, translateY),
                             new Scale(scale, scale, 0, 0)
                     );
+
+                    double x = stage.getHeight()/2;
+                    double y = stage.getWidth()/2;
+
+                    player.setSpeed(dx.get(), dy.get(), x,y);
 
 
                     double inverseScale = 1.0 / scale;

@@ -35,6 +35,11 @@ public class LauncherController {
         stage.setResizable(true);
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
+
+        controller.setStage(stage);
+        //controller.ecoute();
+
+
         stage.show();
         stage.setOnCloseRequest(e -> Platform.exit());
     }
