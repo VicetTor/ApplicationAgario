@@ -6,6 +6,7 @@ import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.Entity;
 import com.example.agario.models.Player;
 import com.example.agario.models.Game;
+import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
@@ -16,6 +17,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.transform.Scale;
+import javafx.scene.transform.Translate;
 
 import java.net.URL;
 import java.util.*;
@@ -36,6 +39,8 @@ public class GameController implements Initializable {
     public final int WIDTH = 2000;
     private Player player;
 
+    private Circle playerCircle;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("Initialisation");
@@ -44,11 +49,26 @@ public class GameController implements Initializable {
         player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
         gameModel = new Game(new QuadTree(0, dimension), player);
 
-        gameModel.createRandomPellets();
+        gameModel.createRandomPellets(100);
 
         PlayerInput playerInput = new PlayerInput();
+        Camera cam = new Camera(player);
 
         GamePane.setOnMouseMoved(playerInput);
+
+
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(1);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
+
 
         new Thread(() -> {
             AtomicReference<Double> dx = new AtomicReference<>(playerInput.getMouseX() - player.getPosX());
@@ -60,7 +80,7 @@ public class GameController implements Initializable {
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
                 System.out.println(dx);
-                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
+                player.setSpeed(dx.get(), dy.get());
 
                 player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
@@ -71,20 +91,36 @@ public class GameController implements Initializable {
                 }
 
                 Platform.runLater(() -> {
+
                     double offsetX = getPaneWidth() / 2 - player.getPosX();
                     double offsetY = getPaneHeight() / 2 - player.getPosY();
                     GamePane.setTranslateX(offsetX);
                     GamePane.setTranslateY(offsetY);
                     List<Entity> pelletsList = new ArrayList<>();
 
-                    Dimension cameraView = new Dimension(
-                            -GamePane.getTranslateX(),
-                            -GamePane.getTranslateY(),
-                            -GamePane.getTranslateX() + getPaneWidth(),
-                            -GamePane.getTranslateY() + getPaneHeight()
+                    cam.updateCameraDimensions();
+
+
+                    double screenCenterX = getPaneWidth() / 2;
+                    double screenCenterY = getPaneHeight() / 2;
+
+                    double scale = 1.0 / cam.getZoomFactor();
+                    double translateX = screenCenterX - (player.getPosX() * scale);
+                    double translateY = screenCenterY - (player.getPosY() * scale);
+
+                    GamePane.getTransforms().clear();
+                    GamePane.getTransforms().addAll(
+                            new Translate(translateX, translateY),
+                            new Scale(scale, scale, 0, 0)
                     );
 
-                    gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
+                    double inverseScale = 1.0 / scale;
+                    Dimension cameraView = new Dimension(
+                            -translateX * inverseScale,
+                            -translateY * inverseScale,
+                            (-translateX + getPaneWidth()) * inverseScale,
+                            (-translateY + getPaneHeight()) * inverseScale
+                    );
 
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, pelletsList);
 
@@ -99,7 +135,9 @@ public class GameController implements Initializable {
                     displayPlayer();
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
+
                 });
+
 
                 try {
                     Thread.sleep(33);
@@ -130,7 +168,6 @@ public class GameController implements Initializable {
 
     public void displayPlayer() {
         Circle playerCircle = new Circle();
-
         playerCircle.setFill(Paint.valueOf("#251256"));
         playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
         playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
@@ -138,6 +175,7 @@ public class GameController implements Initializable {
 
         GamePane.getChildren().add(playerCircle);
     }
+
 
     public void displayRobot(List<Entity> robotsList) {
         for (Entity robot : robotsList) {
@@ -155,6 +193,7 @@ public class GameController implements Initializable {
     public double getPaneWidth(){return GamePane.getWidth();}
 
     public double getPaneHeight(){return GamePane.getHeight(); }
+
 
 
     /*public void ecoute() {

@@ -2,9 +2,16 @@ package com.example.agario.models;
 
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
+import com.example.agario.utils.Camera;
 import com.example.agario.utils.QuadTree;
+import javafx.animation.*;
+import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 import java.util.ArrayList;
+import java.security.Key;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -49,23 +56,24 @@ public class Game {
         return quadTree;
     }
 
-    public void createRandomPellets(){
-        for (int nb = 0; nb < 1000; nb++){
+    public void createRandomPellets(int limite){
+        for (int nb = 0; nb < limite; nb++){
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
             System.out.println(nb);
         }
     }
 
-    public void eatPellet(List<Entity> liste, MovableEntity movableEntity){
-        for(Entity pellet : liste){
+
+    public void eatPellet(List<Entity> liste, MovableEntity movableEntity) {
+        for (Entity pellet : liste) {
             double dx = (movableEntity.getPosX() - pellet.getPosX());
             double dy = (movableEntity.getPosY() - pellet.getPosY());
-            double squareDistance = dx*dx + dy*dy;
-            if(squareDistance <= movableEntity.getRadius()*player.getRadius()){
+            double squareDistance = dx * dx + dy * dy;
+            if (squareDistance <= movableEntity.getRadius() * player.getRadius()) {
                 quadTree.removeNode(pellet, quadTree);
-                double newRadius = movableEntity.getRadius()+1;
-                movableEntity.setRadius(newRadius);
+                double newMass = player.getMass() + 0.5;
+                player.setMass(newMass);
             }
         }
     }

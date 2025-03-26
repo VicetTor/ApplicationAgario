@@ -8,8 +8,8 @@ import java.util.List;
 public class Camera extends Dimension {
 
     private Player player;
+    private double zoomFactor = 1.0;
 
-    // Constructeur de la caméra, ajusté selon la position et le rayon du joueur
     public Camera(Player player) {
         super(
                 player.getPosX() - 100 * Math.sqrt(player.getRadius()) / 2,  // xMin (gauche)
@@ -20,37 +20,28 @@ public class Camera extends Dimension {
         this.player = player;
     }
 
-    // Méthode pour mettre à jour la position de la caméra en fonction du mouvement du joueur
-    public List<Double> updateCameraPosition(double width, double height) {
-        double centerX = player.getPosX();
-        double centerY = player.getPosY();
-
-        // Calculer l'offset pour centrer la caméra sur le joueur
-        double offsetX = centerX - width / 2;
-        double offsetY = centerY - height / 2;
-
-        // Retourner une liste avec les nouveaux décalages X et Y
-        List<Double> list = new ArrayList<>();
-        list.add(-offsetX);  // Décalage horizontal
-        list.add(-offsetY);  // Décalage vertical
-        return list;
-    }
-
-    // Méthode pour mettre à jour les dimensions de la caméra en fonction du rayon du joueur
+    // Method to update the camera's dimensions based on the player's radius and zoom factor
     public void updateCameraDimensions() {
-        // Ajuster les dimensions de la caméra en fonction du rayon du joueur
-        double offset = 100 * Math.sqrt(player.getRadius()) / 2;
+        double baseViewSize = 50;
 
-        // Modifier les valeurs de la caméra à l'aide des setters hérités de Dimension
-        this.setxMin(player.getPosX() - offset);
-        this.setyMin(player.getPosY() - offset);
-        this.setxMax(player.getPosX() + offset);
-        this.setyMax(player.getPosY() + offset);
+        double viewSize = baseViewSize * Math.max(1, Math.sqrt(player.getRadius() / 80.0));
+
+        this.zoomFactor = viewSize / baseViewSize;
+
+        double halfView = viewSize / 2;
+        this.setxMin(player.getPosX() - halfView);
+        this.setyMin(player.getPosY() - halfView);
+        this.setxMax(player.getPosX() + halfView);
+        this.setyMax(player.getPosY() + halfView);
     }
 
-    // Méthodes pour obtenir les positions top, left, right et bottom de la caméra
+
     public double getTop() {
         return getyMin();
+    }
+
+    public double getZoomFactor() {
+        return zoomFactor;
     }
 
     public double getLeft() {
@@ -65,22 +56,18 @@ public class Camera extends Dimension {
         return getyMax();
     }
 
-    // Méthode pour obtenir la position X de la caméra
     public double getPositionX() {
         return this.getLeft();
     }
 
-    // Méthode pour obtenir la position Y de la caméra
     public double getPositionY() {
         return this.getTop();
     }
 
-    // Méthode pour obtenir la largeur de la caméra
     public double getWidth() {
         return this.getRight() - this.getLeft();
     }
 
-    // Méthode pour obtenir la hauteur de la caméra
     public double getHeight() {
         return this.getBottom() - this.getTop();
     }
