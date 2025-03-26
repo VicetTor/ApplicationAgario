@@ -3,7 +3,7 @@ package com.example.agario.models;
 public class MovableEntity extends Entity{
 
     private String name;
-    private final double initialSpeed = 1;
+    private final double initialSpeed = 10;
     private double speed = initialSpeed;
     private double dirX = 0;
     private double dirY = 0;
@@ -14,14 +14,19 @@ public class MovableEntity extends Entity{
     }
 
 
-    public void setSpeed(double dx, double dy){
+    public void setSpeed(double dx, double dy, double maxDistance){
 
-        double distance = Math.sqrt(dx * dx + dy * dy);
+        double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
 
-        double maxSpeed = (initialSpeed+15 - (this.getMass()/2));
-        double minSpeed = 2;
+        double percentageDistance = distancePlayerCursor/(maxDistance/2);
 
-        this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
+        double maxSpeed = (initialSpeed  *  15/(this.getMass()*0.5) );
+        if(maxSpeed > initialSpeed){
+            maxSpeed = initialSpeed;
+        }
+        double minSpeed = 1;
+
+        this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
     }
 
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){
@@ -39,7 +44,7 @@ public class MovableEntity extends Entity{
             dirY = dy / distanceEuclidienne;
         }
 
-        // double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
+
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
