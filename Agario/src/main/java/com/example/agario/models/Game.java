@@ -2,23 +2,16 @@ package com.example.agario.models;
 
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
-import com.example.agario.utils.Camera;
 import com.example.agario.utils.QuadTree;
-import javafx.animation.*;
-import javafx.scene.Node;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
-import javafx.scene.shape.Circle;
-import javafx.util.Duration;
 
-import java.util.*;
-import java.security.Key;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Random;
 
 public class Game {
     private QuadTree quadTree;
-
     private List<Entity> robots;
-
     private Player player;
     private double xMin = 0;
     private double yMin = 0;
@@ -33,7 +26,7 @@ public class Game {
         this.yMax = quadTree.getDimension().getyMax();
         this.player = player;
 
-        //initialisation des IA
+        // Initialisation des IA
         this.robots = new ArrayList<>();
         robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
@@ -52,40 +45,39 @@ public class Game {
         return quadTree;
     }
 
-
     public void createRandomPellets(int limite) {
         for (int nb = 0; nb < limite; nb++) {
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
-            //System.out.println(nb);
         }
     }
 
-    public void eatPellet(List<Entity> liste, MovableEntity movableEntity, Circle playerCircle, Map<Entity, Circle> mapEntities) {
-        for (Entity pellet : liste) {
-            if (pellet instanceof Pellet) {
-                double dx = (movableEntity.getPosX() - pellet.getPosX());
-                double dy = (movableEntity.getPosY() - pellet.getPosY());
-                double squareDistance = dx * dx + dy * dy;
-                if (squareDistance <= movableEntity.getRadius() * player.getRadius() * 2) {
+    public void updateWorld() {
+        HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
+    }
 
-                    Circle circlePullet = mapEntities.get(pellet);
-                    quadTree.removeNode(pellet, quadTree);
-                    double currentRadius = movableEntity.getRadius();
+    public void eatPellet(List<Entity> pellets, MovableEntity movableEntity) {
+        List<Entity> pelletsToRemove = new ArrayList<>();
 
-                    double newMass = player.getMass() + 1;
-                    player.setMass(newMass);
+        for (Entity pellet : pellets) {
+            double dx = movableEntity.getPosX() - pellet.getPosX();
+            double dy = movableEntity.getPosY() - pellet.getPosY();
+            double squareDistance = dx * dx + dy * dy;
 
-                    TranslateTransition transition = new TranslateTransition();
-                    transition.setNode(circlePullet);
-                    transition.setDuration(Duration.millis(10));
-                    transition.setToX(player.getPosX() - circlePullet.getCenterX());
-                    transition.setToY(player.getPosY() - circlePullet.getCenterY());
-                    transition.setAutoReverse(true);
-                    transition.setInterpolator(Interpolator.EASE_OUT);
-                    transition.play();
-                }
+            if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()) {
+                // Ajouter à la liste de suppression
+                pelletsToRemove.add(pellet);
+
+                // Augmenter la masse de l'entité
+                double newMass = movableEntity.getMass() + pellet.getMass();
+                movableEntity.setMass(newMass);
             }
+        }
+
+        // Supprimer les pellets mangés
+        for (Entity pellet : pelletsToRemove) {
+            quadTree.removeNode(pellet, quadTree);
+            pellets.remove(pellet);
         }
     }
 }

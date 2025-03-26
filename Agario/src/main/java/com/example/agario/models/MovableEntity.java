@@ -34,7 +34,7 @@ public class MovableEntity extends Entity{
             maxSpeed = initialSpeed;
         }
 
-        System.out.println(maxSpeed);
+        //System.out.println(maxSpeed);
         double minSpeed = 1;
 
         this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
@@ -49,6 +49,7 @@ public class MovableEntity extends Entity{
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
         }
+
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
