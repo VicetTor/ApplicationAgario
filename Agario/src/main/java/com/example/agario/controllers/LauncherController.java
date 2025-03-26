@@ -1,5 +1,6 @@
 package com.example.agario.controllers;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -35,5 +36,6 @@ public class LauncherController {
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
         stage.show();
+        stage.setOnCloseRequest(e -> Platform.exit());
     }
 }

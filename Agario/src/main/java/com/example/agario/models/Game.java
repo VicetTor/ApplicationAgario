@@ -37,6 +37,8 @@ public class Game {
         //initialisation des IA
         this.robots = new ArrayList<>();
         robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
+        robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
+        robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
         for(Entity entity : robots){
             quadTree.insertNode(entity);
         }
@@ -54,25 +56,27 @@ public class Game {
         return quadTree;
     }
 
+
     public void createRandomPellets(int limite){
         for (int nb = 0; nb < limite; nb++){
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
-            System.out.println(nb);
+            //System.out.println(nb);
         }
     }
 
+    public void updateWorld(){
+        HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
+    }
 
-
-    public void eatPellet(List<Entity> liste, MovableEntity movableEntity, Circle playerCircle, Map<Entity, Circle> mapEntities) {
-        for (Entity pellet : liste) {
-            double dx = ((movableEntity.getPosX() - 10) - pellet.getPosX());
-            double dy = (movableEntity.getPosY()-10) - pellet.getPosY();
-            double squareDistance = dx * dx + dy * dy;
-            if (squareDistance <= (movableEntity.getRadius() * player.getRadius()) * 2) {
+    public void eatPellet(List<Entity> liste, MovableEntity movableEntity,Circle playerCircle, Map<Entity,Circle> mapEntities){
+        for(Entity pellet : liste){
+            double dx = (movableEntity.getPosX() - pellet.getPosX());
+            double dy = (movableEntity.getPosY() - pellet.getPosY());
+            double squareDistance = dx*dx + dy*dy;
+            if(squareDistance <= movableEntity.getRadius()*player.getRadius() * 2){
 
                 Circle circlePullet = mapEntities.get(pellet);
-
                 quadTree.removeNode(pellet, quadTree);
                 double currentRadius = movableEntity.getRadius();
 

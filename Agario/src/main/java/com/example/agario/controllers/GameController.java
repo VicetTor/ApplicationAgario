@@ -153,7 +153,7 @@ public class GameController implements Initializable {
                     GamePane.getChildren().clear();
                     displayPlayer();
 
-                    gameModel.eatPellet(pelletsList, player, entitieCircles.get(player), entitieCircles );
+                    gameModel.eatPellet(pelletsList, player, entitieCircles.get(player), entitieCircles);
 
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
