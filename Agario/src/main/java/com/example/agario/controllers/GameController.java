@@ -72,7 +72,10 @@ public class GameController implements Initializable {
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
                 System.out.println(dx);
-                player.setSpeed(dx.get(), dy.get());
+
+                double maxDistanceCursor = getPaneWidth();
+                if (maxDistanceCursor < getPaneHeight()) maxDistanceCursor = getPaneHeight();
+                player.setSpeed(dx.get(), dy.get(), maxDistanceCursor);
 
                 player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
