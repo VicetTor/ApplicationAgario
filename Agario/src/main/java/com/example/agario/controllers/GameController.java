@@ -12,8 +12,12 @@ import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
@@ -30,26 +34,41 @@ public class GameController implements Initializable {
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
 
+    @FXML
+    private GridPane gridPane;
+
+    @FXML
+    private BorderPane GameBorderPane;
+
     private final Map<Entity, String> pelletColors = new HashMap<>();
 
     private Game gameModel;
 
     // Taille plus grande de la carte
-    public final int HEIGHT = 2000;
-    public final int WIDTH = 2000;
+    public final int HEIGHT = 10000;
+    public final int WIDTH = 10000;
+    private Dimension dimension;
     private Player player;
 
     private Circle playerCircle;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+
+        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
+
+        GamePane.setStyle("-fx-background-color:white;");
+        GamePane.setMinWidth(WIDTH);
+        GamePane.setMinHeight(HEIGHT);
+
+        GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+
         System.out.println("Initialisation");
 
-        Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
-        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
-        gameModel = new Game(new QuadTree(0, dimension), player);
-
-        gameModel.createRandomPellets(100);
+        dimension = new Dimension(0, 0, WIDTH, HEIGHT);
+        gameModel = new Game(new QuadTree(0,dimension), player);
+        gameModel.createRandomPellets(500);
 
         PlayerInput playerInput = new PlayerInput();
         Camera cam = new Camera(player);
@@ -59,7 +78,7 @@ public class GameController implements Initializable {
 
         new Thread(()->{
             while(true) {
-                gameModel.createRandomPellets(1);
+                gameModel.createRandomPellets(2);
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -75,12 +94,14 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
                 GamePane.setOnMouseMoved(e -> {
+
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
-                System.out.println(dx);
-                player.setSpeed(dx.get(), dy.get());
+
+
+                player.setSpeed(dx.get(), dy.get(), getPaneWidth(), getPaneHeight());
 
                 player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
@@ -113,6 +134,7 @@ public class GameController implements Initializable {
                             new Translate(translateX, translateY),
                             new Scale(scale, scale, 0, 0)
                     );
+
 
                     double inverseScale = 1.0 / scale;
                     Dimension cameraView = new Dimension(

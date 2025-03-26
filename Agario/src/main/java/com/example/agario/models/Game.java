@@ -65,6 +65,7 @@ public class Game {
     }
 
 
+
     public void eatPellet(List<Entity> liste, MovableEntity movableEntity) {
         for (Entity pellet : liste) {
             double dx = (movableEntity.getPosX() - pellet.getPosX());
@@ -72,7 +73,7 @@ public class Game {
             double squareDistance = dx * dx + dy * dy;
             if (squareDistance <= movableEntity.getRadius() * player.getRadius()) {
                 quadTree.removeNode(pellet, quadTree);
-                double newMass = player.getMass() + 0.5;
+                double newMass = player.getMass() + 1;
                 player.setMass(newMass);
             }
         }
