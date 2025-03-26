@@ -9,6 +9,7 @@ import com.example.agario.models.Player;
 import com.example.agario.models.Game;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
+import com.example.agario.utils.MiniMap;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -26,12 +27,13 @@ import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
-
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
+    @FXML
+    public Pane map;
     @FXML
     private TextField TchatTextField;
     @FXML
@@ -79,6 +81,7 @@ public class GameController implements Initializable {
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
 
+        MiniMap miniMap = new MiniMap(WIDTH, HEIGHT, map);
 
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
@@ -180,6 +183,7 @@ public class GameController implements Initializable {
                         }
                     }
 
+
                     GamePane.getChildren().clear();
                     displayPlayer();
 
@@ -188,6 +192,7 @@ public class GameController implements Initializable {
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
 
+                    miniMap.setEntities((HashMap<Entity, Circle>) entitieCircles);
                 });
 
 
