@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class GluttonIA implements Strategy{
 
-    private final int EATING_AREA_DIMENSION = 200;
+    private final int EATING_AREA_DIMENSION = 500;
     private Dimension dimension;
     private double x;
     private double y;
@@ -21,7 +21,7 @@ public class GluttonIA implements Strategy{
     private double WIDTH;
 
     private long lastDirectionChangeTime;
-    private final int maxTime = 1000;
+    private final int maxTime = 2500;
     private final int minTime = 300;
 
     private boolean movingRight = true;

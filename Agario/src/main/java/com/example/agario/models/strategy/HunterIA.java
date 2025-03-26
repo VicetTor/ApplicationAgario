@@ -23,7 +23,7 @@ public class HunterIA implements Strategy{
     private double WIDTH;
 
     private long lastDirectionChangeTime;
-    private final int maxTime = 1000;
+    private final int maxTime = 2500;
     private final int minTime = 300;
 
     private boolean movingRight = true;

@@ -14,7 +14,7 @@ public class RandomMovementIA implements Strategy{
     private double y;
     private Dimension dimension;
     private long lastDirectionChangeTime;
-    private final int maxTime = 1000;
+    private final int maxTime = 2500;
     private final int minTime = 300;
 
     private boolean movingRight = true;
