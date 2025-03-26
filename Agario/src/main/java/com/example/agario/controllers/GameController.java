@@ -5,7 +5,6 @@ import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
-import com.example.agario.utils.MiniMap;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,6 +16,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -38,6 +38,7 @@ public class GameController implements Initializable {
 
     private final Map<Entity, Circle> entityCircles = new HashMap<>();
     private final Map<Entity, String> pelletColors = new HashMap<>();
+    private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private Player player;
     private Stage stage;
@@ -103,8 +104,7 @@ public class GameController implements Initializable {
                 player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
                 updateRobots();
 
-
-                MiniMap miniMap = new MiniMap(WIDTH, HEIGHT, map.getPrefWidth(), map.getPrefHeight());
+                Platform.runLater(() -> setEntities((HashMap<Entity, Circle>) entityCircles));
 
                 // Update display
                 Platform.runLater(() -> updateGameDisplay(camera, dx.get(), dy.get()));
@@ -236,6 +236,56 @@ public class GameController implements Initializable {
         circle.setCenterX(entity.getPosX());
         circle.setCenterY(entity.getPosY());
         circle.setRadius(entity.getRadius());
+    }
+
+    public void setEntities(HashMap<Entity, Circle> entities) {
+        this.entitiesMap = new HashMap<>();
+        entities.forEach((e,c) ->{
+            if(e instanceof MovableEntity){
+                this.entitiesMap.put(e,c);
+            }
+        });
+        updateMiniMap(entitiesMap);
+    }
+
+    public void updateMiniMap(HashMap<Entity, Circle> entities){
+        map.getChildren().clear();
+
+        Rectangle square = new Rectangle(50, 50);
+        square.setFill(null);
+        square.setStroke(Color.RED);
+        square.setStrokeWidth(1);
+
+        double centerX = (player.getPosX() * map.getPrefWidth()) / WIDTH;
+        double centerY = (player.getPosY() * map.getPrefHeight()) / HEIGHT;
+
+        square.setX(centerX - square.getWidth() / 2);
+        square.setY(centerY - square.getHeight() / 2);
+
+        map.getChildren().add(square);
+
+        double x1Square = player.getPosX()-1400;
+        double x2Square = player.getPosX()+1400;
+        double y1Square = player.getPosY()+1800;
+        double y2Square = player.getPosY()-1800;
+
+        entities.forEach((e,c) ->{
+
+            double posXE = c.getCenterX();
+            double posYE = c.getCenterY();
+
+            if (posXE >= x1Square && posXE <= x2Square && posYE <= y1Square && posYE >= y2Square){
+                Circle circle = new Circle();
+                circle.setFill(c.getFill());
+                circle.setCenterX((posXE * map.getPrefWidth()) / WIDTH );
+                circle.setCenterY((posYE * map.getPrefHeight()) / HEIGHT);
+                circle.setRadius( e.getRadius()/14 );
+                if (!map.getChildren().contains(circle)) {
+                    map.getChildren().add(circle);
+                }
+            }
+        });
+
     }
 
     private void startPelletSpawner() {
