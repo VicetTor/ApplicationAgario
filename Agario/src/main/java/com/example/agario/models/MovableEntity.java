@@ -22,7 +22,7 @@ public class MovableEntity extends Entity{
         double maxSpeed = (initialSpeed+15 - (this.getMass()/2));
         double minSpeed = 2;
 
-        this.speed = 2;//Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
+        this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
     }
 
     public void updatePosition(double xCursor, double yCursor, double screenWidth, double screenHeight){
@@ -40,12 +40,11 @@ public class MovableEntity extends Entity{
             dirY = dy / distanceEuclidienne;
         }
 
-       // double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
+        double adjustedSpeed = Math.min(speed, distanceEuclidienne / 5);
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
 
-        // 🚀
         if (q <= 0) {
             q = 1;
         } else if (q >= screenWidth - 1) {
