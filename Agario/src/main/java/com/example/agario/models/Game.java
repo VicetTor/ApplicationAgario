@@ -1,5 +1,6 @@
 package com.example.agario.models;
 
+import com.example.agario.controllers.GameController;
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
@@ -27,11 +28,10 @@ public class Game {
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
         this.player = player;
-        quadTree.insertNode(player);
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
-        for(int i = 0; i < ROBOT_NUMBER; i++){
+        for(int i = 0; i < ROBOT_NUMBER; i++) {
             robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         }
     }
@@ -59,7 +59,7 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
     }
 
-    public void eatEntity(List<Entity> entities, MovableEntity movableEntity) {
+    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, GameController g) {
         List<Entity> entityToRemove = new ArrayList<>();
 
         for (Entity entity : entities) {
@@ -69,6 +69,10 @@ public class Game {
 
             if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()
                 && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
+                if(entity instanceof Pellet){
+                    g.animatePelletConsumption(entity);
+                }
+
                 // Ajouter à la liste de suppression
                 entityToRemove.add(entity);
 

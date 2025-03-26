@@ -6,6 +6,8 @@ import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
+import javafx.animation.Interpolator;
+import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -16,15 +18,19 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
+
+    @FXML private Pane map;
     @FXML private TextField TchatTextField;
     @FXML private Pane GamePane;
     @FXML private AnchorPane OuterPane;
@@ -33,8 +39,9 @@ public class GameController implements Initializable {
     @FXML private GridPane gridPane;
     @FXML private BorderPane GameBorderPane;
 
-    private final Map<Entity, Circle> entityCircles = new HashMap<>();
-    private final Map<Entity, String> pelletColors = new HashMap<>();
+    private Map<Entity, Circle> entityCircles = new HashMap<>();
+    private Map<Entity, String> pelletColors = new HashMap<>();
+    private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private Player player;
     private Stage stage;
@@ -94,7 +101,6 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
             while (true) {
-                System.out.println("NB ROBOTS ="+gameModel.getRobots().size());
                 // Update mouse position
                 GamePane.setOnMouseMoved(e -> {
                     playerInput.handle(e);
@@ -106,8 +112,11 @@ public class GameController implements Initializable {
                 player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
                 updateRobots();
 
-                // Update display
-                Platform.runLater(() -> updateGameDisplay(camera, dx.get(), dy.get()));
+                Platform.runLater(() -> {
+                    setEntities((HashMap<Entity, Circle>) entityCircles);
+                    updateGameDisplay(camera, dx.get(), dy.get());
+                });
+
 
                 try {
                     Thread.sleep(33); // ~30 FPS
@@ -163,7 +172,7 @@ public class GameController implements Initializable {
         player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2);
 
         // Handle collisions
-        gameModel.eatEntity(visibleEntities, player);
+        //gameModel.eatEntity(visibleEntities, player, this);
 
         for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
             if (robot instanceof IA) {
@@ -172,15 +181,32 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
-                gameModel.eatEntity(robotZone, (MovableEntity) robot);
+                gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
             }
         }
         // Render all entities
         renderEntities(visibleEntities);
-        System.out.println("NB ENTITES VISIBLES="+visibleEntities.size());
 
         // Update leaderboard
         updateLeaderBoard();
+
+        // Render all entities
+        renderEntities(visibleEntities);
+
+        // Handle collisions
+        gameModel.eatEntity(visibleEntities, player, this);
+    }
+
+
+    public void animatePelletConsumption(Entity pellet) {
+        TranslateTransition transition = new TranslateTransition();
+        transition.setNode(entityCircles.get(pellet));
+        transition.setDuration(Duration.millis(50));
+        transition.setToX(player.getPosX() - entityCircles.get(pellet).getCenterX());
+        transition.setToY(player.getPosY() - entityCircles.get(pellet).getCenterY());
+        transition.setAutoReverse(true);
+        transition.setInterpolator(Interpolator.EASE_OUT);
+        transition.play();
     }
 
 
@@ -272,6 +298,56 @@ public class GameController implements Initializable {
         circle.setCenterX(entity.getPosX());
         circle.setCenterY(entity.getPosY());
         circle.setRadius(entity.getRadius());
+    }
+
+    public void setEntities(HashMap<Entity, Circle> entities) {
+        this.entitiesMap = new HashMap<>();
+        entities.forEach((e,c) ->{
+            if(e instanceof MovableEntity){
+                this.entitiesMap.put(e,c);
+            }
+        });
+        updateMiniMap(entitiesMap);
+    }
+
+    public void updateMiniMap(HashMap<Entity, Circle> entities){
+        map.getChildren().clear();
+
+        Rectangle square = new Rectangle(50, 50);
+        square.setFill(null);
+        square.setStroke(Color.RED);
+        square.setStrokeWidth(1);
+
+        double centerX = (player.getPosX() * map.getPrefWidth()) / WIDTH;
+        double centerY = (player.getPosY() * map.getPrefHeight()) / HEIGHT;
+
+        square.setX(centerX - square.getWidth() / 2);
+        square.setY(centerY - square.getHeight() / 2);
+
+        map.getChildren().add(square);
+
+        double x1Square = player.getPosX()-1400;
+        double x2Square = player.getPosX()+1400;
+        double y1Square = player.getPosY()+1800;
+        double y2Square = player.getPosY()-1800;
+
+        entities.forEach((e,c) ->{
+
+            double posXE = c.getCenterX();
+            double posYE = c.getCenterY();
+
+            if (posXE >= x1Square && posXE <= x2Square && posYE <= y1Square && posYE >= y2Square){
+                Circle circle = new Circle();
+                circle.setFill(c.getFill());
+                circle.setCenterX((posXE * map.getPrefWidth()) / WIDTH );
+                circle.setCenterY((posYE * map.getPrefHeight()) / HEIGHT);
+                circle.setRadius( e.getRadius()/14 );
+                if (!map.getChildren().contains(circle)) {
+                    map.getChildren().add(circle);
+                }
+            }
+        });
+
     }
 
     private void startPelletSpawner() {
