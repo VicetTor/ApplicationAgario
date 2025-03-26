@@ -18,6 +18,8 @@ public class Game {
     private double xMax;
     private double yMax;
 
+    private final int ROBOT_NUMBER = 25;
+
     public Game(QuadTree quadTree, Player player) {
         this.quadTree = quadTree;
         this.xMin = quadTree.getDimension().getxMin();
@@ -29,19 +31,8 @@ public class Game {
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        for (Entity entity : robots) {
-            quadTree.insertNode(entity);
+        for(int i = 0; i < ROBOT_NUMBER; i++){
+            robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         }
     }
 
@@ -68,28 +59,31 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
     }
 
-    public void eatPellet(List<Entity> pellets, MovableEntity movableEntity) {
-        List<Entity> pelletsToRemove = new ArrayList<>();
+    public void eatEntity(List<Entity> entities, MovableEntity movableEntity) {
+        List<Entity> entityToRemove = new ArrayList<>();
 
-        for (Entity pellet : pellets) {
-            double dx = movableEntity.getPosX() - pellet.getPosX();
-            double dy = movableEntity.getPosY() - pellet.getPosY();
+        for (Entity entity : entities) {
+            double dx = movableEntity.getPosX() - entity.getPosX();
+            double dy = movableEntity.getPosY() - entity.getPosY();
             double squareDistance = dx * dx + dy * dy;
 
-            if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()) {
+            if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()
+                && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
                 // Ajouter à la liste de suppression
-                pelletsToRemove.add(pellet);
+                entityToRemove.add(entity);
 
                 // Augmenter la masse de l'entité
-                double newMass = movableEntity.getMass() + pellet.getMass();
+                double newMass = movableEntity.getMass() + entity.getMass();
                 movableEntity.setMass(newMass);
             }
         }
 
         // Supprimer les pellets mangés
-        for (Entity pellet : pelletsToRemove) {
-            quadTree.removeNode(pellet, quadTree);
-            pellets.remove(pellet);
+        for (Entity entity : entityToRemove) {
+            quadTree.removeNode(entity, quadTree);
+            if (entity instanceof IA)
+                robots.remove(entity);
+            entities.remove(entity);
         }
     }
 }

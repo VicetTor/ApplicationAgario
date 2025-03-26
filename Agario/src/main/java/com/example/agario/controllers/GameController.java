@@ -45,6 +45,9 @@ public class GameController implements Initializable {
     private static final String PLAYER_COLOR = "#7107ff";
     private static final String ROBOT_COLOR = "#07ff82";
 
+    private final List<Entity> visibleEntities = Collections.synchronizedList(new ArrayList<>());
+
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupGame();
@@ -63,7 +66,7 @@ public class GameController implements Initializable {
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0, dimension), player);
-        gameModel.createRandomPellets(1000);
+        gameModel.createRandomPellets(10000);
     }
 
     private void setupBackground() {
@@ -91,6 +94,7 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
             while (true) {
+                System.out.println("NB ROBOTS ="+gameModel.getRobots().size());
                 // Update mouse position
                 GamePane.setOnMouseMoved(e -> {
                     playerInput.handle(e);
@@ -115,14 +119,34 @@ public class GameController implements Initializable {
     }
 
     private void updateRobots() {
-        for (Entity robot : gameModel.getRobots()) {
+        List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
+        for (Entity robot : robotsCopy) {
             if (robot instanceof IA) {
                 ((IA) robot).setPositionIA();
             }
         }
     }
 
+    private void updateLeaderBoard(){
+        LeaderBoardListView.getItems().clear();
+        List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
+        allPlayers.add(player);
+        Collections.sort(allPlayers, new Comparator<Entity>() {
+            @Override
+            public int compare(Entity e1, Entity e2) {
+                return Double.compare(e2.getMass(), e1.getMass());
+            }
+        });
+        for(int i = 0; i < 10; i++){
+            LeaderBoardListView.getItems().add(i+"- "+allPlayers.get(i).getId()+" = "+allPlayers.get(i).getMass());
+        }
+
+    }
+
     private void updateGameDisplay(Camera camera, double dx, double dy) {
+        // Get a copy of the list to avoid concurrent modification
+        List<Entity> visibleEntities = new ArrayList<>(getVisibleEntities(camera));
+
         // Clear previous frame
         GamePane.getChildren().clear();
 
@@ -132,18 +156,30 @@ public class GameController implements Initializable {
         // Apply camera transformations
         applyCameraTransform(camera);
 
-        // Get visible entities
-        List<Entity> visibleEntities = getVisibleEntities(camera);
-
         // Update player speed
-        player.setSpeed(dx, dy, stage.getHeight()/2, stage.getWidth()/2);
+        player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2);
 
         // Handle collisions
-        gameModel.eatPellet(visibleEntities, player);
+        gameModel.eatEntity(visibleEntities, player);
 
+        for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
+            if (robot instanceof IA) {
+                int cameraSize = 50;
+                Dimension robotView = new Dimension(robot.getPosX()-cameraSize, robot.getPosY()-cameraSize,robot.getPosX()+cameraSize,robot.getPosY()+cameraSize);
+                List<Entity> robotZone = new ArrayList<>();
+                QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
+                robotZone.addAll(gameModel.getRobots());
+                gameModel.eatEntity(robotZone, (MovableEntity) robot);
+            }
+        }
         // Render all entities
         renderEntities(visibleEntities);
+        System.out.println("NB ENTITES VISIBLES="+visibleEntities.size());
+
+        // Update leaderboard
+        updateLeaderBoard();
     }
+
 
     private void applyCameraTransform(Camera camera) {
         double scale = 1.0 / camera.getZoomFactor();
@@ -175,6 +211,7 @@ public class GameController implements Initializable {
         );
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
+        visibleEntities.addAll(gameModel.getRobots());
         return visibleEntities;
     }
 

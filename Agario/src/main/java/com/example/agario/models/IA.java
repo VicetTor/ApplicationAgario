@@ -44,7 +44,7 @@ public class IA extends MovableEntity{
         dx.set(newCoord.get(0) - this.getPosX());
         dy.set(newCoord.get(1) - this.getPosY());
 
-        System.out.println(this.getPosX() +" "+ this.getPosY());
+        //System.out.println(this.getPosX() +" "+ this.getPosY());
         this.setSpeed(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
         this.updatePosition(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
     }

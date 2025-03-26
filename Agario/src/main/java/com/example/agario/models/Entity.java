@@ -10,6 +10,7 @@ public abstract class Entity implements Serializable {
     protected double posY;
     protected double mass;
     protected double radius;
+    protected String nom;
 
     public Entity(double x, double y, double mass) {
         this.id = idCounter.incrementAndGet();
