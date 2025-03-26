@@ -36,6 +36,6 @@ public class IA extends MovableEntity{
     public void IAstart(){
         List<Double> newCoord = strategy.behaviorIA();
         this.setSpeed(newCoord.get(0), newCoord.get(1), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
-        this.updatePosition(newCoord.get(0), newCoord.get(1));
+        this.updatePosition(newCoord.get(0), newCoord.get(1), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
     }
 }
