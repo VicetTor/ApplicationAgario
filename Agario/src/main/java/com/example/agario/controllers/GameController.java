@@ -73,9 +73,10 @@ public class GameController implements Initializable {
 
         player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
 
-        //GamePane.setStyle("-fx-background-color:white;");
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
+        GamePane.setStyle(null);
+
         Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
         BackgroundImage BgImg = new BackgroundImage(
                 backgroundImage,
@@ -86,10 +87,10 @@ public class GameController implements Initializable {
         );
         GamePane.setBackground(new Background(BgImg));
         System.out.println(backgroundImage.isError());
+        GamePane.toFront();
+
 
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
-
-
 
         System.out.println("Initialisation");
 
@@ -102,6 +103,7 @@ public class GameController implements Initializable {
         Camera cam = new Camera(player);
 
         GamePane.setOnMouseMoved(playerInput);
+
 
 
         new Thread(()->{
