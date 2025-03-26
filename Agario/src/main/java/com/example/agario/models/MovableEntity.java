@@ -20,7 +20,6 @@ public class MovableEntity extends Entity{
     }
 
 
-
     public void updatePosition(double xCursor, double yCursor){
         double currentPosXPoint = this.getPosX();
         double currentPosYPoint = this.getPosY();

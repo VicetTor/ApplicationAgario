@@ -3,24 +3,41 @@ package com.example.agario.models;
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
 public class Game {
     private QuadTree quadTree;
+
+    private List<Entity> robots;
+
+    private Player player ;
     private double xMin = 0;
     private double yMin = 0;
     private double xMax;
     private double yMax;
 
-
-    public Game(QuadTree quadTree){
+    public Game(QuadTree quadTree, Player player){
         this.quadTree = quadTree;
         this.xMin = quadTree.getDimension().getxMin();
         this.yMin = quadTree.getDimension().getyMin();
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
+        this.player = player;
+
+        //initialisation des IA
+        this.robots = new ArrayList<>();
+        robots.add(new IA(new Random().nextDouble(xMax), new Random().nextDouble(yMax)));
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public List<Entity> getRobots() {
+        return robots;
     }
 
     public QuadTree getQuadTree(){

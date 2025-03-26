@@ -1,11 +1,8 @@
 package com.example.agario.controllers;
 
 import com.example.agario.input.PlayerInput;
-import com.example.agario.models.Entity;
-import com.example.agario.models.Game;
-import com.example.agario.models.Player;
+import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
-import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
@@ -26,29 +23,27 @@ public class GameController implements Initializable {
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
 
-    private Map<Entity, String> pelletColors = new HashMap<>();
+    private final Map<Entity, String> pelletColors = new HashMap<>();
 
     private Game gameModel;
 
     // Taille plus grande de la carte
     public final int HEIGHT = 2000;
     public final int WIDTH = 2000;
-    private Dimension dimension;
     private Player player;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         System.out.println("Initialisation");
 
-        dimension = new Dimension(0, 0, WIDTH, HEIGHT);
-        gameModel = new Game(new QuadTree(0,dimension));
-        gameModel.createRandomPellets();
+        Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
+        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
+        gameModel = new Game(new QuadTree(0, dimension), player);
 
-        this.player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
+        gameModel.createRandomPellets();
         gameModel.getQuadTree().insertNode(player);
 
         PlayerInput playerInput = new PlayerInput();
-        Camera cam = new Camera(player);
 
         GamePane.setOnMouseMoved(playerInput);
 
@@ -81,6 +76,9 @@ public class GameController implements Initializable {
                     GamePane.getChildren().clear();
                     displayPlayer();
                     displayPellets(liste);
+                    for (Entity robot : gameModel.getRobots()){
+                        displayRobot(robot);
+                    }
                 });
 
                 try {
@@ -92,10 +90,6 @@ public class GameController implements Initializable {
         }).start();
 
     }
-
-    public double getPaneWidth(){return GamePane.getWidth();}
-
-    public double getPaneHeight(){return GamePane.getHeight(); }
 
     public void displayPellets(List<Entity> liste) {
         List<String> colors = List.of("#951b8a", "#4175ba", "#12b1af");
@@ -114,15 +108,31 @@ public class GameController implements Initializable {
         }
     }
 
-
     public void displayPlayer() {
         Circle playerCircle = new Circle();
+
         playerCircle.setFill(Paint.valueOf("#251256"));
         playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
         playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
         playerCircle.radiusProperty().bindBidirectional(player.getRadiusProperty());
+
         GamePane.getChildren().add(playerCircle);
     }
+
+    public void displayRobot(Entity robot) {
+        Circle robotCircle = new Circle();
+
+        robotCircle.setFill(Paint.valueOf("#8cb27a"));
+        robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
+        robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
+        robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
+
+        GamePane.getChildren().add(robotCircle);
+    }
+
+    public double getPaneWidth(){return GamePane.getWidth();}
+
+    public double getPaneHeight(){return GamePane.getHeight(); }
 
 
 }
