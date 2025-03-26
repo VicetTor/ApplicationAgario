@@ -29,6 +29,10 @@ public class RandomMovementIA implements Strategy{
 
     @Override
     public List<Double> behaviorIA() {
+        return randomDirection();
+    }
+
+    private List<Double> randomDirection(){
         int randomTime = new Random().nextInt(maxTime - minTime + 1) + minTime;
         if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
             if (new Random().nextInt(100) < 50) {movingRight = !movingRight;}
