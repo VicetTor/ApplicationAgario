@@ -1,8 +1,11 @@
 package com.example.agario.models;
 
+import javafx.animation.*;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.scene.transform.Rotate;
+import javafx.util.Duration;
 
 public abstract class Entity {
 
@@ -24,8 +27,8 @@ public abstract class Entity {
         return radius.get();
     }
 
-    public void setRadius(double radius) {
-        this.radius.set(radius);
+    public void setRadius(double targetRadius) {
+        this.radius.set(targetRadius);
     }
 
     public int getId() {
@@ -58,7 +61,7 @@ public abstract class Entity {
 
     public void setMass(double mass) {
         this.mass = mass;
-        this.radius.set(10*Math.sqrt(this.mass));
+        this.setRadius(10*Math.sqrt(this.mass));
     }
 
     public void setPosX(double posX) {

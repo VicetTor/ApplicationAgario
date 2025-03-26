@@ -21,6 +21,7 @@ import javafx.scene.transform.Translate;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
     @FXML
@@ -42,6 +43,8 @@ public class GameController implements Initializable {
     private Dimension dimension;
     private Player player;
 
+    private Circle playerCircle;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -60,11 +63,20 @@ public class GameController implements Initializable {
 
         GamePane.setOnMouseMoved(playerInput);
 
-        new Thread(() -> {
-            while (true) {
-                player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
 
-                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY(),WIDTH, HEIGHT);
+        new Thread(() -> {
+            AtomicReference<Double> dx = new AtomicReference<>(playerInput.getMouseX() - player.getPosX());
+            AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
+            while (true) {
+                GamePane.setOnMouseMoved(e -> {
+                    playerInput.handle(e);
+                    dx.set(playerInput.getMouseX() - player.getPosX());
+                    dy.set(playerInput.getMouseY() - player.getPosY());
+                });
+                System.out.println(dx);
+                player.setSpeed(dx.get(), dy.get());
+
+                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
                 Platform.runLater(() -> {
                     cam.updateCameraDimensions();
@@ -96,7 +108,7 @@ public class GameController implements Initializable {
                     List<Entity> entities = new ArrayList<>();
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, entities);
 
-                    gameModel.eatPellet(entities, player);
+                    gameModel.eatPellet(entities, player, playerCircle);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
@@ -137,7 +149,7 @@ public class GameController implements Initializable {
 
 
     public void displayPlayer() {
-        Circle playerCircle = new Circle();
+        playerCircle = new Circle();
         playerCircle.setFill(Paint.valueOf("#251256"));
         playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
         playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
@@ -145,6 +157,8 @@ public class GameController implements Initializable {
 
         GamePane.getChildren().add(playerCircle);
     }
+
+
 
     /*public void ecoute() {
         PlayerInput playerInput = new PlayerInput();
