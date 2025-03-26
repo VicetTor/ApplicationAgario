@@ -15,10 +15,8 @@ import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
@@ -59,11 +57,22 @@ public class GameController implements Initializable {
 
         player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
 
-        GamePane.setStyle("-fx-background-color:white;");
+        //GamePane.setStyle("-fx-background-color:white;");
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
-
+        Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
+        BackgroundImage BgImg = new BackgroundImage(
+                backgroundImage,
+                BackgroundRepeat.REPEAT,
+                BackgroundRepeat.REPEAT,
+                BackgroundPosition.DEFAULT,
+                BackgroundSize.DEFAULT
+        );
+        GamePane.setBackground(new Background(BgImg));
+        System.out.println(backgroundImage.isError());
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+
+
 
         System.out.println("Initialisation");
 
