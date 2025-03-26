@@ -27,11 +27,10 @@ public class MovableEntity extends Entity{
 
     public void updatePosition(double xCursor, double yCursor, double screenWidth, double screenHeight){
 
-        double currentPosXPoint = screenWidth / 2;
-        double currentPosYPoint = screenHeight / 2;
 
-        double dx = xCursor - currentPosXPoint;
-        double dy = yCursor - currentPosYPoint;
+
+        double dx = xCursor - this.getPosX();
+        double dy = yCursor - this.getPosY();
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 

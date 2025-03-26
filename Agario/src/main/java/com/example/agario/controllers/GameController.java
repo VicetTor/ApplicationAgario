@@ -55,6 +55,7 @@ public class GameController implements Initializable {
         PlayerInput playerInput = new PlayerInput();
         Camera cam = new Camera(player);
 
+
         GamePane.setOnMouseMoved(playerInput);
 
         new Thread(() -> {
