@@ -52,7 +52,7 @@ public class GameController implements Initializable {
 
         dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0,dimension));
-        gameModel.createRandomPellets();
+        gameModel.createRandomPellets(100);
 
         this.player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
         gameModel.getQuadTree().insertNode(player);
@@ -62,6 +62,17 @@ public class GameController implements Initializable {
 
 
         GamePane.setOnMouseMoved(playerInput);
+
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(1);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
 
         new Thread(() -> {
@@ -101,9 +112,6 @@ public class GameController implements Initializable {
                             (-translateX + getPaneWidth()) * inverseScale,
                             (-translateY + getPaneHeight()) * inverseScale
                     );
-
-
-                    gameModel.getQuadTree().generatePelletsIfNeeded(cameraView, 20);
 
                     List<Entity> entities = new ArrayList<>();
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, entities);
