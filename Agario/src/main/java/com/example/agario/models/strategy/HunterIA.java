@@ -1,8 +1,11 @@
 package com.example.agario.models.strategy;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class HunterIA implements Strategy{
     @Override
-    public void behaviorIA() {
-
+    public List<Double> behaviorIA() {
+        return new ArrayList<>();
     }
 }

@@ -26,6 +26,13 @@ public class IA extends MovableEntity{
     }
 
     public void IAstart(){
-        strategy.behaviorIA();
+        while(true){ // à changer
+            List<Double> newCoord = strategy.behaviorIA();
+            try {
+                System.out.println("temp");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
