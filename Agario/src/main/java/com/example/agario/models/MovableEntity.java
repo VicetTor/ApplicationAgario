@@ -54,6 +54,7 @@ public class MovableEntity extends Entity{
             dirY = dy / distanceEuclidienne;
         }
 
+
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;
 

@@ -12,29 +12,27 @@ import java.util.HashMap;
 public class MiniMap {
 
     HashMap<Entity, Circle> entities;
-    public Pane map;
     private final double xMap;
     private final double yMap;
     private double xWorld;
     private double yWorld;
 
-    public MiniMap(double xW, double yW, Pane map){
-        this.map = map;
+    public MiniMap(double xW, double yW, double xM, double yM){
         this.yWorld = yW;
         this.xWorld = xW;
-        this.xMap = map.getPrefWidth();
-        this.yMap = map.getPrefHeight();
+        this.xMap = xM;
+        this.yMap = yM;
     }
 
-    public double getXPlayerMap(DoubleProperty xPlayer){
+    /*public double getXPlayerMap(DoubleProperty xPlayer){
         return (xMap*xPlayer.getValue())/xWorld;
     }
 
     public double getYPlayerMap(double yPlayer){
         return (yMap*yPlayer)/yWorld;
-    }
+    }*/
 
-    public void setEntities(HashMap<Entity, Circle> entities) {
+    /*public void setEntities(HashMap<Entity, Circle> entities) {
         this.entities = new HashMap<>();
         entities.forEach((e,c) ->{
             if(e instanceof MovableEntity){
@@ -56,5 +54,5 @@ public class MiniMap {
                 map.getChildren().add(circle);
             }
         });
-    }
+    }*/
 }
