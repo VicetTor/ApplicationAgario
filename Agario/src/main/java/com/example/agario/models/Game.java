@@ -1,5 +1,6 @@
 package com.example.agario.models;
 
+import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
 
@@ -29,7 +30,7 @@ public class Game {
 
         //initialisation des IA
         this.robots = new ArrayList<>();
-        robots.add(new IA(new Random().nextDouble(xMax), new Random().nextDouble(yMax)));
+        robots.add(new IAFactory(xMax,yMax,quadTree).launchFactory());
     }
 
     public Player getPlayer() {

@@ -4,6 +4,7 @@ import com.example.agario.models.strategy.GluttonIA;
 import com.example.agario.models.strategy.HunterIA;
 import com.example.agario.models.strategy.RandomMovementIA;
 import com.example.agario.models.strategy.Strategy;
+import com.example.agario.utils.QuadTree;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,11 +14,11 @@ public class IA extends MovableEntity{
 
     private Strategy strategy;
 
-    public IA(double x, double y) {
+    public IA(double x, double y, QuadTree quadTree) {
         super(x, y,15);
-        this.setName("Player "+ this.getId());
+        this.setName("FakePlayer "+ this.getId());
 
-        List<Strategy> strategies = List.of(new GluttonIA(), new HunterIA(), new RandomMovementIA());
+        List<Strategy> strategies = List.of(new GluttonIA(this.getPosX(), this.getPosY(), quadTree), new HunterIA(), new RandomMovementIA());
         this.setStrategy(strategies.get(new Random().nextInt(strategies.size())));
     }
 
