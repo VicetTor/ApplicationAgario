@@ -92,19 +92,6 @@ public class Game {
                 transition.setInterpolator(Interpolator.EASE_OUT);
                 transition.play();
 
-                Timeline growthTimeline = new Timeline(
-                        new KeyFrame(Duration.ZERO, e -> {
-                            playerCircle.radiusProperty().unbind();
-                            playerCircle.setRadius(currentRadius);
-                        }),
-                        new KeyFrame(Duration.millis(10), e -> {
-                            playerCircle.radiusProperty().unbind();
-                            playerCircle.setRadius(this.player.getRadius());
-                        })
-                );
-
-                growthTimeline.setCycleCount(1);
-                growthTimeline.play();
 
             }
         }
