@@ -69,7 +69,7 @@ public class GameController implements Initializable {
 
         dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0,dimension), player);
-        gameModel.createRandomPellets(500);
+        gameModel.createRandomPellets(1000);
 
 
         PlayerInput playerInput = new PlayerInput();
@@ -146,13 +146,15 @@ public class GameController implements Initializable {
 
                     for (Entity robot : gameModel.getRobots()){
                         if(robot instanceof IA){
-                            gameModel.eatPellet(pelletsList, (IA) robot);
+                           // gameModel.eatPellet(pelletsList, (IA) robot, entitieCircles.get(player));
                         }
                     }
-                    gameModel.eatPellet(pelletsList, player);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
+
+                    gameModel.eatPellet(pelletsList, player, entitieCircles.get(player), entitieCircles );
+
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
 
@@ -204,9 +206,9 @@ public class GameController implements Initializable {
             Circle robotCircle = new Circle();
 
             robotCircle.setFill(Paint.valueOf("#8cb27a"));
-            robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
-            robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
-            robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
+            robotCircle.centerXProperty().bind(robot.getPosXProperty());
+            robotCircle.centerYProperty().bind(robot.getPosYProperty());
+            robotCircle.radiusProperty().bind(robot.getRadiusProperty());
 
             GamePane.getChildren().add(robotCircle);
         }
