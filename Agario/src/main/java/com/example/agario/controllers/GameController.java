@@ -4,14 +4,13 @@ import com.example.agario.input.PlayerInput;
 import com.example.agario.models.Entity;
 import com.example.agario.models.Game;
 import com.example.agario.models.Player;
-import com.example.agario.models.PlayerFactory;
+import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
@@ -45,7 +44,7 @@ public class GameController implements Initializable {
         gameModel = new Game(new QuadTree(0,dimension));
         gameModel.createRandomPellets();
 
-        this.player = (Player) new PlayerFactory("GreatPlayer7895").launchFactory();
+        this.player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
         gameModel.getQuadTree().insertNode(player);
 
         PlayerInput playerInput = new PlayerInput();

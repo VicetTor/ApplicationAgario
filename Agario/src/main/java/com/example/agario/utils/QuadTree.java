@@ -1,9 +1,7 @@
 package com.example.agario.utils;
 
 import com.example.agario.models.Entity;
-import com.example.agario.models.EntityFactory;
-import com.example.agario.models.PelletFactory;
-import com.example.agario.models.PlayerFactory;
+import com.example.agario.models.factory.PelletFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,18 +119,18 @@ public class QuadTree {
             System.out.printf("ERROR : Unhandled partition x : %f   y : %f", x, y);
     }
 
-    public synchronized void removeNode(Entity pellet, QuadTree tree) {
+    public synchronized void removeNode(Entity foe, QuadTree tree) {
         if (tree == null) return;
 
         // Remove the entity safely using removeIf
         tree.entities.removeIf(entity ->
-                entity.getPosX() == pellet.getPosX() && entity.getPosY() == pellet.getPosY());
+                entity.getPosX() == foe.getPosX() && entity.getPosY() == foe.getPosY());
 
         // Recursively check and remove from child nodes
-        removeNode(pellet, tree.northWest);
-        removeNode(pellet, tree.northEast);
-        removeNode(pellet, tree.southWest);
-        removeNode(pellet, tree.southEast);
+        removeNode(foe, tree.northWest);
+        removeNode(foe, tree.northEast);
+        removeNode(foe, tree.southWest);
+        removeNode(foe, tree.southEast);
     }
 
 

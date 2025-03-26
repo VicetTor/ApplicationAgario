@@ -1,10 +1,6 @@
 package com.example.agario;
 
-import com.example.agario.input.PlayerInput;
-import com.example.agario.models.Player;
-import com.example.agario.models.PlayerFactory;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;

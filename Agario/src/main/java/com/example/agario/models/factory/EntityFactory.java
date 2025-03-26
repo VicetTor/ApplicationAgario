@@ -1,4 +1,6 @@
-package com.example.agario.models;
+package com.example.agario.models.factory;
+
+import com.example.agario.models.Entity;
 
 public abstract class EntityFactory {
 
