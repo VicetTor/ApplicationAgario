@@ -57,16 +57,16 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
     }
 
-    public void eatPellet(List<Entity> liste, Player player){
+    public void eatPellet(List<Entity> liste, Entity entity){
         for(Entity pellet : liste){
             if(pellet instanceof Pellet){
-                double dx = (player.getPosX() - pellet.getPosX());
-                double dy = (player.getPosY() - pellet.getPosY());
+                double dx = (entity.getPosX() - pellet.getPosX());
+                double dy = (entity.getPosY() - pellet.getPosY());
                 double squareDistance = dx*dx + dy*dy;
-                if(squareDistance <= player.getRadius()*player.getRadius()){
+                if(squareDistance <= entity.getRadius()*entity.getRadius()){
                     quadTree.removeNode(pellet, quadTree);
-                    double newRadius = player.getRadius()+1;
-                    player.setRadius(newRadius);
+                    double newRadius = entity.getRadius()+1;
+                    entity.setRadius(newRadius);
                 }
             }
         }
