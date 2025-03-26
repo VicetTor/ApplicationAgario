@@ -9,6 +9,7 @@ import com.example.agario.utils.QuadTree;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class IA extends MovableEntity{
 
@@ -16,17 +17,25 @@ public class IA extends MovableEntity{
 
     private QuadTree quadTree;
 
+    private AtomicReference<Double> dx;
+    private AtomicReference<Double> dy;
+
     public IA(double x, double y, QuadTree quadTree) {
         super(x, y,15);
         this.setName("FakePlayer "+ this.getId());
 
         this.quadTree = quadTree;
+
         List<Strategy> strategies = List.of(
                 //new GluttonIA(this.getPosX(), this.getPosY(), quadTree),
                 //new HunterIA(),
                 new RandomMovementIA(this.getPosX(), this.getPosY(), quadTree.getDimension())
         );
         this.setStrategy(strategies.get(new Random().nextInt(strategies.size())));
+
+        List<Double> newCoord = strategy.behaviorIA();
+        dx = new AtomicReference<>(newCoord.get(0) - this.getPosX());
+        dy = new AtomicReference<>(newCoord.get(1) - this.getPosY());
     }
 
     public void setStrategy(Strategy strategy){
@@ -35,7 +44,9 @@ public class IA extends MovableEntity{
 
     public void IAstart(){
         List<Double> newCoord = strategy.behaviorIA();
-        this.setSpeed(newCoord.get(0), newCoord.get(1), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
-        this.updatePosition(newCoord.get(0), newCoord.get(1), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
+        dx.set(newCoord.get(0) - this.getPosX());
+        dy.set(newCoord.get(1) - this.getPosY());
+        this.setSpeed(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
+        this.updatePosition(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
     }
 }

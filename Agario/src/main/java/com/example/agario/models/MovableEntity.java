@@ -13,7 +13,6 @@ public class MovableEntity extends Entity{
         super(x, y, mass);
     }
 
-
     public void setSpeed(double xCursor, double yCursor, double width, double height){
         double dx = xCursor - width;
         double dy = yCursor - height;
@@ -26,7 +25,6 @@ public class MovableEntity extends Entity{
     }
 
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){
-
         // double dx = xCursor - this.getPosX();
         //double dy = yCursor - this.getPosY();
 
