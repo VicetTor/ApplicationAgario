@@ -22,6 +22,13 @@ public class HunterIA implements Strategy{
     private double HEIGHT;
     private double WIDTH;
 
+    private long lastDirectionChangeTime;
+    private final int maxTime = 1000;
+    private final int minTime = 300;
+
+    private boolean movingRight = true;
+    private boolean movingDown = true;
+
     public HunterIA(double x, double y, QuadTree quadTree){
         this.x = x;
         this.y = y;
@@ -60,20 +67,16 @@ public class HunterIA implements Strategy{
     }
 
     private List<Double> randomDirection(){
-        ArrayList<Double> direction = new ArrayList<>();
-        Random rand = new Random();
+        int randomTime = new Random().nextInt(maxTime - minTime + 1) + minTime;
+        if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
+            if (new Random().nextInt(100) < 50) { movingRight = !movingRight;}
+            if (new Random().nextInt(100) < 50) { movingDown = !movingDown;}
 
-        double maxDistance = 100;
-        double newX = x + (rand.nextDouble() * 2 -1) * maxDistance;
-        double newY = y + (rand.nextDouble() * 2 -1) * maxDistance;
-
-        newX = Math.max(dimension.getxMin(), Math.min(dimension.getxMax(), newX));
-        newY = Math.max(dimension.getyMin(), Math.min(dimension.getyMax(), newY));
-        direction.add(newX);
-        direction.add(newY);
-        recalculateDimensionArea(newX,newY);
-
-        return direction;
+            x = (movingRight)? + 100 : new Random().nextDouble(WIDTH);
+            y = (movingDown)? + 100 : new Random().nextDouble(HEIGHT);
+            lastDirectionChangeTime = System.currentTimeMillis();
+        }
+        return List.of(x, y);
     }
 
     private void recalculateDimensionArea(double x, double y){

@@ -32,6 +32,14 @@ public class Game {
         robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+        robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         for (Entity entity : robots) {
             quadTree.insertNode(entity);
         }

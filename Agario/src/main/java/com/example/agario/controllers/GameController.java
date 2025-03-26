@@ -41,9 +41,9 @@ public class GameController implements Initializable {
 
     private static final int HEIGHT = 10000;
     private static final int WIDTH = 10000;
-    private static final List<String> PELLET_COLORS = List.of("#951b8a", "#4175ba", "#12b1af");
-    private static final String PLAYER_COLOR = "#251256";
-    private static final String ROBOT_COLOR = "#8cb27a";
+    private static final List<String> PELLET_COLORS = List.of("#ff3107", "#4e07ff", "#caff07","#ff07dc","#7107ff","#07ff2b","#07ff88","#07ff88","#07a8ff","#ff3107","#ff4f00","#ffff00");
+    private static final String PLAYER_COLOR = "#7107ff";
+    private static final String ROBOT_COLOR = "#07ff82";
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
