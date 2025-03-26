@@ -58,6 +58,7 @@ public abstract class Entity {
 
     public void setMass(double mass) {
         this.mass = mass;
+        this.radius.set(10*Math.sqrt(this.mass));
     }
 
     public void setPosX(double posX) {
