@@ -19,6 +19,7 @@ import javafx.scene.shape.Circle;
 
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
     @FXML
@@ -57,13 +58,23 @@ public class GameController implements Initializable {
         PlayerInput playerInput = new PlayerInput();
         Camera cam = new Camera(player);
 
+
         GamePane.setOnMouseMoved(playerInput);
 
+
         new Thread(() -> {
+            AtomicReference<Double> dx = new AtomicReference<>(playerInput.getMouseX() - player.getPosX());
+            AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
+                GamePane.setOnMouseMoved(e -> {
+                    playerInput.handle(e);
+                    dx.set(playerInput.getMouseX() - player.getPosX());
+                    dy.set(playerInput.getMouseY() - player.getPosY());
+                });
+                System.out.println(dx);
                 player.setSpeed(playerInput.getMouseX(), playerInput.getMouseY(), WIDTH, HEIGHT);
 
-                player.updatePosition(playerInput.getMouseX(), playerInput.getMouseY(),WIDTH, HEIGHT);
+                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
 
                 Platform.runLater(() -> {
                     double offsetX = getPaneWidth() / 2 - player.getPosX();

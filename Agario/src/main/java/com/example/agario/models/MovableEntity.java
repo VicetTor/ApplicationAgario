@@ -25,13 +25,12 @@ public class MovableEntity extends Entity{
         this.speed = Math.max(minSpeed, Math.min(maxSpeed, distance / 10));
     }
 
-    public void updatePosition(double xCursor, double yCursor, double screenWidth, double screenHeight){
+    public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){
 
-        double currentPosXPoint = screenWidth / 2;
-        double currentPosYPoint = screenHeight / 2;
 
-        double dx = xCursor - currentPosXPoint;
-        double dy = yCursor - currentPosYPoint;
+
+       // double dx = xCursor - this.getPosX();
+        //double dy = yCursor - this.getPosY();
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
 
@@ -58,7 +57,7 @@ public class MovableEntity extends Entity{
         } else if (a >= screenHeight - 1) {
             a = screenHeight - 2;
         }
-
+       // System.out.println(a);
         this.setPosX(q);
         this.setPosY(a);
     }
