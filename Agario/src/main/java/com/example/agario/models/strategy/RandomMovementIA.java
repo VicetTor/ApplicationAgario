@@ -13,17 +13,36 @@ public class RandomMovementIA implements Strategy{
     private double x;
     private double y;
     private Dimension dimension;
+    private long lastDirectionChangeTime;
+    private final int maxTime = 1000;
+    private final int minTime = 300;
+
+    private boolean movingRight = true;
+    private boolean movingDown = true;
 
     public RandomMovementIA(double x, double y, Dimension dimension){
         this.x = x;
         this.y = y;
         this.dimension = dimension;
+        lastDirectionChangeTime = System.currentTimeMillis();
     }
 
     @Override
     public List<Double> behaviorIA() {
-        Random rand = new Random();
-        return List.of(rand.nextDouble(dimension.getxMax()), rand.nextDouble(dimension.getyMax()));
+        return randomDirection();
+    }
+
+    private List<Double> randomDirection(){
+        int randomTime = new Random().nextInt(maxTime - minTime + 1) + minTime;
+        if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
+            if (new Random().nextInt(100) < 50) {movingRight = !movingRight;}
+            if (new Random().nextInt(100) < 50) {movingDown = !movingDown;}
+
+            x = (movingRight)? + 100 : new Random().nextDouble(dimension.getxMax());
+            y = (movingDown)? + 100 : new Random().nextDouble(dimension.getyMax());
+            lastDirectionChangeTime = System.currentTimeMillis();
+        }
+        return List.of(x, y);
     }
 }
 

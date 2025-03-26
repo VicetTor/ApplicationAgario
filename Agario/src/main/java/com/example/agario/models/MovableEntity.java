@@ -13,20 +13,28 @@ public class MovableEntity extends Entity{
         super(x, y, mass);
     }
 
-    public void setSpeed(double dx, double dy, double width, double height){
-
-        double maxDistanceCursor = width;
-        if (maxDistanceCursor < height) maxDistanceCursor = height;
+    public void setSpeed(double dx, double dy, double x, double y){
 
         double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
 
-        double percentageDistance = distancePlayerCursor/(maxDistanceCursor/2);
+        double maxDistance = x;
+        if (x>y) maxDistance = y;
 
-        double maxSpeed = (initialSpeed  *  15/(this.getMass()*0.5) );
-        //System.out.println(maxSpeed);
+        //System.out.println(distancePlayerWindow);
+
+        double percentageDistance = distancePlayerCursor/maxDistance;
+        if (percentageDistance>1) percentageDistance = 1;
+
+        //System.out.println("distancePlayerCursor : " + distancePlayerCursor);
+        //System.out.println("maxDistance : " + maxDistance);
+        //System.out.println("% : " + percentageDistance);
+
+        double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
         if(maxSpeed > initialSpeed){
             maxSpeed = initialSpeed;
         }
+
+        System.out.println(maxSpeed);
         double minSpeed = 1;
 
         this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
@@ -41,7 +49,6 @@ public class MovableEntity extends Entity{
             dirX = dx / distanceEuclidienne;
             dirY = dy / distanceEuclidienne;
         }
-        speed = 10 ;
 
         double q = this.getPosX() + dirX * speed;
         double a = this.getPosY() + dirY * speed;

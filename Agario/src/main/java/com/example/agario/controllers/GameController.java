@@ -1,5 +1,6 @@
 package com.example.agario.controllers;
 
+import com.example.agario.Launcher;
 import com.example.agario.input.PlayerInput;
 import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
@@ -13,26 +14,32 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Scene;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.scene.image.Image;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
+import javafx.stage.Stage;
 
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
-    @FXML private TextField TchatTextField;
-    @FXML private Pane GamePane;
+    @FXML
+    private TextField TchatTextField;
+    @FXML
+    private Pane GamePane;
+
+    @FXML
+    private AnchorPane OuterPane;
     @FXML private ListView LeaderBoardListView;
     @FXML private ListView TchatListView;
+
 
     @FXML
     private GridPane gridPane;
@@ -53,15 +60,35 @@ public class GameController implements Initializable {
     private Player player;
 
 
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
+    }
+
+    private Stage stage;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
 
         player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
 
-        GamePane.setStyle("-fx-background-color:white;");
         GamePane.setMinWidth(WIDTH);
         GamePane.setMinHeight(HEIGHT);
+        GamePane.setStyle(null);
+
+        Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
+        BackgroundImage BgImg = new BackgroundImage(
+                backgroundImage,
+                BackgroundRepeat.REPEAT,
+                BackgroundRepeat.REPEAT,
+                BackgroundPosition.DEFAULT,
+                BackgroundSize.DEFAULT
+        );
+        GamePane.setBackground(new Background(BgImg));
+        System.out.println(backgroundImage.isError());
+        GamePane.toFront();
+
 
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
@@ -69,7 +96,7 @@ public class GameController implements Initializable {
 
         dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0,dimension), player);
-        gameModel.createRandomPellets(500);
+        gameModel.createRandomPellets(1000);
 
 
         PlayerInput playerInput = new PlayerInput();
@@ -77,6 +104,18 @@ public class GameController implements Initializable {
 
         GamePane.setOnMouseMoved(playerInput);
 
+
+
+        new Thread(()->{
+            while(true) {
+                gameModel.createRandomPellets(2);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
 
         new Thread(()->{
             while(true) {
@@ -96,16 +135,12 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(playerInput.getMouseY() - player.getPosY());
             while (true) {
                 GamePane.setOnMouseMoved(e -> {
-
+                    System.out.println("sfsfdfd");
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
-
-
-                player.setSpeed(dx.get(), dy.get(), getPaneWidth(), getPaneHeight());
-
-                player.updatePosition(dx.get(), dy.get(),WIDTH, HEIGHT);
+                player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
 
                 for (Entity robot : gameModel.getRobots()){
                     if(robot instanceof IA){
@@ -114,6 +149,7 @@ public class GameController implements Initializable {
                 }
 
                 Platform.runLater(() -> {
+
 
                     List<Entity> pelletsList = new ArrayList<>();
 
@@ -133,6 +169,11 @@ public class GameController implements Initializable {
                             new Scale(scale, scale, 0, 0)
                     );
 
+                    double x = stage.getHeight()/2;
+                    double y = stage.getWidth()/2;
+
+                    player.setSpeed(dx.get(), dy.get(), x,y);
+
 
                     double inverseScale = 1.0 / scale;
                     Dimension cameraView = new Dimension(
@@ -146,13 +187,15 @@ public class GameController implements Initializable {
 
                     for (Entity robot : gameModel.getRobots()){
                         if(robot instanceof IA){
-                            gameModel.eatPellet(pelletsList, (IA) robot);
+                           //gameModel.eatPellet(pelletsList, (IA) robot, entitieCircles.get(player), entitieCircles);
                         }
                     }
-                    gameModel.eatPellet(pelletsList, player);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
+
+                    gameModel.eatPellet(pelletsList, player, entitieCircles.get(player), entitieCircles);
+
                     displayPellets(pelletsList);
                     displayRobot(gameModel.getRobots());
 
@@ -204,9 +247,9 @@ public class GameController implements Initializable {
             Circle robotCircle = new Circle();
 
             robotCircle.setFill(Paint.valueOf("#8cb27a"));
-            robotCircle.centerXProperty().bindBidirectional(robot.getPosXProperty());
-            robotCircle.centerYProperty().bindBidirectional(robot.getPosYProperty());
-            robotCircle.radiusProperty().bindBidirectional(robot.getRadiusProperty());
+            robotCircle.centerXProperty().bind(robot.getPosXProperty());
+            robotCircle.centerYProperty().bind(robot.getPosYProperty());
+            robotCircle.radiusProperty().bind(robot.getRadiusProperty());
 
             GamePane.getChildren().add(robotCircle);
         }
