@@ -40,6 +40,8 @@ public class GameController implements Initializable {
     private Dimension dimension;
     private Player player;
 
+    private Circle playerCircle;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -81,7 +83,7 @@ public class GameController implements Initializable {
 
                     QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, liste);
 
-                    gameModel.eatPellet(liste, player);
+                    gameModel.eatPellet(liste, player, playerCircle);
 
                     GamePane.getChildren().clear();
                     displayPlayer();
@@ -121,7 +123,7 @@ public class GameController implements Initializable {
 
 
     public void displayPlayer() {
-        Circle playerCircle = new Circle();
+        playerCircle = new Circle();
         playerCircle.setFill(Paint.valueOf("#251256"));
         playerCircle.centerXProperty().bindBidirectional(player.getPosXProperty());
         playerCircle.centerYProperty().bindBidirectional(player.getPosYProperty());
@@ -129,6 +131,8 @@ public class GameController implements Initializable {
 
         GamePane.getChildren().add(playerCircle);
     }
+
+
 
     /*public void ecoute() {
         PlayerInput playerInput = new PlayerInput();

@@ -2,7 +2,13 @@ package com.example.agario.models;
 
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
+import javafx.animation.*;
+import javafx.scene.Node;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
+import java.security.Key;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -39,7 +45,7 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<Player, List<Entity>>();
     }
 
-    public void eatPellet(List<Entity> liste, Player player){
+    public void eatPellet(List<Entity> liste, Player player, Circle playerCircle){
         for(Entity pellet : liste){
             if(pellet instanceof Pellet){
                 double dx = (player.getPosX() - pellet.getPosX());
@@ -47,8 +53,18 @@ public class Game {
                 double squareDistance = dx*dx + dy*dy;
                 if(squareDistance <= player.getRadius()*player.getRadius()){
                     quadTree.removeNode(pellet, quadTree);
-                    double newRadius = player.getRadius()+1;
-                    player.setRadius(newRadius);
+                    double newMass = player.getMass() + 0.5;
+                    player.setMass(newMass);
+
+                    FillTransition colorTransition = new FillTransition(Duration.seconds(1), playerCircle);
+                    colorTransition.setFromValue(Color.BLUE);  // Couleur avant
+                    colorTransition.setToValue(Color.RED);     // Couleur après
+                    colorTransition.setCycleCount(2); // Revenir à la couleur initiale
+                    colorTransition.setAutoReverse(true);
+                    colorTransition.play();
+
+
+
                 }
             }
         }
