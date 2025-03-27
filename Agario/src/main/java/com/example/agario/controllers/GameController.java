@@ -11,8 +11,7 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -45,6 +44,7 @@ public class GameController implements Initializable {
     private Game gameModel;
     private Player player;
     private Stage stage;
+    private boolean isPlayerAlive = true;
 
     private static final int HEIGHT = 10000;
     private static final int WIDTH = 10000;
@@ -52,7 +52,7 @@ public class GameController implements Initializable {
     private static final String PLAYER_COLOR = "#7107ff";
     private static final String ROBOT_COLOR = "#07ff82";
 
-    private final List<Entity> visibleEntities = Collections.synchronizedList(new ArrayList<>());
+    //private final List<Entity> visibleEntities = Collections.synchronizedList(new ArrayList<>());
 
 
     @Override
@@ -63,16 +63,18 @@ public class GameController implements Initializable {
     }
 
     private void setupGame() {
-        // Initialize player and game world
-        player = (Player) new PlayerFactory("GreatPlayer7895", WIDTH, HEIGHT).launchFactory();
-
         // Setup game pane
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
 
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
-        gameModel = new Game(new QuadTree(0, dimension), player);
+
+        // Initialize player and game world
+        String name = "GreatPlayer7895";
+
+        gameModel = new Game(new QuadTree(0, dimension), name);
+        this.player = gameModel.getPlayer();
         gameModel.createRandomPellets(5000);
     }
 
@@ -100,7 +102,7 @@ public class GameController implements Initializable {
             AtomicReference<Double> dx = new AtomicReference<>(0.0);
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
-            while (true) {
+            while (isPlayerAlive) {
                 // Update mouse position
                 GamePane.setOnMouseMoved(e -> {
                     playerInput.handle(e);
@@ -150,7 +152,7 @@ public class GameController implements Initializable {
         for(Entity entity : allPlayers){
             counter++;
             LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+entity.getId()+", score : "+entity.getMass());
-            //if(counter == 10) break; //TODO
+            if(counter == 10) break;
         }
         if(gameModel.getRobots().size() == 5){
             robotSpawner(5);
@@ -180,9 +182,6 @@ public class GameController implements Initializable {
         // Render all entities
         renderEntities(visibleEntities);
 
-        // Player absorbs other entities
-        gameModel.eatEntity(visibleEntities, player, this);
-
         // Robots absorb other entities
         for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
             if (robot instanceof IA) {
@@ -191,9 +190,13 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
+                robotZone.add(player);
                 gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
             }
         }
+
+        // Player absorbs other entities
+        gameModel.eatEntity(visibleEntities, player, this);
 
         // Update leaderboard
         updateLeaderBoard();
@@ -203,15 +206,33 @@ public class GameController implements Initializable {
         entitiesCircles.remove(entity);
     }
 
+    public void eatPlayer(){
+        this.isPlayerAlive = false;
+
+        ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
+        Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.get() == ButtonType.APPLY){
+            Platform.exit();
+        }
+        alert.setOnCloseRequest(e -> Platform.exit());
+        Platform.exit();
+    }
+
     public void animatePelletConsumption(Entity pellet) {
-        TranslateTransition transition = new TranslateTransition();
-        transition.setNode(entitiesCircles.get(pellet));
-        transition.setDuration(Duration.millis(50));
-        transition.setToX(player.getPosX() - entitiesCircles.get(pellet).getCenterX());
-        transition.setToY(player.getPosY() - entitiesCircles.get(pellet).getCenterY());
-        transition.setAutoReverse(true);
-        transition.setInterpolator(Interpolator.EASE_OUT);
-        transition.play();
+        try{
+            TranslateTransition transition = new TranslateTransition();
+            transition.setNode(entitiesCircles.get(pellet));
+            transition.setDuration(Duration.millis(50));
+            transition.setToX(player.getPosX() - entitiesCircles.get(pellet).getCenterX());
+            transition.setToY(player.getPosY() - entitiesCircles.get(pellet).getCenterY());
+            transition.setAutoReverse(true);
+            transition.setInterpolator(Interpolator.EASE_OUT);
+            transition.play();
+        }
+        catch(NullPointerException e){
+            System.out.println("Elément mangé alors qu'il n'a pas encore été instancié");
+        }
     }
 
 
@@ -246,6 +267,7 @@ public class GameController implements Initializable {
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
+        visibleEntities.add(player);
 
         return visibleEntities;
     }
@@ -359,7 +381,7 @@ public class GameController implements Initializable {
 
     private void startPelletSpawner() {
         new Thread(() -> {
-            while (true) {
+            while (isPlayerAlive) {
                 gameModel.createRandomPellets(2);
                 try {
                     Thread.sleep(1000);

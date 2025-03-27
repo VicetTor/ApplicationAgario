@@ -8,10 +8,10 @@ import java.util.Random;
 public class PlayerFactory extends EntityFactory{
 
     private String nom;
-    private int height;
-    private int width;
+    private double height;
+    private double width;
 
-    public PlayerFactory(String nom, int width, int height){
+    public PlayerFactory(String nom, double width, double height){
         super();
         this.nom = nom;
         this.height = height;
@@ -20,6 +20,6 @@ public class PlayerFactory extends EntityFactory{
 
     @Override
     public Entity launchFactory() {
-        return new Player(new Random().nextInt(width),new Random().nextInt(height), nom);
+        return new Player(new Random().nextDouble(width),new Random().nextDouble(height), nom);
     }
 }
