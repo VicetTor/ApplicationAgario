@@ -36,21 +36,17 @@
 
             <children>
                 <Button fx:id="buttonSettings" mnemonicParsing="false" onAction="#openSettingsMenuClick" text="Paramètres" textAlignment="CENTER" />
-                <GridPane opacity="0.58" style="-fx-background-color: black;" GridPane.rowIndex="1">
+                <GridPane opacity="0.65" style="-fx-background-color: black;">
                     <columnConstraints>
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints maxHeight="42.0" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="250.0" minHeight="10.0" prefHeight="184.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="30.0" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints minHeight="250" prefHeight="250.0" vgrow="ALWAYS" />
                     </rowConstraints>
 
                     <children>
-                        <ListView fx:id="LeaderBoardListView" opacity="0.5" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: black;" GridPane.rowIndex="1">
-                            <GridPane.margin>
-                                <Insets />
-                            </GridPane.margin>
-                        </ListView>
+                        <ListView fx:id="LeaderBoardListView" opacity="1" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: transparent;" GridPane.rowIndex="1"/>
                         <Label text="LeaderBoard" textAlignment="CENTER" textFill="WHITE" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                             <font>
                                 <Font size="17.0" />

@@ -38,6 +38,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -48,6 +49,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -130,6 +132,18 @@ public class GameController implements Initializable {
         GamePane.setBackground(new Background(bgImg));
         GamePane.toFront();
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+
+        LeaderBoardListView.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item);
+                setTextFill(Paint.valueOf("#ffffff"));
+                setBackground(Background.EMPTY);
+                setStyle("-fx-background-color: transparent;");
+                setPrefHeight(LeaderBoardListView.getHeight()/10.5);
+            }
+        });
     }
 
     private void startGameLoop() {
@@ -137,12 +151,12 @@ public class GameController implements Initializable {
         Camera camera = new Camera(gameModel.getPlayer());
         GamePane.setOnMouseMoved(playerInput);
 
-        GamePane.setOnMouseClicked(event -> {
+        /*GamePane.setOnMouseClicked(event -> {
 
             splitPlayer();
 
             System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
-        });
+        });*/
 
 
         new Thread(() -> {
@@ -218,7 +232,7 @@ public class GameController implements Initializable {
         for(Entity entity : allPlayers){
             counter++;
             MovableEntity joueur = (MovableEntity) entity;
-            LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+joueur.getName()+", score : "+joueur.getMass());
+            LeaderBoardListView.getItems().add(counter+". "+joueur.getName()+"     "+new DecimalFormat("0.00").format(joueur.getMass()));
             if(counter == 10) break;
         }
 
@@ -710,11 +724,12 @@ public class GameController implements Initializable {
                         if(entity instanceof SpeedDecreasePellet){
                             this.speedDecreaseEffect(movableEntity);
                         }
+                        if(entity instanceof InvisiblePellet){
+                            this.invisiblePelletEffect(movableEntity);
+                        }
 
                     }
-                    if(entity instanceof InvisiblePellet){
-                        this.invisiblePelletEffect(movableEntity);
-                    }
+
 
                 }
                 // Ajouter à la liste de suppression
