@@ -28,6 +28,7 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.control.*;
 
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -63,7 +64,8 @@ public class GameController implements Initializable {
     private Map<Entity, String> pelletColors = new HashMap<>();
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
-    private Player player;
+    private List<Player> player = new ArrayList<Player>();
+
     private Stage stage;
     private double specialSpeed = -1;
 
@@ -85,8 +87,6 @@ public class GameController implements Initializable {
 
     //private final List<Entity> visibleEntities = Collections.synchronizedList(new ArrayList<>());
 
-
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -107,7 +107,7 @@ public class GameController implements Initializable {
         String name = "GreatPlayer7895";
 
         gameModel = new Game(new QuadTree(0, dimension), name);
-        this.player = gameModel.getPlayer();
+        this.player.add(gameModel.getPlayer());
         gameModel.createRandomPellets(5000);
     }
 
@@ -128,8 +128,16 @@ public class GameController implements Initializable {
 
     private void startGameLoop() {
         PlayerInput playerInput = new PlayerInput();
-        Camera camera = new Camera(player);
+        Camera camera = new Camera(gameModel.getPlayer());
         GamePane.setOnMouseMoved(playerInput);
+
+        GamePane.setOnMouseClicked(event -> {
+
+            splitPlayer();
+
+            System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
+        });
+
 
         new Thread(() -> {
             AtomicReference<Double> dx = new AtomicReference<>(0.0);
@@ -138,15 +146,17 @@ public class GameController implements Initializable {
             while (true) {
 
                 // Update mouse position
-                if(isPlayerAlive) {
-                    GamePane.setOnMouseMoved(e -> {
-                        playerInput.handle(e);
-                        dx.set(playerInput.getMouseX() - player.getPosX());
-                        dy.set(playerInput.getMouseY() - player.getPosY());
-                    });
+                for(Player p : player) {
+                    if (isPlayerAlive) {
+                        GamePane.setOnMouseMoved(e -> {
+                            playerInput.handle(e);
+                            dx.set(playerInput.getMouseX() - p.getPosX());
+                            dy.set(playerInput.getMouseY() - p.getPosY());
+                        });
 
-                    // Update positions
-                    player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
+                        // Update positions
+                        p.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
+                    }
                 }
                 updateRobots();
 
@@ -192,7 +202,7 @@ public class GameController implements Initializable {
         LeaderBoardListView.getItems().clear();
 
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
-        if(isPlayerAlive) allPlayers.add(player);
+        if(isPlayerAlive) allPlayers.add(player.get(0));
         allPlayers.sort(new Comparator<Entity>() {
             @Override
             public int compare(Entity e1, Entity e2) {
@@ -231,14 +241,15 @@ public class GameController implements Initializable {
         applyCameraTransform(camera);
 
         // Update player speed
-        player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
-
+        for(Player p : player) {
+            p.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
+        }
         // Render all entities
         renderEntities(visibleEntities);
 
 
         otherPlayers.forEach(otherPlayer -> {
-            if (!otherPlayer.getName().equals(player.getName())) {
+            if (!otherPlayer.getName().equals(player.get(0).getName())) {
                 renderOtherPlayer(otherPlayer);
             }
         });
@@ -251,13 +262,16 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
-                if(isPlayerAlive) robotZone.add(player);
+                if(isPlayerAlive) robotZone.add(player.get(0));
                 gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
             }
         }
 
         // Player absorbs other entities
-        if(isPlayerAlive) gameModel.eatEntity(visibleEntities, player, this);
+        if(isPlayerAlive)
+            for(Player p: player) {
+                gameModel.eatEntity(visibleEntities, p, this);
+            }
 
         // Update leaderboard
         updateLeaderBoard();
@@ -280,13 +294,13 @@ public class GameController implements Initializable {
         Platform.exit();
     }
 
-    public void animatePelletConsumption(Entity pellet) {
+    public void animatePelletConsumption(Entity pellet, MovableEntity p) {
         try{
             TranslateTransition transition = new TranslateTransition();
             transition.setNode(entitiesCircles.get(pellet));
             transition.setDuration(Duration.millis(50));
-            transition.setToX(player.getPosX() - entitiesCircles.get(pellet).getCenterX());
-            transition.setToY(player.getPosY() - entitiesCircles.get(pellet).getCenterY());
+            transition.setToX(p.getPosX() - entitiesCircles.get(pellet).getCenterX());
+            transition.setToY(p.getPosY() - entitiesCircles.get(pellet).getCenterY());
             transition.setAutoReverse(true);
             transition.setInterpolator(Interpolator.EASE_OUT);
             transition.play();
@@ -325,8 +339,8 @@ public class GameController implements Initializable {
         double screenCenterX = getPaneWidth() / 2;
         double screenCenterY = getPaneHeight() / 2;
 
-        double translateX = screenCenterX - (player.getPosX() * scale);
-        double translateY = screenCenterY - (player.getPosY() * scale);
+        double translateX = screenCenterX - (player.get(0).getPosX() * scale);
+        double translateY = screenCenterY - (player.get(0).getPosY() * scale);
 
         GamePane.getTransforms().clear();
         GamePane.getTransforms().addAll(
@@ -338,8 +352,8 @@ public class GameController implements Initializable {
     private List<Entity> getVisibleEntities(Camera camera) {
         List<Entity> visibleEntities = new ArrayList<>();
         double scale = 1.0 / camera.getZoomFactor();
-        double translateX = (getPaneWidth() / 2) - (player.getPosX() * scale);
-        double translateY = (getPaneHeight() / 2) - (player.getPosY() * scale);
+        double translateX = (getPaneWidth() / 2) - (player.get(0).getPosX() * scale);
+        double translateY = (getPaneHeight() / 2) - (player.get(0).getPosY() * scale);
 
         double inverseScale = 1.0 / scale;
         Dimension cameraView = new Dimension(
@@ -351,7 +365,10 @@ public class GameController implements Initializable {
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
-        if(isPlayerAlive) visibleEntities.add(player);
+        if(isPlayerAlive)
+            for(Player p : player) {
+                visibleEntities.add(p);
+            }
 
         return visibleEntities;
     }
@@ -448,39 +465,40 @@ public class GameController implements Initializable {
     }
 
     private void renderPlayer() {
-        Circle circle = entitiesCircles.computeIfAbsent(player, k -> {
-            Circle c = new Circle();
-            c.setFill(Paint.valueOf(PLAYER_COLOR));
-            return c;
-        });
+        for(Player p : player) {
+            Circle circle = entitiesCircles.computeIfAbsent(p, k -> {
+                Circle c = new Circle();
+                c.setFill(Paint.valueOf(PLAYER_COLOR));
+                return c;
+            });
+            Label l = new Label(p.getName());
+            l.setLabelFor(circle);
+            l.setTextFill(Color.WHITE);
+            l.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
 
-        Label l = new Label(player.getName());
-        l.setLabelFor(circle);
-        l.setTextFill(Color.WHITE);
-        l.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+            DropShadow shadow = new DropShadow();
+            shadow.setOffsetX(1);
+            shadow.setOffsetY(1);
+            shadow.setColor(Color.BLACK);
+            l.setEffect(shadow);
 
-        DropShadow shadow = new DropShadow();
-        shadow.setOffsetX(1);
-        shadow.setOffsetY(1);
-        shadow.setColor(Color.BLACK);
-        l.setEffect(shadow);
+            l.widthProperty().addListener((obs, oldVal, newVal) ->
+                    l.setLayoutX(circle.getCenterX() - newVal.doubleValue() / 2)
+            );
 
-        l.widthProperty().addListener((obs, oldVal, newVal) ->
-                l.setLayoutX(circle.getCenterX() - newVal.doubleValue() / 2)
-        );
+            circle.centerXProperty().addListener((obs, oldVal, newVal) ->
+                    l.setLayoutX(newVal.doubleValue() - l.getWidth() / 2)
+            );
+            circle.centerYProperty().addListener((obs, oldVal, newVal) ->
+                    l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
+            );
 
-        circle.centerXProperty().addListener((obs, oldVal, newVal) ->
-                l.setLayoutX(newVal.doubleValue() - l.getWidth() / 2)
-        );
-        circle.centerYProperty().addListener((obs, oldVal, newVal) ->
-                l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
-        );
+            animatePlayerMovement(circle, p.getPosX(), p.getPosY());
 
-        animatePlayerMovement(circle, player.getPosX(), player.getPosY());
-
-        updateCircle(circle, player);
-        GamePane.getChildren().add(circle);
-        GamePane.getChildren().add(l);
+            updateCircle(circle, p);
+            GamePane.getChildren().add(circle);
+            GamePane.getChildren().add(l);
+        }
     }
 
     private void updateCircle(Circle circle, Entity entity) {
@@ -509,18 +527,18 @@ public class GameController implements Initializable {
         square.setStroke(Color.RED);
         square.setStrokeWidth(1);
 
-        double centerX = (player.getPosX() * map.getPrefWidth()) / WIDTH;
-        double centerY = (player.getPosY() * map.getPrefHeight()) / HEIGHT;
+        double centerX = (player.get(0).getPosX() * map.getPrefWidth()) / WIDTH;
+        double centerY = (player.get(0).getPosY() * map.getPrefHeight()) / HEIGHT;
 
         square.setX(centerX - square.getWidth() / 2);
         square.setY(centerY - square.getHeight() / 2);
 
         map.getChildren().add(square);
 
-        double x1Square = player.getPosX()-1400;
-        double x2Square = player.getPosX()+1400;
-        double y1Square = player.getPosY()+1800;
-        double y2Square = player.getPosY()-1800;
+        double x1Square = player.get(0).getPosX()-1400;
+        double x2Square = player.get(0).getPosX()+1400;
+        double y1Square = player.get(0).getPosY()+1800;
+        double y2Square = player.get(0).getPosY()-1800;
 
         entities.forEach((e,c) ->{
 
@@ -578,7 +596,7 @@ public class GameController implements Initializable {
 
     public void setupNetwork() {
         try {
-            ConnectionResult connection = GameClient.playOnLine(player);
+            ConnectionResult connection = GameClient.playOnLine(player.get(0));
             if (connection == null) {
                 throw new IOException("Échec de la connexion au serveur");
             }
@@ -615,7 +633,7 @@ public class GameController implements Initializable {
 
 
     public void setPlayer(Player player){
-        this.player = player ;
+        this.player.set(0,player);
     }
 
     public void invisiblePelletEffect(MovableEntity movableEntity) {
@@ -654,6 +672,29 @@ public class GameController implements Initializable {
             }
             this.specialSpeed = -1;
         }).start();
+    }
+
+    public void splitPlayer(){
+        ArrayList<Player> newPlayer = new ArrayList<Player>();
+        for (Player p : player){
+            double weightPlayerDivided = p.getMass()/2;
+            if (weightPlayerDivided > 20){
+                Player newP = new Player(p.getPosX(),p.getPosY(),p.getName());
+                newP.setMass(weightPlayerDivided); //*2
+                newPlayer.add(p);
+            }
+        }
+        this.player.clear();
+        this.player = newPlayer;
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
     }
 
 }

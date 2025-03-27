@@ -88,7 +88,7 @@ public class Game {
 
                     if (movableEntity instanceof Player) {
 
-                        g.animatePelletConsumption(entity);
+                        g.animatePelletConsumption(entity, movableEntity);
                         if(entity instanceof SpeedIncreasePellet || entity instanceof SpeedDecreasePellet){
                             ((SpecialPellet) entity).doSpecialPelletAction(g, movableEntity);
                         }

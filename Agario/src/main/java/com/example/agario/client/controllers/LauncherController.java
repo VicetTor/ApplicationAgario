@@ -8,6 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -42,10 +43,10 @@ public class LauncherController {
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
 
-
         controller.setStage(stage);
 
         stage.show();
+
         stage.setOnCloseRequest(e -> Platform.exit());
     }
 
