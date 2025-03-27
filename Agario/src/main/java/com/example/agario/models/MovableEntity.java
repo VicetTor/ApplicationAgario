@@ -13,25 +13,37 @@ public class MovableEntity extends Entity{
         super(x, y, mass);
     }
 
-    public void setSpeed(double dx, double dy, double x, double y){
+    public void setSpecialSpeed(double speed){
+        this.speed = speed;
+    }
 
-        double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
+    public void setSpeed(double dx, double dy, double x, double y, double specialSpeed){
 
-        double maxDistance = x;
-        if (x>y) maxDistance = y;
-
-
-        double percentageDistance = distancePlayerCursor/maxDistance;
-        if (percentageDistance>1) percentageDistance = 1;
-
-        double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
-        if(maxSpeed > initialSpeed){
-            maxSpeed = initialSpeed;
+        if (specialSpeed != -1){
+            setSpecialSpeed(specialSpeed);
         }
 
-        double minSpeed = 1;
+        else{
 
-        this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
+            double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
+
+            double maxDistance = x;
+            if (x>y) maxDistance = y;
+
+
+            double percentageDistance = distancePlayerCursor/maxDistance;
+            if (percentageDistance>1) percentageDistance = 1;
+
+            double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
+            if(maxSpeed > initialSpeed){
+                maxSpeed = initialSpeed;
+            }
+
+            double minSpeed = 1;
+
+            this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
+        }
+
     }
 
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){

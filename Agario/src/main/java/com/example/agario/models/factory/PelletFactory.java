@@ -1,7 +1,8 @@
 package com.example.agario.models.factory;
 
-import com.example.agario.models.Entity;
-import com.example.agario.models.Pellet;
+import com.example.agario.models.*;
+
+import java.util.Random;
 
 public class PelletFactory extends EntityFactory{
 
@@ -17,6 +18,19 @@ public class PelletFactory extends EntityFactory{
 
     @Override
     public Entity launchFactory() {
-        return new Pellet(x,y);
+        int randomNumber = new Random().nextInt(1000+1);
+
+        if(randomNumber < 1){
+            return new InvisiblePellet(x,y);
+        }
+        else if(randomNumber < 2){
+            return new SpeedIncreasePellet(x,y);
+        }
+        else if(randomNumber < 3){
+            return new SpeedDecreasePellet(x,y);
+        }
+        else {
+            return new Pellet(x, y);
+        }
     }
 }

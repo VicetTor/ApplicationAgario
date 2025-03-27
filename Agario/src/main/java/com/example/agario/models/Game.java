@@ -71,11 +71,20 @@ public class Game {
             if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius()*2)
                     && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
 
-                //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
                 if (entity instanceof Pellet) {
+
                     if (movableEntity instanceof Player) {
+
                         g.animatePelletConsumption(entity);
+                        if(entity instanceof SpeedIncreasePellet || entity instanceof SpeedDecreasePellet){
+                            ((SpecialPellet) entity).doSpecialPelletAction(g, movableEntity);
+                        }
+
                     }
+                    if(entity instanceof InvisiblePellet){
+                        ((InvisiblePellet) entity).doSpecialPelletAction(g, movableEntity);
+                    }
+
                 }
 
                 // Ajouter à la liste de suppression
@@ -84,6 +93,9 @@ public class Game {
                 // Augmenter la masse de l'entité
                 double newMass = movableEntity.getMass() + entity.getMass();
                 movableEntity.setMass(newMass);
+
+
+
             }
             }
         // Supprimer les pellets mangés

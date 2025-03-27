@@ -50,6 +50,7 @@ public class GameController implements Initializable {
     private Game gameModel;
     private Player player;
     private Stage stage;
+    private double specialSpeed = -1;
 
     private static final int HEIGHT = 10000;
     private static final int WIDTH = 10000;
@@ -174,7 +175,7 @@ public class GameController implements Initializable {
         applyCameraTransform(camera);
 
         // Update player speed
-        player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2);
+        player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
 
         // Render all entities
         renderEntities(visibleEntities);
@@ -217,27 +218,24 @@ public class GameController implements Initializable {
 
 
     private void animatePlayerMovement(Circle player, double dx, double dy) {
-        double movementIntensity = Math.sqrt(dx * dx + dy * dy) / 50; // Intensité basée sur la vitesse
-        movementIntensity = Math.min(movementIntensity, 1); // Limite max à 1
+        double movementIntensity = Math.sqrt(dx * dx + dy * dy) / 50;
+        movementIntensity = Math.min(movementIntensity, 1);
 
-        double scaleFactor = 1 + movementIntensity * 0.1; // Ajustement doux
+        double scaleFactor = 1 + movementIntensity * 0.1;
 
-        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(100), player);
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(10), player);
         scaleTransition.setToX(scaleFactor);
-        scaleTransition.setToY(scaleFactor); // Même échelle X et Y pour garder un rond parfait
+        scaleTransition.setToY(scaleFactor);
         scaleTransition.setAutoReverse(true);
 
-// Effet de micro-mouvement organique
-        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(100), player);
-        translateTransition.setByX((Math.random() - 0.5) * 2.5); // Petites oscillations aléatoires
+        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(10), player);
+        translateTransition.setByX((Math.random() - 0.5) * 2.5);
         translateTransition.setByY((Math.random() - 0.5) * 2.5);
         translateTransition.setAutoReverse(true);
 
         ParallelTransition parallelTransition = new ParallelTransition(scaleTransition, translateTransition);
         parallelTransition.setInterpolator(Interpolator.EASE_OUT);
         parallelTransition.play();
-
-
     }
 
 
@@ -292,15 +290,68 @@ public class GameController implements Initializable {
     }
 
     private void renderPellet(Entity pellet) {
-        Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
-            Circle c = new Circle();
-            String color = PELLET_COLORS.get(new Random().nextInt(PELLET_COLORS.size()));
-            pelletColors.put(pellet, color);
-            c.setFill(Paint.valueOf(color));
-            return c;
-        });
-        updateCircle(circle, pellet);
-        GamePane.getChildren().add(circle);
+        if(pellet instanceof InvisiblePellet){
+            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
+                Circle c = new Circle();
+                String color = "#b5dbe8";
+                pelletColors.put(pellet, color);
+                c.setFill(Paint.valueOf(color));
+                c.setOpacity(0.5);
+                c.setStroke(Color.BLANCHEDALMOND);
+                DropShadow glow = new DropShadow();
+                glow.setColor(Color.BLUE);
+                glow.setRadius(10);
+                c.setEffect(glow);
+                return c;
+            });
+            updateCircle(circle, pellet);
+            GamePane.getChildren().add(circle);
+        }
+        else if(pellet instanceof SpeedIncreasePellet){
+            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
+                Circle c = new Circle();
+                String color = "#ffff99";
+                pelletColors.put(pellet, color);
+                c.setFill(Paint.valueOf(color));
+                c.setOpacity(0.5);
+                c.setStroke(Color.YELLOW);
+                DropShadow glow = new DropShadow();
+                glow.setColor(Color.YELLOW);
+                glow.setRadius(10);
+                c.setEffect(glow);
+                return c;
+            });
+            updateCircle(circle, pellet);
+            GamePane.getChildren().add(circle);
+        }
+        else if(pellet instanceof SpeedDecreasePellet){
+            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
+                Circle c = new Circle();
+                String color = "#ff0000";
+                pelletColors.put(pellet, color);
+                c.setFill(Paint.valueOf(color));
+                c.setOpacity(0.5);
+                c.setStroke(Color.RED);
+                DropShadow glow = new DropShadow();
+                glow.setColor(Color.RED);
+                glow.setRadius(10);
+                c.setEffect(glow);
+                return c;
+            });
+            updateCircle(circle, pellet);
+            GamePane.getChildren().add(circle);
+        }
+        else {
+            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
+                Circle c = new Circle();
+                String color = PELLET_COLORS.get(new Random().nextInt(PELLET_COLORS.size()));
+                pelletColors.put(pellet, color);
+                c.setFill(Paint.valueOf(color));
+                return c;
+            });
+            updateCircle(circle, pellet);
+            GamePane.getChildren().add(circle);
+        }
     }
 
     private void renderRobot(Entity robot) {
@@ -432,4 +483,44 @@ public class GameController implements Initializable {
     private double getPaneHeight() {
         return GamePane.getHeight();
     }
+
+    public void invisiblePelletEffect(MovableEntity movableEntity){
+        new Thread(() -> {
+            if(entitiesCircles.get(movableEntity) != null) {
+                entitiesCircles.get(movableEntity).setFill(Color.TRANSPARENT);
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                entitiesCircles.get(movableEntity).setFill(Paint.valueOf(PLAYER_COLOR));
+            }
+        }).start();
+    }
+
+
+    public void speedIncreaseEffect(MovableEntity movableEntity){
+        new Thread(() -> {
+                this.specialSpeed = 15;
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                this.specialSpeed = -1;
+        }).start();
+    }
+
+    public void speedDecreaseEffect(MovableEntity movableEntity){
+        new Thread(() -> {
+            this.specialSpeed = 2;
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.specialSpeed = -1;
+        }).start();
+    }
+
 }
