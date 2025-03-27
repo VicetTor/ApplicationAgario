@@ -8,6 +8,8 @@ import com.example.agario.utils.Camera;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
 import javafx.animation.Interpolator;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -213,6 +215,32 @@ public class GameController implements Initializable {
     }
 
 
+
+    private void animatePlayerMovement(Circle player, double dx, double dy) {
+        double movementIntensity = Math.sqrt(dx * dx + dy * dy) / 50; // Intensité basée sur la vitesse
+        movementIntensity = Math.min(movementIntensity, 1); // Limite max à 1
+
+        double scaleFactor = 1 + movementIntensity * 0.1; // Ajustement doux
+
+        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(100), player);
+        scaleTransition.setToX(scaleFactor);
+        scaleTransition.setToY(scaleFactor); // Même échelle X et Y pour garder un rond parfait
+        scaleTransition.setAutoReverse(true);
+
+// Effet de micro-mouvement organique
+        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(100), player);
+        translateTransition.setByX((Math.random() - 0.5) * 2.5); // Petites oscillations aléatoires
+        translateTransition.setByY((Math.random() - 0.5) * 2.5);
+        translateTransition.setAutoReverse(true);
+
+        ParallelTransition parallelTransition = new ParallelTransition(scaleTransition, translateTransition);
+        parallelTransition.setInterpolator(Interpolator.EASE_OUT);
+        parallelTransition.play();
+
+
+    }
+
+
     private void applyCameraTransform(Camera camera) {
         double scale = 1.0 / camera.getZoomFactor();
         double screenCenterX = getPaneWidth() / 2;
@@ -297,7 +325,7 @@ public class GameController implements Initializable {
         l.setLabelFor(circle);
         l.setTextFill(Color.WHITE);
         l.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-        
+
         DropShadow shadow = new DropShadow();
         shadow.setOffsetX(1);
         shadow.setOffsetY(1);
@@ -314,6 +342,8 @@ public class GameController implements Initializable {
         circle.centerYProperty().addListener((obs, oldVal, newVal) ->
                 l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
         );
+
+        animatePlayerMovement(circle, player.getPosX(), player.getPosY());
 
         updateCircle(circle, player);
         GamePane.getChildren().add(circle);
