@@ -66,7 +66,7 @@ public class Game {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
     }
 
-    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, GameController g) {
+    /*public void eatEntity(List<Entity> entities, MovableEntity movableEntity, GameController g) {
         List<Entity> entityToRemove = new ArrayList<>();
 
         for (Entity entity : entities) {
@@ -116,5 +116,5 @@ public class Game {
             entities.remove(entity);
             g.removeEntityFromHashMap(entity);
         }
-    }
+    }*/
 }

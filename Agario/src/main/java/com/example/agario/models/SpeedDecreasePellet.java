@@ -7,9 +7,4 @@ public class SpeedDecreasePellet extends SpecialPellet{
         super(x, y);
         this.setMass(2);
     }
-
-    @Override
-    public void doSpecialPelletAction(GameController g, MovableEntity movableEntity) {
-        g.speedDecreaseEffect(movableEntity);
-    }
 }

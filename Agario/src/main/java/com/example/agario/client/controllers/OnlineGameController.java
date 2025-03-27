@@ -9,24 +9,18 @@ import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
-
-
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
 import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
-
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.effect.DropShadow;
-
 import javafx.scene.control.*;
-
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -37,7 +31,6 @@ import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 import javafx.util.Duration;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -48,7 +41,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class GameController implements Initializable {
+public class OnlineGameController implements Initializable {
 
     @FXML private Pane map;
     @FXML private TextField TchatTextField;
@@ -262,6 +255,7 @@ public class GameController implements Initializable {
         // Update leaderboard
         updateLeaderBoard();
     }
+
 
     public void removeEntityFromHashMap(Entity entity){
         entitiesCircles.remove(entity);
@@ -684,13 +678,13 @@ public class GameController implements Initializable {
 
     public void speedIncreaseEffect(MovableEntity movableEntity){
         new Thread(() -> {
-                this.specialSpeed = 15;
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.specialSpeed = -1;
+            this.specialSpeed = 15;
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.specialSpeed = -1;
         }).start();
     }
 
