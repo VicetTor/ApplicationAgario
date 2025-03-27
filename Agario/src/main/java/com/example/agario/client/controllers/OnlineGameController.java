@@ -5,7 +5,6 @@ import com.example.agario.models.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
-import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
@@ -48,7 +47,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class GameController implements Initializable {
+public class OnlineGameController implements Initializable {
 
     @FXML private Pane map;
     @FXML private TextField TchatTextField;
@@ -90,17 +89,14 @@ public class GameController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         setupGame();
-
         startGameLoop();
         startPelletSpawner();
     }
 
     private void setupGame() {
-
         // Setup game pane
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
-
 
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
@@ -182,7 +178,7 @@ public class GameController implements Initializable {
     private void sendPlayerUpdate() {
         try {
             if (oos != null) {
-                oos.writeObject(player.get(0));
+                oos.writeObject(player);
                 oos.flush();
                 oos.reset(); // Important pour éviter les problèmes de cache
             }
@@ -619,7 +615,7 @@ public class GameController implements Initializable {
     private void startNetworkListener() {
         new Thread(() -> {
             try {
-                while (!socket.isClosed()) {
+                while (true) {
                     Object received = ois.readObject();
                     if (received instanceof List) {
                         Platform.runLater(() -> {
@@ -628,27 +624,10 @@ public class GameController implements Initializable {
                         });
                     }
                 }
-            } catch (IOException e) {
-                Platform.runLater(() -> {
-                    System.out.println("Déconnexion du serveur: " + e.getMessage());
-
-                });
-            } catch (ClassNotFoundException e) {
-                System.err.println("Erreur de désérialisation: " + e.getMessage());
-            } finally {
-                closeNetworkResources();
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Déconnexion du serveur");
             }
         }).start();
-    }
-
-    private void closeNetworkResources() {
-        try {
-            if (ois != null) ois.close();
-            if (oos != null) oos.close();
-            if (socket != null) socket.close();
-        } catch (IOException e) {
-            System.err.println("Erreur lors de la fermeture des ressources réseau: " + e.getMessage());
-        }
     }
 
 
@@ -672,13 +651,13 @@ public class GameController implements Initializable {
 
     public void speedIncreaseEffect(MovableEntity movableEntity){
         new Thread(() -> {
-                this.specialSpeed = 15;
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.specialSpeed = -1;
+            this.specialSpeed = 15;
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.specialSpeed = -1;
         }).start();
     }
 
