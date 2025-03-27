@@ -1,4 +1,4 @@
-package com.example.agario.utils;
+package com.example.agario.models.utils;
 
 public class Dimension {
     private double xMin;

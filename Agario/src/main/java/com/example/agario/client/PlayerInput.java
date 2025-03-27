@@ -1,6 +1,5 @@
-package com.example.agario.input;
+package com.example.agario.client;
 
-import com.example.agario.models.Player;
 import javafx.event.EventHandler;
 import javafx.scene.input.MouseEvent;
 

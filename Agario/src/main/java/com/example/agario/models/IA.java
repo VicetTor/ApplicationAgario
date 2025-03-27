@@ -4,7 +4,7 @@ import com.example.agario.models.strategy.GluttonIA;
 import com.example.agario.models.strategy.HunterIA;
 import com.example.agario.models.strategy.RandomMovementIA;
 import com.example.agario.models.strategy.Strategy;
-import com.example.agario.utils.QuadTree;
+import com.example.agario.models.utils.QuadTree;
 
 import java.util.List;
 import java.util.Random;

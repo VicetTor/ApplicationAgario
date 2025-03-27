@@ -1,4 +1,4 @@
-package com.example.agario.utils;
+package com.example.agario.models.utils;
 
 import com.example.agario.models.Entity;
 import com.example.agario.models.factory.PelletFactory;

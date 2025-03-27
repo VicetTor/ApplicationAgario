@@ -2,8 +2,8 @@ package com.example.agario.models.strategy;
 
 import com.example.agario.models.Entity;
 import com.example.agario.models.Player;
-import com.example.agario.utils.Dimension;
-import com.example.agario.utils.QuadTree;
+import com.example.agario.models.utils.Dimension;
+import com.example.agario.models.utils.QuadTree;
 
 import java.util.ArrayList;
 import java.util.List;

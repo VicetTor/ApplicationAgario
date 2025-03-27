@@ -1,11 +1,12 @@
-package com.example.agario.controllers;
+package com.example.agario.client.controllers;
 
-import com.example.agario.input.PlayerInput;
+import com.example.agario.client.GameClient;
+import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
-import com.example.agario.utils.Camera;
-import com.example.agario.utils.Dimension;
-import com.example.agario.utils.QuadTree;
+import com.example.agario.models.utils.Camera;
+import com.example.agario.models.utils.Dimension;
+import com.example.agario.models.utils.QuadTree;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -13,15 +14,20 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
@@ -45,8 +51,15 @@ public class GameController implements Initializable {
     private static final String PLAYER_COLOR = "#7107ff";
     private static final String ROBOT_COLOR = "#07ff82";
 
+    private List<Player> otherPlayers = new ArrayList<>();
+    private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
+    private ObjectOutputStream oos;
+    private ObjectInputStream ois;
+    private Socket socket;
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
         setupGame();
         startGameLoop();
         startPelletSpawner();
@@ -91,22 +104,25 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
             while (true) {
-                // Update mouse position
+                // Gestion des inputs
                 GamePane.setOnMouseMoved(e -> {
                     playerInput.handle(e);
                     dx.set(playerInput.getMouseX() - player.getPosX());
                     dy.set(playerInput.getMouseY() - player.getPosY());
                 });
 
-                // Update positions
+                // Mise à jour de la position
                 player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
                 updateRobots();
 
-                // Update display
+                // Envoi au serveur
+                sendPlayerUpdate();
+
+                // Mise à jour de l'affichage
                 Platform.runLater(() -> updateGameDisplay(camera, dx.get(), dy.get()));
 
                 try {
-                    Thread.sleep(33); // ~30 FPS
+                    Thread.sleep(33);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -114,6 +130,17 @@ public class GameController implements Initializable {
         }).start();
     }
 
+    private void sendPlayerUpdate() {
+        try {
+            if (oos != null) {
+                oos.writeObject(player);
+                oos.flush();
+                oos.reset(); // Important pour éviter les problèmes de cache
+            }
+        } catch (IOException e) {
+            System.err.println("Erreur d'envoi au serveur");
+        }
+    }
     private void updateRobots() {
         for (Entity robot : gameModel.getRobots()) {
             if (robot instanceof IA) {
@@ -143,6 +170,12 @@ public class GameController implements Initializable {
 
         // Render all entities
         renderEntities(visibleEntities);
+
+        otherPlayers.forEach(otherPlayer -> {
+            if (!otherPlayer.getName().equals(player.getName())) {
+                renderOtherPlayer(otherPlayer);
+            }
+        });
     }
 
     private void applyCameraTransform(Camera camera) {
@@ -257,5 +290,54 @@ public class GameController implements Initializable {
 
     private double getPaneHeight() {
         return GamePane.getHeight();
+    }
+
+    private void renderOtherPlayer(Player otherPlayer) {
+        Circle circle = entityCircles.computeIfAbsent(otherPlayer, k -> {
+            Circle c = new Circle();
+            c.setFill(Paint.valueOf("#FF0000")); // Rouge pour les autres joueurs
+            return c;
+        });
+        updateCircle(circle, otherPlayer);
+        GamePane.getChildren().add(circle);
+    }
+
+    public  void setupNetwork(Player player) {
+        try {
+            this.socket = GameClient.playOnLine(player);
+            this.oos = new ObjectOutputStream(socket.getOutputStream());
+            this.ois = new ObjectInputStream(socket.getInputStream());
+
+            // Envoyer le joueur initial au serveur
+            oos.writeObject(player);
+            oos.flush();
+
+            // Démarrer le thread d'écoute des mises à jour
+            startNetworkListener();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private void startNetworkListener() {
+        new Thread(() -> {
+            try {
+                while (true) {
+                    Object received = ois.readObject();
+                    if (received instanceof List) {
+                        Platform.runLater(() -> {
+                            otherPlayers.clear();
+                            otherPlayers.addAll((List<Player>) received);
+                        });
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                System.out.println("Déconnexion du serveur");
+            }
+        }).start();
+    }
+
+    public void setPlayer(Player player){
+        this.player = player ;
     }
 }
