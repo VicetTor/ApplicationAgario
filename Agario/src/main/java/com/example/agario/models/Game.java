@@ -1,6 +1,6 @@
 package com.example.agario.models;
 
-import com.example.agario.controllers.GameController;
+import com.example.agario.client.controllers.GameController;
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
 
