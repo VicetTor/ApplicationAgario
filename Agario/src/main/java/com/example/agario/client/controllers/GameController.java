@@ -160,21 +160,27 @@ public class GameController implements Initializable {
 
         new Thread(() -> {
             while (true) {
-                //System.out.println("Timer restant: " + timer);
+
                 timer -= 1;
-                if(timer < 18) {
+                if (timer < (int) (10 + (player.get(0).getMass() / 100)) - 2) {
                     List<Player> temporaryPlayer = new ArrayList<Player>(player);
                     for (Player p : temporaryPlayer) {
                         for (Player p2 : temporaryPlayer) {
                             if (p2 != p) {
-                                if (((p.getPosX() - p2.getPosX()) < 100) && ((p.getPosY() - p2.getPosY()) < 100)) {
-                                    if (player.get(0) != p) {
+                                int indexP2 = player.indexOf(p2);
+                                double distance = Math.sqrt(Math.pow(p.getPosX() - p2.getPosX(), 2) + Math.pow(p.getPosY() - p2.getPosY(), 2));
+                                double threshold = (p.getRadius() + p2.getRadius()) * 0.80;
+
+                                if (distance <= threshold) {
+                                    if (player.get(0) != p2) {
                                         p.setMass(p.getMass() + p2.getMass());
                                         p.setPosX((p.getPosX() + p2.getPosX()) / 2);
                                         p.setPosY((p.getPosY() + p2.getPosY()) / 2);
                                         entitiesCircles.remove(p2);
-                                        specialSpeed.remove(p2);
+                                        specialSpeed.remove(indexP2);
                                         player.remove(p2);
+
+                                        timer = (int) (10 + (p.getMass() / 100));
 
                                         if (player.size() <= 1) {
                                             timer = -1;
@@ -187,7 +193,6 @@ public class GameController implements Initializable {
                         }
                     }
                 }
-
 
                 if (timer == 0) {
 
@@ -874,7 +879,7 @@ public class GameController implements Initializable {
                 specialSpeed.add(-1.0);
                 player.add(newP);
 
-                timer = 20;//(int) (10 + (newP.getMass()/100));
+                timer = (int) (10 + (newP.getMass()/100));
 
                 new Thread(() -> {
 
