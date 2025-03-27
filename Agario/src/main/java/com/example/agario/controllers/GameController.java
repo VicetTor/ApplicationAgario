@@ -39,7 +39,7 @@ public class GameController implements Initializable {
     @FXML private GridPane gridPane;
     @FXML private BorderPane GameBorderPane;
 
-    private Map<Entity, Circle> entityCircles = new HashMap<>();
+    private Map<Entity, Circle> entitiesCircles = new HashMap<>();
     private Map<Entity, String> pelletColors = new HashMap<>();
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
@@ -113,7 +113,7 @@ public class GameController implements Initializable {
                 updateRobots();
 
                 Platform.runLater(() -> {
-                    setEntities((HashMap<Entity, Circle>) entityCircles);
+                    setEntities((HashMap<Entity, Circle>) entitiesCircles);
                     updateGameDisplay(camera, dx.get(), dy.get());
                 });
 
@@ -171,9 +171,13 @@ public class GameController implements Initializable {
         // Update player speed
         player.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2);
 
-        // Handle collisions
-        //gameModel.eatEntity(visibleEntities, player, this);
+        // Render all entities
+        renderEntities(visibleEntities);
 
+        // Player absorbs other entities
+        gameModel.eatEntity(visibleEntities, player, this);
+
+        // Robots absorb other entities
         for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
             if (robot instanceof IA) {
                 int cameraSize = 50;
@@ -184,26 +188,22 @@ public class GameController implements Initializable {
                 gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
             }
         }
-        // Render all entities
-        renderEntities(visibleEntities);
 
         // Update leaderboard
         updateLeaderBoard();
-
-        // Render all entities
-        renderEntities(visibleEntities);
-
-        // Handle collisions
-        gameModel.eatEntity(visibleEntities, player, this);
     }
 
+    public void removeEntityFromHashMap(Entity entity){
+        entitiesCircles.remove(entity);
+    }
 
     public void animatePelletConsumption(Entity pellet) {
         TranslateTransition transition = new TranslateTransition();
-        transition.setNode(entityCircles.get(pellet));
+        transition.setNode(entitiesCircles.get(pellet));
+        System.out.println(pellet.getClass() + " x="+pellet.getPosX() + " y=" + pellet.getPosY());
         transition.setDuration(Duration.millis(50));
-        transition.setToX(player.getPosX() - entityCircles.get(pellet).getCenterX());
-        transition.setToY(player.getPosY() - entityCircles.get(pellet).getCenterY());
+        transition.setToX(player.getPosX() - entitiesCircles.get(pellet).getCenterX());
+        transition.setToY(player.getPosY() - entitiesCircles.get(pellet).getCenterY());
         transition.setAutoReverse(true);
         transition.setInterpolator(Interpolator.EASE_OUT);
         transition.play();
@@ -241,6 +241,20 @@ public class GameController implements Initializable {
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
+
+        //TODO Maybe to change !!
+        /*List<Entity> robotVisibleEntities = new ArrayList<>();
+        gameModel.getRobots().forEach(robot -> {
+            int cameraRobotSize = 50;
+            Dimension robotView = new Dimension(robot.getPosX()-cameraRobotSize, robot.getPosY()-cameraRobotSize,
+                    robot.getPosX()+cameraRobotSize,robot.getPosY()+cameraRobotSize);
+            QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotVisibleEntities);
+        });
+        robotVisibleEntities.forEach(entity -> {
+            if (!visibleEntities.contains(entity)) visibleEntities.add(entity);
+        });*/
+        //
+
         return visibleEntities;
     }
 
@@ -260,20 +274,19 @@ public class GameController implements Initializable {
     }
 
     private void renderPellet(Entity pellet) {
-        Circle circle = entityCircles.computeIfAbsent(pellet, k -> {
+        Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
             Circle c = new Circle();
             String color = PELLET_COLORS.get(new Random().nextInt(PELLET_COLORS.size()));
             pelletColors.put(pellet, color);
             c.setFill(Paint.valueOf(color));
             return c;
         });
-
         updateCircle(circle, pellet);
         GamePane.getChildren().add(circle);
     }
 
     private void renderRobot(Entity robot) {
-        Circle circle = entityCircles.computeIfAbsent(robot, k -> {
+        Circle circle = entitiesCircles.computeIfAbsent(robot, k -> {
             Circle c = new Circle();
             c.setFill(Paint.valueOf(ROBOT_COLOR));
             return c;
@@ -284,7 +297,7 @@ public class GameController implements Initializable {
     }
 
     private void renderPlayer() {
-        Circle circle = entityCircles.computeIfAbsent(player, k -> {
+        Circle circle = entitiesCircles.computeIfAbsent(player, k -> {
             Circle c = new Circle();
             c.setFill(Paint.valueOf(PLAYER_COLOR));
             return c;
@@ -302,11 +315,13 @@ public class GameController implements Initializable {
 
     public void setEntities(HashMap<Entity, Circle> entities) {
         this.entitiesMap = new HashMap<>();
+
         entities.forEach((e,c) ->{
             if(e instanceof MovableEntity){
                 this.entitiesMap.put(e,c);
             }
         });
+
         updateMiniMap(entitiesMap);
     }
 

@@ -4,6 +4,7 @@ import com.example.agario.controllers.GameController;
 import com.example.agario.models.factory.IAFactory;
 import com.example.agario.models.factory.PelletFactory;
 import com.example.agario.utils.QuadTree;
+import javafx.scene.shape.Circle;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -69,9 +70,11 @@ public class Game {
 
             if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()
                 && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
-                if(entity instanceof Pellet){
+
+                //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
+                /*if(entity instanceof Pellet){
                     g.animatePelletConsumption(entity);
-                }
+                }*/
 
                 // Ajouter à la liste de suppression
                 entityToRemove.add(entity);
@@ -88,6 +91,7 @@ public class Game {
             if (entity instanceof IA)
                 robots.remove(entity);
             entities.remove(entity);
+            g.removeEntityFromHashMap(entity);
         }
     }
 }
