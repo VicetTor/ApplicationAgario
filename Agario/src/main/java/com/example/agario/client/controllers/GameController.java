@@ -5,7 +5,6 @@ import com.example.agario.models.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
-import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
@@ -28,7 +27,6 @@ import javafx.scene.effect.DropShadow;
 import javafx.scene.control.*;
 
 import javafx.scene.image.Image;
-import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -263,15 +261,16 @@ public class GameController implements Initializable {
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
                 if(isPlayerAlive) robotZone.add(player.get(0));
-                gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
+                eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots());
             }
         }
 
         // Player absorbs other entities
-        if(isPlayerAlive)
-            for(Player p: player) {
-                gameModel.eatEntity(visibleEntities, p, this);
+        if(isPlayerAlive) {
+            for (Player p : player) {
+                eatEntity(visibleEntities, p, gameModel.getQuadTree(), gameModel.getRobots());
             }
+        }
 
         // Update leaderboard
         updateLeaderBoard();
@@ -672,6 +671,61 @@ public class GameController implements Initializable {
             }
             this.specialSpeed = -1;
         }).start();
+    }
+
+    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, QuadTree quadTree, List<Entity> robots) {
+        List<Entity> entityToRemove = new ArrayList<>();
+
+        for (Entity entity : entities) {
+            double dx = movableEntity.getPosX() - entity.getPosX();
+            double dy = movableEntity.getPosY() - entity.getPosY();
+            double squareDistance = dx * dx + dy * dy;
+
+            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius()*2)
+                    && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
+
+
+                if(entity instanceof Player){
+                    this.eatPlayer();
+                    break;
+                }
+
+                //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
+                if (entity instanceof Pellet) {
+
+                    if (movableEntity instanceof Player) {
+
+                        this.animatePelletConsumption(entity, movableEntity);
+                        if(entity instanceof SpeedIncreasePellet){
+                            this.speedIncreaseEffect(movableEntity);
+                        }
+                        if(entity instanceof SpeedDecreasePellet){
+                            this.speedDecreaseEffect(movableEntity);
+                        }
+
+                    }
+                    if(entity instanceof InvisiblePellet){
+                        this.invisiblePelletEffect(movableEntity);
+                    }
+
+                }
+                // Ajouter à la liste de suppression
+                entityToRemove.add(entity);
+
+                // Augmenter la masse de l'entité
+                double newMass = movableEntity.getMass() + entity.getMass();
+                movableEntity.setMass(newMass);
+
+            }
+        }
+        // Supprimer les pellets mangés
+        for (Entity entity : entityToRemove) {
+            quadTree.removeNode(entity, quadTree);
+            if (entity instanceof IA)
+                robots.remove(entity);
+            entities.remove(entity);
+            this.removeEntityFromHashMap(entity);
+        }
     }
 
     public void splitPlayer(){

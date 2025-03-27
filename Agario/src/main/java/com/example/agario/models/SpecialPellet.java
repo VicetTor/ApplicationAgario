@@ -7,6 +7,4 @@ public abstract class SpecialPellet extends Pellet {
         super(x, y);
     }
 
-    public abstract void doSpecialPelletAction(GameController g, MovableEntity movableEntity);
-
 }
