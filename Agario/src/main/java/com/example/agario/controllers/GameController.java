@@ -73,7 +73,7 @@ public class GameController implements Initializable {
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
         gameModel = new Game(new QuadTree(0, dimension), player);
-        gameModel.createRandomPellets(10000);
+        gameModel.createRandomPellets(5000);
     }
 
     private void setupBackground() {
@@ -200,7 +200,6 @@ public class GameController implements Initializable {
     public void animatePelletConsumption(Entity pellet) {
         TranslateTransition transition = new TranslateTransition();
         transition.setNode(entitiesCircles.get(pellet));
-        System.out.println(pellet.getClass() + " x="+pellet.getPosX() + " y=" + pellet.getPosY());
         transition.setDuration(Duration.millis(50));
         transition.setToX(player.getPosX() - entitiesCircles.get(pellet).getCenterX());
         transition.setToY(player.getPosY() - entitiesCircles.get(pellet).getCenterY());
@@ -241,19 +240,6 @@ public class GameController implements Initializable {
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
-
-        //TODO Maybe to change !!
-        /*List<Entity> robotVisibleEntities = new ArrayList<>();
-        gameModel.getRobots().forEach(robot -> {
-            int cameraRobotSize = 50;
-            Dimension robotView = new Dimension(robot.getPosX()-cameraRobotSize, robot.getPosY()-cameraRobotSize,
-                    robot.getPosX()+cameraRobotSize,robot.getPosY()+cameraRobotSize);
-            QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotVisibleEntities);
-        });
-        robotVisibleEntities.forEach(entity -> {
-            if (!visibleEntities.contains(entity)) visibleEntities.add(entity);
-        });*/
-        //
 
         return visibleEntities;
     }
