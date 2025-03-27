@@ -46,7 +46,7 @@ public class MovableEntity extends Entity{
     }
 
     public void setSpeedIA(){
-        double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
+        double maxSpeed = (initialSpeed * 15/(this.getMass()*0.4));
         if(maxSpeed > initialSpeed){
             maxSpeed = initialSpeed;
         }
