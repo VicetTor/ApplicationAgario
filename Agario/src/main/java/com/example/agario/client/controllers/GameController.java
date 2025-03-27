@@ -79,6 +79,8 @@ public class GameController implements Initializable {
 
 
     private List<Player> otherPlayers = new ArrayList<>();
+
+
     private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
@@ -89,28 +91,27 @@ public class GameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        setupGame();
+        setupGame(Boolean.FALSE);
 
         startGameLoop();
         startPelletSpawner();
     }
 
-    private void setupGame() {
-
-        // Setup game pane
+    private void setupGame(Boolean online) {
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
 
-
-        // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
+        String name = "Player" + new Random().nextInt(1000);
 
-        // Initialize player and game world
-        String name = "GreatPlayer7895";
-
-        gameModel = new Game(new QuadTree(0, dimension), name);
-        this.player.add(gameModel.getPlayer());
-        gameModel.createRandomPellets(5000);
+        if(!online){
+            gameModel = new Game(new QuadTree(0, dimension), name);
+            this.player.add(gameModel.getPlayer());
+            gameModel.createRandomPellets(5000);
+        } else {
+            // Pour le mode en ligne, nous attendons les données du serveur
+            setPlayer(new Player(0, 0, name));
+        }
     }
 
     private void setupBackground() {
@@ -184,7 +185,7 @@ public class GameController implements Initializable {
             if (oos != null) {
                 oos.writeObject(player.get(0));
                 oos.flush();
-                oos.reset(); // Important pour éviter les problèmes de cache
+                oos.reset();
             }
         } catch (IOException e) {
             System.err.println("Erreur d'envoi au serveur");
@@ -600,56 +601,52 @@ public class GameController implements Initializable {
     public void setupNetwork() {
         try {
             ConnectionResult connection = GameClient.playOnLine(player.get(0));
-            if (connection == null) {
-                throw new IOException("Échec de la connexion au serveur");
-            }
+            if (connection == null) throw new IOException("Échec de connexion");
 
             this.socket = connection.socket;
             this.oos = connection.oos;
             this.ois = connection.ois;
 
-            // Démarrer le thread d'écoute des mises à jour
             startNetworkListener();
-
         } catch (IOException e) {
-            e.printStackTrace();
-            // Gestion d'erreur (fermer les flux, notifier l'utilisateur, etc.)
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur");
+                alert.setHeaderText("Connexion échouée");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
         }
     }
+
     private void startNetworkListener() {
         new Thread(() -> {
             try {
-                while (!socket.isClosed()) {
+                while (true) {
                     Object received = ois.readObject();
                     if (received instanceof List) {
                         Platform.runLater(() -> {
                             otherPlayers.clear();
                             otherPlayers.addAll((List<Player>) received);
+
+                            // Mettre à jour notre joueur local si nécessaire
+                            for (Player p : otherPlayers) {
+                                if (p.getName().equals(player.get(0).getName())) {
+                                    player.set(0, p);
+                                }
+                            }
                         });
                     }
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Platform.runLater(() -> {
                     System.out.println("Déconnexion du serveur: " + e.getMessage());
-
                 });
-            } catch (ClassNotFoundException e) {
-                System.err.println("Erreur de désérialisation: " + e.getMessage());
-            } finally {
-                closeNetworkResources();
             }
         }).start();
     }
 
-    private void closeNetworkResources() {
-        try {
-            if (ois != null) ois.close();
-            if (oos != null) oos.close();
-            if (socket != null) socket.close();
-        } catch (IOException e) {
-            System.err.println("Erreur lors de la fermeture des ressources réseau: " + e.getMessage());
-        }
-    }
+
 
 
     public void setPlayer(Player player){

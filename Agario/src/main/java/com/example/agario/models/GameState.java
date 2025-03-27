@@ -18,7 +18,9 @@ public class GameState implements Serializable {
     private double worldWidth;
     private double worldHeight;
 
+    public GameState(){
 
+    }
 
     public GameState(Collection<Player> players,
                      QuadTree pellets,

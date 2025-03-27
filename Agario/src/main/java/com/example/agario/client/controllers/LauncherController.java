@@ -51,21 +51,17 @@ public class LauncherController {
     }
 
     public void changeSceneOnLine() throws IOException {
-
-
-
         Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/agario/game.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         GameController controller = fxmlLoader.getController();
 
-
         controller.setStage(stage);
-
-        controller.setupNetwork();
-
         stage.setScene(scene);
         stage.show();
+
+        // Lancer la connexion réseau après l'affichage de la scène
+        controller.setupNetwork();
     }
 
 }
