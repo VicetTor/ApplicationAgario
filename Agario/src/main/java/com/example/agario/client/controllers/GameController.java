@@ -1,6 +1,6 @@
 package com.example.agario.client.controllers;
 
-import com.example.agario.client.ConnectionResult;
+import com.example.agario.models.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;

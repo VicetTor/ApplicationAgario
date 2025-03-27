@@ -13,8 +13,6 @@ import static com.example.agario.server.GameServer.clientWriters;
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
-    private PrintWriter out;
-    private BufferedReader in;
     private ObjectInputStream ois;
     private ObjectOutputStream oos;
 
@@ -44,8 +42,10 @@ public class ClientHandler implements Runnable {
                 }
             }
 
+
             // Boucle principale pour recevoir les mises à jour du client
             while (true) {
+
                 Player updatedPlayer = (Player) ois.readObject();
                 if (updatedPlayer == null) {
                     break; // Déconnexion

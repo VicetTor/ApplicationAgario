@@ -1,4 +1,4 @@
-package com.example.agario.client;
+package com.example.agario.models;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

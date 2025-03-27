@@ -1,13 +1,12 @@
 package com.example.agario.client;
 
 
+import com.example.agario.models.ConnectionResult;
 import com.example.agario.models.Player;
 
 import java.io.*;
 import java.net.*;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class GameClient {
     private static final String SERVER_ADDRESS = "127.0.0.1";
