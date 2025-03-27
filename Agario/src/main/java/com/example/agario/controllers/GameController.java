@@ -143,6 +143,7 @@ public class GameController implements Initializable {
     private void updateLeaderBoard(){
         int counter = 0;
         LeaderBoardListView.getItems().clear();
+
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
         if(isPlayerAlive) allPlayers.add(player);
         allPlayers.sort(new Comparator<Entity>() {
@@ -153,9 +154,13 @@ public class GameController implements Initializable {
         });
         for(Entity entity : allPlayers){
             counter++;
-            LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+entity.getId()+", score : "+entity.getMass());
+            MovableEntity joueur = (MovableEntity) entity;
+            LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+joueur.getName()+", score : "+joueur.getMass());
             if(counter == 10) break;
         }
+
+        LeaderBoardListView.setMinHeight(counter);
+
         if(gameModel.getRobots().size() == 5){
             robotSpawner(5);
         }
