@@ -26,6 +26,7 @@ public class ClientHandler implements Runnable {
     public void run() {
         try {
             oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.flush();
             ois = new ObjectInputStream(socket.getInputStream());
 
             // Recevoir le joueur du client

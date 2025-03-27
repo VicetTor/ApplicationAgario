@@ -303,22 +303,23 @@ public class GameController implements Initializable {
         GamePane.getChildren().add(circle);
     }
 
-    public  void setupNetwork(Player player) {
+    public void setupNetwork(Player player) {
         try {
-            this.socket = GameClient.playOnLine(player);
-            this.ois = new ObjectInputStream(socket.getInputStream());
-            this.oos = new ObjectOutputStream(socket.getOutputStream());
+            GameClient.ConnectionResult connection = GameClient.playOnLine(player);
+            if (connection == null) {
+                throw new IOException("Échec de la connexion au serveur");
+            }
 
-
-            // Envoyer le joueur initial au serveur
-            oos.writeObject(player);
-            oos.flush();
+            this.socket = connection.socket;
+            this.oos = connection.oos;
+            this.ois = connection.ois;
 
             // Démarrer le thread d'écoute des mises à jour
             startNetworkListener();
 
         } catch (IOException e) {
             e.printStackTrace();
+            // Gestion d'erreur (fermer les flux, notifier l'utilisateur, etc.)
         }
     }
     private void startNetworkListener() {

@@ -16,20 +16,31 @@ public class GameClient {
     private ObjectInputStream ois;
     private Socket socket;
 
-    public static Socket playOnLine(Player player) {
+    public static class ConnectionResult {
+        public final Socket socket;
+        public final ObjectOutputStream oos;
+        public final ObjectInputStream ois;
+
+        public ConnectionResult(Socket socket, ObjectOutputStream oos, ObjectInputStream ois) {
+            this.socket = socket;
+            this.oos = oos;
+            this.ois = ois;
+        }
+    }
+
+    public static ConnectionResult playOnLine(Player player) {
         try {
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            oos.flush(); // Envoie l'en-tête de sérialisation
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
-            // Envoyer le joueur au serveur
             oos.writeObject(player);
             oos.flush();
 
-            // Recevoir la liste des joueurs existants
             List<Player> existingPlayers = (List<Player>) ois.readObject();
 
-            return socket;
+            return new ConnectionResult(socket, oos, ois);
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Erreur de connexion: " + e.getMessage());
             return null;
