@@ -45,9 +45,6 @@ public class LauncherController {
 
         controller.setStage(stage);
 
-        //controller.ecoute();
-
-
         stage.show();
         stage.setOnCloseRequest(e -> Platform.exit());
     }

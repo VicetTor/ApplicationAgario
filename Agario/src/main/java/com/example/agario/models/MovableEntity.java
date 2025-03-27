@@ -13,35 +13,37 @@ public class MovableEntity extends Entity{
         super(x, y, mass);
     }
 
-    public void setSpeed(double dx, double dy, double x, double y){
+    public void setSpecialSpeed(double speed){
+        this.speed = speed;
+    }
 
+    public void setSpeed(double dx, double dy, double x, double y, double specialSpeed){
 
-
-        double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
-
-
-
-        double maxDistance = x;
-        if (x>y) maxDistance = y;
-
-        //System.out.println(distancePlayerWindow);
-
-        double percentageDistance = distancePlayerCursor/maxDistance;
-        if (percentageDistance>1) percentageDistance = 1;
-
-        //System.out.println("distancePlayerCursor : " + distancePlayerCursor);
-        //System.out.println("maxDistance : " + maxDistance);
-        System.out.println("% : " + percentageDistance);
-
-        double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
-        if(maxSpeed > initialSpeed){
-            maxSpeed = initialSpeed;
+        if (specialSpeed != -1){
+            setSpecialSpeed(specialSpeed);
         }
 
-        System.out.println(maxSpeed);
-        double minSpeed = 1;
+        else{
 
-        this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
+            double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
+
+            double maxDistance = x;
+            if (x>y) maxDistance = y;
+
+
+            double percentageDistance = distancePlayerCursor/maxDistance;
+            if (percentageDistance>1) percentageDistance = 1;
+
+            double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
+            if(maxSpeed > initialSpeed){
+                maxSpeed = initialSpeed;
+            }
+
+            double minSpeed = 1;
+
+            this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
+        }
+
     }
 
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight){
