@@ -184,19 +184,17 @@ public class OnlineGameController implements Initializable {
             public void handle(long now) {
                 if (!isPlayerAlive) return;
 
-                // Calculate direction based on mouse position
-                double dx = mouseX - gamePane.getWidth()/2;
-                double dy = mouseY - gamePane.getHeight()/2;
+
 
                 // Normalize direction
-                double length = Math.sqrt(dx*dx + dy*dy);
+                double length = Math.sqrt(mouseX*mouseX + mouseY*mouseY);
                 if (length > 0) {
-                    dx /= length;
-                    dy /= length;
+                    mouseX /= length;
+                    mouseY /= length;
                 }
 
                 // Send input to server
-                sendPlayerInput(dx, dy);
+                sendPlayerInput(mouseX, mouseY);
 
                 // Update display
                 updateDisplay();
@@ -207,8 +205,9 @@ public class OnlineGameController implements Initializable {
 
     private void setupMouseTracking() {
         gamePane.setOnMouseMoved(event -> {
-            mouseX = event.getX();
-            mouseY = event.getY();
+            // Calculate direction based on mouse position
+            mouseX = event.getX() - localPlayer.getPosX();
+            mouseY = event.getY() - localPlayer.getPosY();
         });
     }
 

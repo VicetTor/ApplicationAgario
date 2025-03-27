@@ -90,6 +90,7 @@ public class MovableEntity extends Entity{
 
     }
 
+
     public double getDirX() { return dirX; }
     public double getDirY() { return dirY; }
     public void setDirX(double dirX) { this.dirX = dirX; }

@@ -3,6 +3,7 @@ package com.example.agario.server;
 import com.example.agario.models.GameStateSnapshot;
 import com.example.agario.models.PlayerInput;
 import com.example.agario.models.Player;
+import javafx.stage.Stage;
 
 import java.io.*;
 import java.net.Socket;
