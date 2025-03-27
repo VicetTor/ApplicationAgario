@@ -127,22 +127,37 @@ public class OnlineGameController implements Initializable {
                 oos = conn.oos;
                 ois = conn.ois;
 
-                // 1. Envoyer le nom (String)
+                // Envoyer le nom
                 oos.writeObject(playerName);
                 oos.flush();
 
-                // 2. Recevoir l'état initial (GameStateSnapshot)
+                // Recevoir l'état initial
                 currentGameState = (GameStateSnapshot) ois.readObject();
                 localPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
 
-                // 3. Boucle d'envoi des inputs
-                while (isPlayerAlive) {
-                    // Les PlayerInput sont envoyés via sendPlayerInput()
-                    Thread.sleep(16); // ~60 FPS
+                if (localPlayer != null) {
+                    this.camera = new Camera(localPlayer);
+                    System.out.println("DEBUG: Joueur local trouvé. Position initiale: " +
+                            localPlayer.getPosX() + "," + localPlayer.getPosY());
+                }
+
+                // NOUVEAU: Boucle de réception des mises à jour
+                while (!socket.isClosed()) {
+                    GameStateSnapshot newState = (GameStateSnapshot) ois.readObject();
+                    Platform.runLater(() -> {
+                        currentGameState = newState;
+                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
+                        if (updatedPlayer != null) {
+                            localPlayer = updatedPlayer;
+                            System.out.printf("DEBUG: Mise à jour position - X:%.1f Y:%.1f\n",
+                                    localPlayer.getPosX(), localPlayer.getPosY());
+                        }
+
+                    });
                 }
             } catch (Exception e) {
                 Platform.runLater(() ->
-                        showErrorAlert("Erreur", "Déconnecté du serveur: " + e.getMessage())
+                        showErrorAlert("Erreur", "Déconnexion: " + e.getMessage())
                 );
             }
         });
@@ -329,22 +344,31 @@ public class OnlineGameController implements Initializable {
     }
 
     private void renderPlayer(Player player) {
-        if (player == null) return;
+        if (player == null) {
+            System.out.println("DEBUG: Tentative de rendu d'un joueur null");
+            return;
+        }
+
+        System.out.printf("DEBUG: Rendu joueur %s à (%.1f,%.1f)\n",
+                player.getName(), player.getPosX(), player.getPosY());
 
         boolean isLocal = player.getName().equals(localPlayer.getName());
         String color = isLocal ? PLAYER_COLOR : OTHER_PLAYER_COLOR;
 
-        // Get or create circle
         Circle circle = playerCircles.computeIfAbsent(player.getName(), k -> {
-            Circle c = new Circle();
-            c.setFill(Color.web(color));
+            Circle c = new Circle(player.getRadius(), Color.web(color));
             if (isLocal) {
                 c.setEffect(new DropShadow(25, Color.RED));
             }
             return c;
         });
 
-        // Get or create label
+        // Mise à jour cruciale de la position
+        circle.setCenterX(player.getPosX());
+        circle.setCenterY(player.getPosY());
+        circle.setRadius(player.getRadius());
+
+        // Gestion du label
         Label nameLabel = playerLabels.computeIfAbsent(player.getName(), k -> {
             Label l = new Label(player.getName());
             l.setTextFill(Color.WHITE);
@@ -353,22 +377,18 @@ public class OnlineGameController implements Initializable {
             return l;
         });
 
-        // Update positions
-        updateCircle(circle, player);
+        // Positionnement du label
         nameLabel.setLayoutX(player.getPosX() - nameLabel.getWidth()/2);
         nameLabel.setLayoutY(player.getPosY() - player.getRadius() - 10);
 
-        // Remove old instances if they exist
+        // Nettoyage avant ajout
         gamePane.getChildren().removeAll(circle, nameLabel);
-
-        // Add to pane
         gamePane.getChildren().addAll(circle, nameLabel);
 
         if (isLocal) {
             animatePlayerMovement(circle);
         }
     }
-
     private void renderOtherPlayer(Player otherPlayer) {
         // Remove existing if present
         gamePane.getChildren().removeIf(node ->
@@ -411,21 +431,23 @@ public class OnlineGameController implements Initializable {
     }
 
     private void applyCameraTransform() {
-        if (localPlayer == null || camera == null) return;
+        if (localPlayer == null || camera == null) {
+            System.out.println("DEBUG: Camera non initialisée");
+            return;
+        }
 
-        // Simple follow camera - adjust these values as needed
-        double scale = 0.5; // Fixed scale for now
+        double scale = calculateZoomScale();
         double translateX = gamePane.getWidth()/2 - localPlayer.getPosX() * scale;
         double translateY = gamePane.getHeight()/2 - localPlayer.getPosY() * scale;
+
+        System.out.printf("DEBUG: Camera - Joueur à (%.1f,%.1f) | Zoom: %.2f | Translation: (%.1f,%.1f)\n",
+                localPlayer.getPosX(), localPlayer.getPosY(),
+                scale, translateX, translateY);
 
         gamePane.getTransforms().setAll(
                 new Translate(translateX, translateY),
                 new Scale(scale, scale)
         );
-
-        System.out.printf("Camera: Player at (%.1f,%.1f) | Trans: (%.1f,%.1f)%n",
-                localPlayer.getPosX(), localPlayer.getPosY(),
-                translateX, translateY);
     }
 
     private double calculateZoomScale() {

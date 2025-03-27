@@ -44,10 +44,14 @@ public class GameServer {
     }
 
     public static synchronized void updateGameState() {
-        // Gérer les collisions
         handleCollisions();
 
-        // Régénérer des pellets si nécessaire
+        // Debug
+        System.out.println("Nombre de joueurs: " + sharedGame.getPlayers().size());
+        sharedGame.getPlayers().forEach(p ->
+                System.out.printf("%s à (%.1f, %.1f)\n", p.getName(), p.getPosX(), p.getPosY())
+        );
+
         if (sharedGame.getQuadTree().getAllPellets().size() < 500) {
             sharedGame.createRandomPellets(100);
         }

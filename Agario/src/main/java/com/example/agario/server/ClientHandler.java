@@ -51,12 +51,27 @@ public class ClientHandler implements Runnable {
                 // Traitement du mouvement...
                 synchronized (GameServer.sharedGame) {
                     double speed = player.getSpeed() / (1 + player.getMass() / 100);
+                    double moveX = input.dirX * speed;
+                    double moveY = input.dirY * speed;
+
+                    System.out.printf("Mouvement calculé pour %s: dx=%.2f dy=%.2f (speed=%.2f mass=%.2f)\n",
+                            player.getName(), moveX, moveY, speed, player.getMass());
+
                     player.updatePosition(
-                            input.dirX * speed,
-                            input.dirY * speed,
+                            moveX,
+                            moveY,
                             GameServer.sharedGame.getxMax(),
                             GameServer.sharedGame.getyMax()
                     );
+
+                    oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
+                    oos.reset(); // Important pour éviter les problèmes de cache
+                    oos.flush();
+
+
+                    // Debug: Afficher la nouvelle position
+                    System.out.printf("Nouvelle position: %.1f, %.1f\n",
+                            player.getPosX(), player.getPosY());
                 }
             }
         } catch (Exception e) {
