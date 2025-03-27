@@ -1,6 +1,7 @@
 package com.example.agario.models.strategy;
 
 import com.example.agario.models.Entity;
+import com.example.agario.models.IA;
 import com.example.agario.models.Player;
 import com.example.agario.utils.Dimension;
 import com.example.agario.utils.QuadTree;
@@ -17,6 +18,10 @@ public class HunterIA implements Strategy{
     private Dimension dimension;
     private double x;
     private double y;
+    private double xMax;
+    private double yMax;
+    private double xMin;
+    private double yMin;
     private QuadTree quadTree;
 
     private double HEIGHT;
@@ -26,29 +31,38 @@ public class HunterIA implements Strategy{
     private final int maxTime = 2500;
     private final int minTime = 300;
 
+    private final Random rand = new Random();
+
     private boolean movingRight = true;
     private boolean movingDown = true;
+    private IA robot;
 
-    public HunterIA(double x, double y, QuadTree quadTree){
-        this.x = x;
-        this.y = y;
+    public HunterIA(IA robot, QuadTree quadTree){
+        this.robot = robot;
         this.quadTree = quadTree;
         WIDTH = quadTree.getDimension().getxMax();
         HEIGHT = quadTree.getDimension().getyMax();
-        double xMax = x + EATING_AREA_DIMENSION;
-        double yMax = y + EATING_AREA_DIMENSION;
-        double xMin = x - EATING_AREA_DIMENSION;
-        double yMin = y - EATING_AREA_DIMENSION;
-        dimension = new Dimension(
-                ((x - EATING_AREA_DIMENSION) < 0)? 0:(x - EATING_AREA_DIMENSION),
-                ((y - EATING_AREA_DIMENSION) < 0)? 0:(y - EATING_AREA_DIMENSION),
-                ((x + EATING_AREA_DIMENSION) < WIDTH)? WIDTH:(x + EATING_AREA_DIMENSION) ,
-                ((y + EATING_AREA_DIMENSION) < HEIGHT)? HEIGHT:(y + EATING_AREA_DIMENSION));
-
+        updateXMaxMinYMaxMin();
+        lastDirectionChangeTime = System.currentTimeMillis();
     }
+
+    private void updateXMaxMinYMaxMin(){
+        xMax = x + EATING_AREA_DIMENSION;
+        yMax = y + EATING_AREA_DIMENSION;
+        xMin = x - EATING_AREA_DIMENSION;
+        yMin = y - EATING_AREA_DIMENSION;
+        dimension = new Dimension(
+                (xMin < 0)? 0 : xMin,
+                (yMin < 0)? 0 : yMin,
+                (xMax < WIDTH)? WIDTH : xMax ,
+                (yMax < HEIGHT)? HEIGHT : yMax);
+    }
+
     @Override
     public List<Double> behaviorIA() {  //PROBLEM BECAUSE DOESNT FIND PLAYER
         ArrayList<Double> direction = new ArrayList<>();
+
+        recalculateDimensionArea(x, y);
 
         ArrayList<Entity> objectList = new ArrayList<>();
         QuadTree.DFSChunk(quadTree, dimension, objectList);// Collect all the pellets in the dimension area
@@ -57,17 +71,15 @@ public class HunterIA implements Strategy{
                 if (dimension.inRange(object.getPosX(), object.getPosY())) { // goes into the coordinates of the pellets
                     direction.add(object.getPosX());
                     direction.add(object.getPosY());
-                    recalculateDimensionArea(object.getPosX(), object.getPosY());
                     return direction;
                 }
             }
         }
-        // if the IA doesn't find any pellet, it goes into random direction into the dimension area
+        // if the IA doesn't find any player, it goes into random direction into the dimension area
         return randomDirection();
     }
 
     private List<Double> randomDirection(){
-        Random rand = new Random();
         int randomTime = rand.nextInt(maxTime - minTime + 1) + minTime;
         if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
             if (rand.nextInt(100) < 50) { movingRight = !movingRight;}
@@ -83,13 +95,6 @@ public class HunterIA implements Strategy{
     private void recalculateDimensionArea(double x, double y){
         this.x = x;
         this.y = y;
-        double xMax = x + EATING_AREA_DIMENSION;
-        double yMax = y + EATING_AREA_DIMENSION;
-        double xMin = x - EATING_AREA_DIMENSION;
-        double yMin = y - EATING_AREA_DIMENSION;
-        dimension.setxMax((xMax > WIDTH)? WIDTH : xMax);
-        dimension.setyMax((yMax > HEIGHT)? HEIGHT : yMax);
-        dimension.setxMin((xMin < 0)? 0 : xMin);
-        dimension.setyMin((yMin < 0)? 0 : yMin);
+        updateXMaxMinYMaxMin();
     }
 }

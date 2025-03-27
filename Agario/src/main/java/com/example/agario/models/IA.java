@@ -24,9 +24,9 @@ public class IA extends MovableEntity{
         this.quadTree = quadTree;
 
         List<Strategy> strategies = List.of(
-                new GluttonIA(this.getPosX(), this.getPosY(), quadTree),
-                new HunterIA(this.getPosX(), this.getPosY(), quadTree),
-                new RandomMovementIA(this.getPosX(), this.getPosY(), quadTree.getDimension())
+                new GluttonIA(this, quadTree)//,
+                //new HunterIA(this, quadTree),
+                //new RandomMovementIA(this, quadTree.getDimension())
         );
         this.setStrategy(strategies.get(new Random().nextInt(strategies.size())));
 
@@ -39,12 +39,12 @@ public class IA extends MovableEntity{
         this.strategy = strategy;
     }
 
-    public void setPositionIA(){
+    public void setPositionIA(double WIDTH, double HEIGHT){
         List<Double> newCoord = strategy.behaviorIA();
         dx.set(newCoord.get(0) - this.getPosX());
         dy.set(newCoord.get(1) - this.getPosY());
 
-        this.setSpeed(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
+        this.setSpeed(dx.get(), dy.get(), WIDTH, HEIGHT);
         this.updatePosition(dx.get(), dy.get(), quadTree.getDimension().getxMax(), quadTree.getDimension().getyMax());
     }
 }

@@ -20,7 +20,7 @@ public class Game {
     private double xMax;
     private double yMax;
 
-    private final int ROBOT_NUMBER = 25;
+    private final int ROBOT_NUMBER = 1;
 
     public Game(QuadTree quadTree, Player player) {
         this.quadTree = quadTree;

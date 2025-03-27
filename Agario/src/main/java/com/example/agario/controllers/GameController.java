@@ -131,7 +131,7 @@ public class GameController implements Initializable {
         List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
         for (Entity robot : robotsCopy) {
             if (robot instanceof IA) {
-                ((IA) robot).setPositionIA();
+                ((IA) robot).setPositionIA( GamePane.getWidth()/2,GamePane.getHeight()/2);
             }
         }
     }
