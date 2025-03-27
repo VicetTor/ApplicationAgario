@@ -19,7 +19,7 @@ public class IA extends MovableEntity{
 
     public IA(double x, double y, QuadTree quadTree) {
         super(x, y,15);
-        this.setName("FakePlayer "+ this.getId());
+        this.setName("FakePlayer"+ this.getId());
 
         this.quadTree = quadTree;
 

@@ -36,12 +36,12 @@
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                     </columnConstraints>
                     <rowConstraints>
-                        <RowConstraints maxHeight="98.0" minHeight="10.0" prefHeight="40.0" vgrow="SOMETIMES" />
-                        <RowConstraints maxHeight="160.0" minHeight="10.0" prefHeight="160.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="30.0" minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                        <RowConstraints maxHeight="250.0" minHeight="10.0" prefHeight="250.0" vgrow="SOMETIMES" />
                     </rowConstraints>
 
                     <children>
-                        <ListView fx:id="LeaderBoardListView" opacity="0.5" prefHeight="200.0" prefWidth="200.0" style="-fx-background-color: black;" GridPane.rowIndex="1">
+                        <ListView fx:id="LeaderBoardListView" opacity="0.5" prefHeight="250.0" prefWidth="200.0" style="-fx-background-color: black;" GridPane.rowIndex="1">
                             <GridPane.margin>
                                 <Insets />
                             </GridPane.margin>
