@@ -143,7 +143,6 @@ public class QuadTree {
                 tree.dimension.getxMax(), tree.dimension.getyMax());*/
 
         for (Entity entity : tree.entities) {
-            if(entity == null) return ; // ########################## PAS NORMAL MAIS SINON EXCEPTION
             if(dimension.inRange(entity.getPosX(), entity.getPosY())){
                 //System.out.printf("\n\t  x = %f   y = %f", entity.getPosX(), entity.getPosY());
                 resultat.add(entity);
