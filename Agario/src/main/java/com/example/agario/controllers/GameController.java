@@ -1,5 +1,6 @@
 package com.example.agario.controllers;
 
+import com.example.agario.Launcher;
 import com.example.agario.input.PlayerInput;
 import com.example.agario.models.*;
 import com.example.agario.models.factory.PlayerFactory;
@@ -11,8 +12,10 @@ import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -242,19 +245,6 @@ public class GameController implements Initializable {
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
 
-        //TODO Maybe to change !!
-        /*List<Entity> robotVisibleEntities = new ArrayList<>();
-        gameModel.getRobots().forEach(robot -> {
-            int cameraRobotSize = 50;
-            Dimension robotView = new Dimension(robot.getPosX()-cameraRobotSize, robot.getPosY()-cameraRobotSize,
-                    robot.getPosX()+cameraRobotSize,robot.getPosY()+cameraRobotSize);
-            QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotVisibleEntities);
-        });
-        robotVisibleEntities.forEach(entity -> {
-            if (!visibleEntities.contains(entity)) visibleEntities.add(entity);
-        });*/
-        //
-
         return visibleEntities;
     }
 
@@ -303,8 +293,31 @@ public class GameController implements Initializable {
             return c;
         });
 
+        Label l = new Label(player.getName());
+        l.setLabelFor(circle);
+        l.setTextFill(Color.WHITE);
+        l.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        
+        DropShadow shadow = new DropShadow();
+        shadow.setOffsetX(1);
+        shadow.setOffsetY(1);
+        shadow.setColor(Color.BLACK);
+        l.setEffect(shadow);
+
+        l.widthProperty().addListener((obs, oldVal, newVal) ->
+                l.setLayoutX(circle.getCenterX() - newVal.doubleValue() / 2)
+        );
+
+        circle.centerXProperty().addListener((obs, oldVal, newVal) ->
+                l.setLayoutX(newVal.doubleValue() - l.getWidth() / 2)
+        );
+        circle.centerYProperty().addListener((obs, oldVal, newVal) ->
+                l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
+        );
+
         updateCircle(circle, player);
         GamePane.getChildren().add(circle);
+        GamePane.getChildren().add(l);
     }
 
     private void updateCircle(Circle circle, Entity entity) {
@@ -356,7 +369,7 @@ public class GameController implements Initializable {
                 circle.setFill(c.getFill());
                 circle.setCenterX((posXE * map.getPrefWidth()) / WIDTH );
                 circle.setCenterY((posYE * map.getPrefHeight()) / HEIGHT);
-                circle.setRadius( e.getRadius()/14 );
+                circle.setRadius( e.getRadius()/18 );
                 if (!map.getChildren().contains(circle)) {
                     map.getChildren().add(circle);
                 }
