@@ -150,6 +150,11 @@ public class OnlineGameController implements Initializable {
                         Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
                         if (updatedPlayer != null) {
                             localPlayer = updatedPlayer;
+                            if (this.camera == null) {
+                                this.camera = new Camera(localPlayer);
+                            } else {
+                                this.camera.setPlayer(localPlayer); // Ajoutez cette méthode dans Camera
+                            }
                             System.out.printf("DEBUG: Mise à jour position - X:%.1f Y:%.1f\n",
                                     localPlayer.getPosX(), localPlayer.getPosY());
                         }
@@ -217,8 +222,11 @@ public class OnlineGameController implements Initializable {
                 node instanceof Circle || node instanceof Label
         );
 
+        camera.updateCameraDimensions();
         // Update camera
-        applyCameraTransform();
+        applyCameraTransform(camera);
+
+        System.out.println(camera.getZoomFactor()+":zoom apres Y:");
 
         // Render all pellets
         for (Entity pellet : currentGameState.getPellets()) {
@@ -289,6 +297,9 @@ public class OnlineGameController implements Initializable {
         boolean isLocal = player.getName().equals(localPlayer.getName());
         String color = isLocal ? PLAYER_COLOR : OTHER_PLAYER_COLOR;
 
+        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
+
+
         Circle circle = playerCircles.computeIfAbsent(player.getName(), k -> {
             Circle c = new Circle(player.getRadius(), Color.web(color));
             if (isLocal) {
@@ -297,11 +308,8 @@ public class OnlineGameController implements Initializable {
             return c;
         });
 
-        // Mise à jour cruciale de la position
-        circle.setCenterX(player.getPosX());
-        circle.setCenterY(player.getPosY());
-        circle.setRadius(player.getRadius());
-        System.out.println("nejnvievijeé"+player.getRadius());
+        updateCircle(circle,player);
+        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
 
         // Gestion du label
         Label nameLabel = playerLabels.computeIfAbsent(player.getName(), k -> {
@@ -340,31 +348,19 @@ public class OnlineGameController implements Initializable {
         scale.play();
     }
 
-    private void applyCameraTransform() {
-        if (localPlayer == null || camera == null) {
-            System.out.println("DEBUG: Camera non initialisée");
-            return;
-        }
+    private void applyCameraTransform(Camera camera) {
+        double scale = 1.0 / camera.getZoomFactor();
+        double screenCenterX = gamePane.getWidth() / 2;
+        double screenCenterY = gamePane.getHeight() / 2;
 
-        double scale = calculateZoomScale();
-        double translateX = gamePane.getWidth()/2 - localPlayer.getPosX() * scale;
-        double translateY = gamePane.getHeight()/2 - localPlayer.getPosY() * scale;
+        double translateX = screenCenterX - (localPlayer.getPosX() * scale);
+        double translateY = screenCenterY - (localPlayer.getPosY() * scale);
 
-        System.out.printf("DEBUG: Camera - Joueur à (%.1f,%.1f) | Zoom: %.2f | Translation: (%.1f,%.1f)\n",
-                localPlayer.getPosX(), localPlayer.getPosY(),
-                scale, translateX, translateY);
-
-        gamePane.getTransforms().setAll(
+        gamePane.getTransforms().clear();
+        gamePane.getTransforms().addAll(
                 new Translate(translateX, translateY),
-                new Scale(scale, scale)
+                new Scale(scale, scale, 0, 0)
         );
-    }
-
-    private double calculateZoomScale() {
-        // Zoom out as player gets bigger
-        double baseScale = 0.5;
-        double zoomFactor = Math.max(0.1, 50.0 / localPlayer.getRadius());
-        return baseScale * zoomFactor;
     }
 
     private void updateMiniMap() {
