@@ -21,7 +21,7 @@ public class Camera extends Dimension {
     public void updateCameraDimensions() {
         double baseViewSize = 50;
 
-        double viewSize = baseViewSize * Math.max(1, Math.sqrt(player.getRadius() / 80.0));
+        double viewSize = baseViewSize * Math.max(1, Math.sqrt(player.getRadius() / 80.0)); //Mettre 1 pour voir toute la carte
 
         this.zoomFactor = viewSize / baseViewSize;
 

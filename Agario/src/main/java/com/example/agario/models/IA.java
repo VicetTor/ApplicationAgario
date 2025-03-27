@@ -24,8 +24,8 @@ public class IA extends MovableEntity{
         this.quadTree = quadTree;
 
         List<Strategy> strategies = List.of(
-                //new GluttonIA(this, quadTree)//,
-                new HunterIA(this, quadTree, player)//,
+                new GluttonIA(this, quadTree)//,
+                //new HunterIA(this, quadTree, player)//,
                 //new RandomMovementIA(this, quadTree.getDimension())
         );
         this.setStrategy(strategies.get(new Random().nextInt(strategies.size())));

@@ -23,8 +23,10 @@ public class GluttonIA implements Strategy{
     private boolean movingRight = true;
     private boolean movingDown = true;
     private final Random rand = new Random();
-    private final int EATING_AREA = 100;
+    private final int EATING_AREA = 200;
     private QuadTree quadTree;
+
+    private Entity target;
 
     public GluttonIA(IA robot, QuadTree quadTree){
         this.robot = robot;
@@ -45,13 +47,23 @@ public class GluttonIA implements Strategy{
 
         List<Entity> resultat = new ArrayList<>();
         QuadTree.DFSChunk(quadTree,this.dimension,resultat);
-        Collections.shuffle(resultat);
 
-        for(Entity pellet: resultat){
-            return List.of(pellet.getPosX(), pellet.getPosY());
+        resultat.sort((pelletA, pelletB)->{
+            double distancePelletA = calculDistance(robot.getPosX(),robot.getPosY(), pelletA.getPosX(), pelletA.getPosY());
+            double distancePelletB = calculDistance(robot.getPosX(),robot.getPosY(), pelletB.getPosX(), pelletB.getPosY());
+            return Double.compare(distancePelletA, distancePelletB);
+        });
+
+        if(!resultat.isEmpty()){
+            Entity closestPellet = resultat.get(0);
+            return List.of(closestPellet.getPosX(), closestPellet.getPosY());
         }
 
         return randomDirection();
+    }
+
+    private double calculDistance(double x1, double y1, double x2, double y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 
     /**
