@@ -150,9 +150,15 @@ public class GameController implements Initializable {
         for(Entity entity : allPlayers){
             counter++;
             LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+entity.getId()+", score : "+entity.getMass());
-            if(counter == 10) break;
+            //if(counter == 10) break; //TODO
         }
+        if(gameModel.getRobots().size() == 5){
+            robotSpawner(5);
+        }
+    }
 
+    private void robotSpawner(int limite) {
+        gameModel.createRandomRobots(limite);
     }
 
     private void updateGameDisplay(Camera camera, double dx, double dy) {

@@ -19,7 +19,6 @@ public class Game {
     private double yMin = 0;
     private double xMax;
     private double yMax;
-
     private final int ROBOT_NUMBER = 25;
 
     public Game(QuadTree quadTree, Player player) {
@@ -32,9 +31,7 @@ public class Game {
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
-        for (int i = 0; i < ROBOT_NUMBER; i++) {
-            robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
-        }
+        createRandomRobots(ROBOT_NUMBER);
     }
 
     public Player getPlayer() {
@@ -53,6 +50,12 @@ public class Game {
         for (int nb = 0; nb < limite; nb++) {
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
+        }
+    }
+
+    public void createRandomRobots(int limite) {
+        for (int nb = 0; nb < limite; nb++) {
+            robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         }
     }
 
@@ -85,7 +88,7 @@ public class Game {
                 double newMass = movableEntity.getMass() + entity.getMass();
                 movableEntity.setMass(newMass);
             }
-            }
+        }
         // Supprimer les pellets mangés
         for (Entity entity : entityToRemove) {
             quadTree.removeNode(entity, quadTree);
