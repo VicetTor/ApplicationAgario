@@ -30,7 +30,7 @@ public class Game {
         this.yMin = quadTree.getDimension().getyMin();
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
-        this.player = (Player) new PlayerFactory(name, xMax, yMax).launchFactory();;
+        this.player = (Player) new PlayerFactory(name, xMax, yMax).launchFactory();
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
