@@ -162,28 +162,33 @@ public class GameController implements Initializable {
             while (true) {
                 //System.out.println("Timer restant: " + timer);
                 timer -= 1;
-               /*if (timer == 1) {
+                if(timer < 18) {
+                    List<Player> temporaryPlayer = new ArrayList<Player>(player);
+                    for (Player p : temporaryPlayer) {
+                        for (Player p2 : temporaryPlayer) {
+                            if (p2 != p) {
+                                if (((p.getPosX() - p2.getPosX()) < 100) && ((p.getPosY() - p2.getPosY()) < 100)) {
+                                    if (player.get(0) != p) {
+                                        p.setMass(p.getMass() + p2.getMass());
+                                        p.setPosX((p.getPosX() + p2.getPosX()) / 2);
+                                        p.setPosY((p.getPosY() + p2.getPosY()) / 2);
+                                        entitiesCircles.remove(p2);
+                                        specialSpeed.remove(p2);
+                                        player.remove(p2);
 
-                    transitionSplit = true;
+                                        if (player.size() <= 1) {
+                                            timer = -1;
+                                        }
 
-                    double averageXPlayer = 0;
-                    double averageYPlayer = 0;
-                    for (Player p : player){
-                        averageXPlayer += p.getPosX();
-                        averageYPlayer += p.getPosY();
+                                        System.out.println("fekzfpoekfoekf");
+                                    }
+                                }
+                            }
+                        }
                     }
+                }
 
-                    averageXPlayer = averageXPlayer/player.size();
-                    averageYPlayer = averageYPlayer/player.size();
 
-                    for(Player p : player) {
-                        TranslateTransition transition = new TranslateTransition(Duration.millis(500), entitiesCircles.get(p));
-                        transition.setToX(averageXPlayer - entitiesCircles.get(p).getCenterX());
-                        transition.setToY(averageYPlayer - entitiesCircles.get(p).getCenterY());
-                        transition.play();
-                    }
-
-                }*/
                 if (timer == 0) {
 
                     System.out.println("Fusion des joueurs!");
@@ -869,7 +874,7 @@ public class GameController implements Initializable {
                 specialSpeed.add(-1.0);
                 player.add(newP);
 
-                timer = 5;//(int) (10 + (newP.getMass()/100));
+                timer = 20;//(int) (10 + (newP.getMass()/100));
 
                 new Thread(() -> {
 
