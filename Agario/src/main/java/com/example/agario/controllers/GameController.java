@@ -102,16 +102,18 @@ public class GameController implements Initializable {
             AtomicReference<Double> dx = new AtomicReference<>(0.0);
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
-            while (isPlayerAlive) {
+            while (true) {
                 // Update mouse position
-                GamePane.setOnMouseMoved(e -> {
-                    playerInput.handle(e);
-                    dx.set(playerInput.getMouseX() - player.getPosX());
-                    dy.set(playerInput.getMouseY() - player.getPosY());
-                });
+                if(isPlayerAlive) {
+                    GamePane.setOnMouseMoved(e -> {
+                        playerInput.handle(e);
+                        dx.set(playerInput.getMouseX() - player.getPosX());
+                        dy.set(playerInput.getMouseY() - player.getPosY());
+                    });
 
-                // Update positions
-                player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
+                    // Update positions
+                    player.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
+                }
                 updateRobots();
 
                 Platform.runLater(() -> {
@@ -142,7 +144,7 @@ public class GameController implements Initializable {
         int counter = 0;
         LeaderBoardListView.getItems().clear();
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
-        allPlayers.add(player);
+        if(isPlayerAlive) allPlayers.add(player);
         allPlayers.sort(new Comparator<Entity>() {
             @Override
             public int compare(Entity e1, Entity e2) {
@@ -190,13 +192,13 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
-                robotZone.add(player);
+                if(isPlayerAlive) robotZone.add(player);
                 gameModel.eatEntity(robotZone, (MovableEntity) robot, this);
             }
         }
 
         // Player absorbs other entities
-        gameModel.eatEntity(visibleEntities, player, this);
+        if(isPlayerAlive) gameModel.eatEntity(visibleEntities, player, this);
 
         // Update leaderboard
         updateLeaderBoard();
@@ -267,7 +269,7 @@ public class GameController implements Initializable {
 
         QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
         visibleEntities.addAll(gameModel.getRobots());
-        visibleEntities.add(player);
+        if(isPlayerAlive) visibleEntities.add(player);
 
         return visibleEntities;
     }
@@ -381,7 +383,7 @@ public class GameController implements Initializable {
 
     private void startPelletSpawner() {
         new Thread(() -> {
-            while (isPlayerAlive) {
+            while (true) {
                 gameModel.createRandomPellets(2);
                 try {
                     Thread.sleep(1000);
