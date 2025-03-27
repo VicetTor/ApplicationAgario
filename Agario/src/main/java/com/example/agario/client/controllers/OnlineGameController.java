@@ -1,11 +1,13 @@
 package com.example.agario.client.controllers;
 
+import com.example.agario.client.GameClient;
 import com.example.agario.models.*;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -23,10 +25,11 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class OnlineGameController {
+public class OnlineGameController implements Initializable {
     @FXML private Pane map;
     @FXML private TextField TchatTextField;
     @FXML private Pane gamePane;
@@ -73,8 +76,8 @@ public class OnlineGameController {
 
     private boolean isInitialized = false;
 
-    @FXML
-    public void initialize() {
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
         if (gamePane == null || map == null) {
             throw new IllegalStateException("FXML injection failed");
         }
@@ -84,7 +87,7 @@ public class OnlineGameController {
         isInitialized = true;
     }
 
-    public void initializeNetwork(String serverAddress, int serverPort, String playerName, Stage stage) {
+    public void initializeNetwork( String playerName, Stage stage) {
         if (!isInitialized) {
             throw new IllegalStateException("UI not initialized");
         }
@@ -92,7 +95,7 @@ public class OnlineGameController {
         this.playerName = playerName;
         this.stage = stage;
 
-        connectToServer(serverAddress, serverPort);
+        connectToServer();
         setupGameLoop();
         setupMouseTracking();
     }
@@ -116,63 +119,37 @@ public class OnlineGameController {
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
     }
 
-    private void connectToServer(String serverAddress, int serverPort) {
+    private void connectToServer() {
         networkExecutor.execute(() -> {
             try {
-                System.out.println("Attempting to connect to server..."); // Debug 1
-                socket = new Socket(serverAddress, serverPort);
-                System.out.println("Socket connected!"); // Debug 2
+                ConnectionResult conn = GameClient.playOnLine();
+                socket = conn.socket;
+                oos = conn.oos;
+                ois = conn.ois;
 
-                oos = new ObjectOutputStream(socket.getOutputStream());
-                ois = new ObjectInputStream(socket.getInputStream());
-                System.out.println("Streams initialized!"); // Debug 3
-
+                // 1. Envoyer le nom (String)
                 oos.writeObject(playerName);
                 oos.flush();
-                System.out.println("Player name sent: " + playerName); // Debug 4
 
-                // Get initial state
-                System.out.println("Waiting for initial state..."); // Debug 5
+                // 2. Recevoir l'état initial (GameStateSnapshot)
                 currentGameState = (GameStateSnapshot) ois.readObject();
-                System.out.println("Initial state received!"); // Debug 6
-
                 localPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-                System.out.println("Local player: " + (localPlayer != null ? localPlayer.getName() : "null")); // Debug 7
 
-                if (localPlayer == null) {
-                    return;
-                }
-
-                this.camera = new Camera(localPlayer);
-                System.out.println("Starting game state update loop..."); // Debug 8
-
-                // Game state update loop
-                while (true) {
-                    GameStateSnapshot newState = (GameStateSnapshot) ois.readObject();
-                    System.out.printf("Received state with %d players, %d pellets%n",
-                            newState.getPlayers().size(), newState.getPellets().size());
-
-                    Platform.runLater(() -> {
-                        currentGameState = newState;
-                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-
-                        if (updatedPlayer == null) {
-                            System.out.println("ERROR: Player not found in update");
-                            return;
-                        }
-
-                        System.out.printf("Player update: %s at (%.1f,%.1f)%n",
-                                updatedPlayer.getName(), updatedPlayer.getPosX(), updatedPlayer.getPosY());
-
-                        localPlayer = updatedPlayer;
-                        updateDisplay();
-                    });
+                // 3. Boucle d'envoi des inputs
+                while (isPlayerAlive) {
+                    // Les PlayerInput sont envoyés via sendPlayerInput()
+                    Thread.sleep(16); // ~60 FPS
                 }
             } catch (Exception e) {
-                System.err.println("Connection error: " + e.getMessage());
-                e.printStackTrace();
+                Platform.runLater(() ->
+                        showErrorAlert("Erreur", "Déconnecté du serveur: " + e.getMessage())
+                );
             }
         });
+    }
+
+    private void showErrorAlert(String connectionError, String message) {
+        System.out.println(connectionError+message);
     }
 
     private Player findPlayerByName(List<Player> players, String name) {
@@ -252,26 +229,30 @@ public class OnlineGameController {
     private void updateDisplay() {
         if (localPlayer == null || currentGameState == null) return;
 
-        // Clear previous frame (but keep the background)
-        gamePane.getChildren().removeIf(node -> node instanceof Circle || node instanceof Label);
-        map.getChildren().clear();
+        // Clear only player and pellet nodes
+        gamePane.getChildren().removeIf(node ->
+                node instanceof Circle || node instanceof Label
+        );
 
-        // Apply camera transform
+        // Update camera
         applyCameraTransform();
 
         // Render all pellets
-        currentGameState.getPellets().forEach(this::renderPellet);
+        for (Entity pellet : currentGameState.getPellets()) {
+            renderPellet(pellet);
+        }
 
-        // Render all players
-        currentGameState.getPlayers().forEach(p -> {
-            if (!p.getName().equals(localPlayer.getName())) {
-                renderOtherPlayer(p);
+        // Render all players except local player first
+        for (Player player : currentGameState.getPlayers()) {
+            if (!player.getName().equals(localPlayer.getName())) {
+                renderPlayer(player);
             }
-        });
+        }
 
         // Render local player last (on top)
         renderPlayer(localPlayer);
 
+        // Update UI
         updateMiniMap();
         updateLeaderboard();
     }
@@ -500,6 +481,4 @@ public class OnlineGameController {
             }
         }
     }
-
-
 }

@@ -99,7 +99,7 @@ public class LauncherController {
             // Initialize network SECOND
             Platform.runLater(() -> {
                 try {
-                    controller.initializeNetwork(SERVER_HOST, SERVER_PORT, playerName, stage);
+                    controller.initializeNetwork( playerName, stage);
                     configureStage(stage, scene, "Agar.Io - Online Mode (" + playerName + ")");
                 } catch (Exception e) {
                     showErrorAlert("Initialization Error", e.getMessage());

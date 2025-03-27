@@ -23,63 +23,53 @@ public class ClientHandler implements Runnable {
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
 
-            // Étape 1: Recevoir le nom du joueur
+            // 1. Lire d'abord le nom du joueur (String)
             String playerName = (String) ois.readObject();
+            System.out.println("Nouveau joueur connecté : " + playerName);
 
-            // Étape 2: Créer un nouveau joueur
+            // 2. Créer le joueur et l'ajouter au jeu
             player = new Player(
                     Math.random() * GameServer.sharedGame.getxMax(),
                     Math.random() * GameServer.sharedGame.getyMax(),
                     playerName
             );
 
-            // Étape 3: Ajouter le joueur au jeu
             synchronized (GameServer.sharedGame) {
                 GameServer.sharedGame.addPlayer(player);
             }
 
-            // Étape 4: Ajouter le flux de sortie
-            GameServer.clientOutputStreams.add(oos);
-
-            // Envoyer l'état initial
+            // 3. Envoyer l'état initial (GameStateSnapshot)
             oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
             oos.flush();
 
-            // Étape 5: Boucle principale
+            // 4. Boucle principale : Lire uniquement PlayerInput
             while (true) {
-                PlayerInput input = (PlayerInput) ois.readObject();
-                System.out.printf("Received input from %s: dx=%.2f dy=%.2f%n",
+                PlayerInput input = (PlayerInput) ois.readObject(); // Maintenant sécurisé
+                System.out.printf("Input reçu de %s: (%.2f, %.2f)%n",
                         player.getName(), input.dirX, input.dirY);
 
+                // Traitement du mouvement...
                 synchronized (GameServer.sharedGame) {
-                    // Calculate actual movement (consider speed and mass)
-                    double speed = player.getSpeed() / (1 + player.getMass()/100); // Mass slows movement
-                    double moveX = input.dirX * speed;
-                    double moveY = input.dirY * speed;
-
+                    double speed = player.getSpeed() / (1 + player.getMass() / 100);
                     player.updatePosition(
-                            moveX,
-                            moveY,
+                            input.dirX * speed,
+                            input.dirY * speed,
                             GameServer.sharedGame.getxMax(),
                             GameServer.sharedGame.getyMax()
                     );
-
-                    System.out.printf("Updated %s to (%.1f,%.1f)%n",
-                            player.getName(), player.getPosX(), player.getPosY());
                 }
             }
         } catch (Exception e) {
             System.err.println("Erreur client: " + e.getMessage());
+            e.printStackTrace();
         } finally {
+            // Nettoyage
             try {
                 if (player != null) {
                     synchronized (GameServer.sharedGame) {
                         GameServer.sharedGame.getPlayers().removeIf(p ->
                                 p.getName().equals(player.getName()));
                     }
-                }
-                if (oos != null) {
-                    GameServer.clientOutputStreams.remove(oos);
                 }
                 socket.close();
             } catch (IOException e) {
