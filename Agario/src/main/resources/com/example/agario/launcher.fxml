@@ -21,12 +21,12 @@
           <RowConstraints maxHeight="127.0" minHeight="10.0" prefHeight="127.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label alignment="CENTER" text="AgarIO" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+            <Label alignment="CENTER" text="Agar.IO" GridPane.columnSpan="2" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
                <effect>
                   <Glow />
                </effect>
                <font>
-                  <Font size="36.0" />
+                  <Font name="System Bold" size="36.0" />
                </font>
             </Label>
             <Button id="onlineGameButton" fx:id="OnlineGameButton" alignment="CENTER" mnemonicParsing="false" onAction="#onOnlineGameButtonClick" style="-fx-background-color: green;" text="Jouer en ligne" textFill="WHITE" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER" />
