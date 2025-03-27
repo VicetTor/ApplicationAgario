@@ -17,16 +17,16 @@ public class IA extends MovableEntity{
     private AtomicReference<Double> dx;
     private AtomicReference<Double> dy;
 
-    public IA(double x, double y, QuadTree quadTree) {
+    public IA(double x, double y, QuadTree quadTree, Player player) {
         super(x, y,15);
         this.setName("FakePlayer"+ this.getId());
 
         this.quadTree = quadTree;
 
         List<Strategy> strategies = List.of(
-                new GluttonIA(this, quadTree),
-                new HunterIA(this, quadTree),
-                new RandomMovementIA(this, quadTree.getDimension())
+                //new GluttonIA(this, quadTree)//,
+                new HunterIA(this, quadTree, player)//,
+                //new RandomMovementIA(this, quadTree.getDimension())
         );
         this.setStrategy(strategies.get(new Random().nextInt(strategies.size())));
 

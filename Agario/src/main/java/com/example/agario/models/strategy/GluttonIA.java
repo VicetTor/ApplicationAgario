@@ -7,6 +7,7 @@ import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -14,22 +15,20 @@ public class GluttonIA implements Strategy{
 
     private double x;
     private double y;
-
     private IA robot;
     private Dimension dimension;
     private long lastDirectionChangeTime;
     private final int maxTime = 2500;
     private final int minTime = 300;
-
     private boolean movingRight = true;
     private boolean movingDown = true;
-
     private final Random rand = new Random();
-
-    private final int EATING_AREA = 150;
+    private final int EATING_AREA = 100;
+    private QuadTree quadTree;
 
     public GluttonIA(IA robot, QuadTree quadTree){
         this.robot = robot;
+        this.quadTree = quadTree;
         this.dimension = quadTree.getDimension();
         lastDirectionChangeTime = System.currentTimeMillis();
     }
@@ -37,16 +36,20 @@ public class GluttonIA implements Strategy{
 
     @Override
     public List<Double> behaviorIA() {
-        /*
         this.dimension = new Dimension(
-                robot.getPosX()
-        );
-        if(pellet is in dimension){
-            manger(pellet)
+                robot.getPosX() - EATING_AREA,
+                robot.getPosY() - EATING_AREA,
+                robot.getPosX() + EATING_AREA,
+                robot.getPosY() + EATING_AREA
+            );
+
+        List<Entity> resultat = new ArrayList<>();
+        QuadTree.DFSChunk(quadTree,this.dimension,resultat);
+        Collections.shuffle(resultat);
+
+        for(Entity pellet: resultat){
+            return List.of(pellet.getPosX(), pellet.getPosY());
         }
-        else{
-            randomDirection();
-        }*/
 
         return randomDirection();
     }
