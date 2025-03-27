@@ -109,7 +109,7 @@ public class GameController implements Initializable {
             this.player.add(gameModel.getPlayer());
             gameModel.createRandomPellets(5000);
         } else {
-            // Pour le mode en ligne, nous attendons les données du serveur
+
             setPlayer(new Player(0, 0, name));
         }
     }

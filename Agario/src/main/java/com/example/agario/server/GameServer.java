@@ -19,13 +19,15 @@ public class GameServer {
     private static final int PORT = 8080;
     static final Map<String, Player> players = new ConcurrentHashMap<>();
     static final Set<ObjectOutputStream> clientOutputStreams = Collections.synchronizedSet(new HashSet<>());
-    static Game sharedGame = new Game(new QuadTree(0, new Dimension(0, 0, 10000, 10000), 6),"name");
+    static Game sharedGame = Game.getInstance(new QuadTree(0, new Dimension(0, 0, 10000, 10000)), "server");
 
     public static void main(String[] args) {
         System.out.println("Le serveur est en marche...");
         ExecutorService pool = Executors.newCachedThreadPool();
 
+        sharedGame.createRandomPellets(1000);
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+
             // Démarrer le spawner de pellets
             new Thread(() -> {
                 while (true) {
@@ -49,15 +51,17 @@ public class GameServer {
     }
 
     public static synchronized void broadcastGameState() {
-        List<Player> playersList = new ArrayList<>(players.values());
-        synchronized (clientOutputStreams) {
-            for (ObjectOutputStream oos : clientOutputStreams) {
-                try {
-                    oos.writeObject(playersList);
-                    oos.reset();
-                    oos.flush();
-                } catch (IOException e) {
-                    System.err.println("Erreur d'envoi à un client");
+        synchronized (sharedGame) {
+            synchronized (clientOutputStreams) {
+                for (ObjectOutputStream oos : clientOutputStreams) {
+                    try {
+                        oos.writeObject(sharedGame);
+                        oos.reset();
+                        oos.flush();
+                    } catch (IOException e) {
+                        System.err.println("Erreur d'envoi à un client: " + e.getMessage());
+                        clientOutputStreams.remove(oos);
+                    }
                 }
             }
         }

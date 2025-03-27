@@ -28,10 +28,8 @@ public class GameClient {
             oos.writeObject(player);
             oos.flush();
 
-            List<Player> existingPlayers = (List<Player>) ois.readObject();
-
             return new ConnectionResult(socket, oos, ois);
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException  e) {
             System.err.println("Erreur de connexion: " + e.getMessage());
             return null;
         }

@@ -16,7 +16,7 @@ import java.util.Random;
 
 public class Game {
 
-
+    private static Game instance;
     private QuadTree quadTree;
     private List<Entity> robots;
     private Player player;
@@ -24,9 +24,7 @@ public class Game {
     public List<Player> getPlayers() {
         return players;
     }
-    public void addPlayer(Player player){
-        players.add(player);
-    }
+
 
     public void setPlayers(List<Player> players) {
         this.players = players;
@@ -46,7 +44,7 @@ public class Game {
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
         this.player = (Player) new PlayerFactory(name, xMax, yMax).launchFactory();;
-
+        this.players = new ArrayList<>();
         // Initialisation des IA
         this.robots = new ArrayList<>();
         createRandomRobots(ROBOT_NUMBER);
@@ -69,6 +67,26 @@ public class Game {
             Random rand = new Random();
             quadTree.insertNode(new PelletFactory(rand.nextDouble(xMax), rand.nextDouble(yMax)).launchFactory());
         }
+    }
+
+    public synchronized void updatePlayer(Player updatedPlayer) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getName().equals(updatedPlayer.getName())) {
+                players.set(i, updatedPlayer);
+                break;
+            }
+        }
+    }
+
+    public synchronized void addPlayer(Player player) {
+        this.players.add(player);
+    }
+
+    public static synchronized Game getInstance(QuadTree quadTree, String name) {
+        if (instance == null) {
+            instance = new Game(quadTree, name);
+        }
+        return instance;
     }
 
     public void createRandomRobots(int limite) {

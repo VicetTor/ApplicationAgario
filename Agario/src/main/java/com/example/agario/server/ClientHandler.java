@@ -27,30 +27,26 @@ public class ClientHandler implements Runnable {
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
 
-            // Recevoir le joueur du client
-            player = (Player) ois.readObject();
-            GameServer.players.put(player.getName(), player);
+            // Ajouter le flux de sortie à la liste
             GameServer.clientOutputStreams.add(oos);
 
-            // Envoyer l'état initial du jeu
-            oos.writeObject(new ArrayList<>(GameServer.players.values()));
-            oos.flush();
-
-            // Boucle principale pour recevoir les mises à jour du client
-            while (true) {
-                Player updatedPlayer = (Player) ois.readObject();
-                if (updatedPlayer == null) break;
-
-                // Mettre à jour le joueur dans la liste partagée
-                synchronized (GameServer.players) {
-                    GameServer.players.put(updatedPlayer.getName(), updatedPlayer);
-                }
-
-                // Diffuser l'état mis à jour à tous les clients
-                GameServer.broadcastGameState();
+            // Recevoir le joueur du client
+            Player player = (Player) ois.readObject();
+            synchronized (GameServer.sharedGame) {
+                GameServer.sharedGame.addPlayer(player);
             }
 
-        } catch (IOException | ClassNotFoundException e) {
+            // Boucle principale
+            while (true) {
+                Player updatedPlayer = (Player) ois.readObject();
+                synchronized (GameServer.sharedGame) {
+                    // Mettre à jour le joueur dans le jeu partagé
+                    GameServer.sharedGame.updatePlayer(updatedPlayer);
+                }
+            }
+
+        } catch (IOException |
+                 ClassNotFoundException e) {
             System.err.println("Déconnexion: " + e.getMessage());
         } finally {
             try {
@@ -64,4 +60,5 @@ public class ClientHandler implements Runnable {
             }
         }
     }
+
 }
