@@ -1,5 +1,6 @@
 package com.example.agario.client.controllers;
 
+import com.example.agario.client.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
@@ -61,7 +62,6 @@ public class GameController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         setupGame();
-        setupNetwork(player);
         startGameLoop();
         startPelletSpawner();
     }
@@ -303,9 +303,9 @@ public class GameController implements Initializable {
         GamePane.getChildren().add(circle);
     }
 
-    public void setupNetwork(Player player) {
+    public void setupNetwork() {
         try {
-            GameClient.ConnectionResult connection = GameClient.playOnLine(player);
+            ConnectionResult connection = GameClient.playOnLine(player);
             if (connection == null) {
                 throw new IOException("Échec de la connexion au serveur");
             }

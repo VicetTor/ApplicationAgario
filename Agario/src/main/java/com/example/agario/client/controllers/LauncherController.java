@@ -2,6 +2,7 @@ package com.example.agario.client.controllers;
 
 import com.example.agario.client.GameClient;
 import com.example.agario.models.Player;
+import com.example.agario.models.factory.PlayerFactory;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -12,6 +13,8 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.Socket;
+
+
 
 public class LauncherController {
     @FXML private Button OfflineGameButton;
@@ -39,7 +42,9 @@ public class LauncherController {
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
 
+
         controller.setStage(stage);
+
         //controller.ecoute();
 
 
@@ -58,10 +63,8 @@ public class LauncherController {
 
 
         controller.setStage(stage);
-        //controller.setNetworkConnection(socket);
-        Player player = new Player(500, 500, "kdiou");
-        controller.setPlayer(player);
-        controller.setupNetwork(player);
+
+        controller.setupNetwork();
 
         stage.setScene(scene);
         stage.show();

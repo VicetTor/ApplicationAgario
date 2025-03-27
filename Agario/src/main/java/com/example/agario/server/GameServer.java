@@ -35,12 +35,12 @@ public class GameServer {
 
     private static void updateGameState() {
         while (true) {
-            // Mettre à jour la position de tous les joueurs et gérer les collisions
+
             synchronized (players) {
                 // Vérifier les collisions entre joueurs
                 List<Player> playerList = new ArrayList<>(players.values());
                 for (int i = 0; i < playerList.size(); i++) {
-                    System.out.println(playerList.get(i).getPosX());
+                    //System.out.println(playerList.get(i).getPosX());
                     for (int j = i + 1; j < playerList.size(); j++) {
                         Player p1 = playerList.get(i);
                         Player p2 = playerList.get(j);

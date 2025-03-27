@@ -16,23 +16,14 @@ public class GameClient {
     private ObjectInputStream ois;
     private Socket socket;
 
-    public static class ConnectionResult {
-        public final Socket socket;
-        public final ObjectOutputStream oos;
-        public final ObjectInputStream ois;
 
-        public ConnectionResult(Socket socket, ObjectOutputStream oos, ObjectInputStream ois) {
-            this.socket = socket;
-            this.oos = oos;
-            this.ois = ois;
-        }
-    }
 
     public static ConnectionResult playOnLine(Player player) {
         try {
+
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.flush(); // Envoie l'en-tête de sérialisation
+            oos.flush();
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
             oos.writeObject(player);
