@@ -9,17 +9,16 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-
-<AnchorPane prefHeight="400.0" prefWidth="400.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.client.controllers.SettingsController">
+<AnchorPane minHeight="400" minWidth="300" prefHeight="400.0" prefWidth="300.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.client.controllers.SettingsController">
    <children>
-      <GridPane prefHeight="400.0" prefWidth="400.0">
+      <GridPane  AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <columnConstraints>
-          <ColumnConstraints hgrow="SOMETIMES" maxWidth="454.0" minWidth="10.0" prefWidth="237.0" />
+          <ColumnConstraints hgrow="ALWAYS" maxWidth="454.0" minWidth="10.0" prefWidth="237.0" />
         </columnConstraints>
         <rowConstraints>
             <RowConstraints maxHeight="347.0" minHeight="10.0" prefHeight="24.0" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="355.0" minHeight="10.0" prefHeight="319.0" vgrow="SOMETIMES" />
-          <RowConstraints maxHeight="194.0" minHeight="10.0" prefHeight="80.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="355.0" minHeight="10.0" prefHeight="319.0" vgrow="SOMETIMES" />
+            <RowConstraints maxHeight="194.0" minHeight="10.0" prefHeight="80.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
             <GridPane GridPane.rowIndex="2">
@@ -31,8 +30,8 @@
                 <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
               </rowConstraints>
                <children>
-                  <Button fx:id="quitButton" onAction="#quitButtonClick" mnemonicParsing="false" text="Quitter" />
-                  <Button fx:id="applyButton" onAction="#applyButtonClick" mnemonicParsing="false" text="Appliquer" GridPane.columnIndex="1" />
+                  <Button fx:id="quitButton" mnemonicParsing="false" onAction="#quitButtonClick" style="-fx-background-color: green;" text="Quitter" textFill="WHITE" />
+                  <Button fx:id="applyButton" mnemonicParsing="false" onAction="#applyButtonClick" style="-fx-background-color: green;" text="Appliquer" textFill="WHITE" GridPane.columnIndex="1" />
                </children>
             </GridPane>
             <GridPane GridPane.rowIndex="1">

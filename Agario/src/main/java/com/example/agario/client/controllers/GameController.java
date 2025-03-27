@@ -514,7 +514,7 @@ public class GameController implements Initializable {
                     l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
             );
 
-            animatePlayerMovement(circle, p.getPosX(), p.getPosY());
+            //animatePlayerMovement(circle, p.getPosX(), p.getPosY());
 
             updateCircle(circle, p);
             GamePane.getChildren().add(circle);
