@@ -42,23 +42,18 @@ public class LauncherController {
         stage.setResizable(true);
         stage.setTitle("Agar.Io");
         stage.setScene(scene);
-
         controller.setStage(stage);
 
         stage.show();
-
         stage.setOnCloseRequest(e -> Platform.exit());
     }
 
     public void changeSceneOnLine() throws IOException {
 
-
-
         Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/agario/game.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         GameController controller = fxmlLoader.getController();
-
 
         controller.setStage(stage);
 

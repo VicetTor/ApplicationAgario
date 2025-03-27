@@ -22,9 +22,8 @@ public class Game {
     private double yMin = 0;
     private double xMax;
     private double yMax;
-    private final int ROBOT_NUMBER = 25;
 
-    public Game(QuadTree quadTree, String name) {
+    public Game(QuadTree quadTree, String name, int robotNumber) {
         this.quadTree = quadTree;
         this.xMin = quadTree.getDimension().getxMin();
         this.yMin = quadTree.getDimension().getyMin();
@@ -34,7 +33,7 @@ public class Game {
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
-        createRandomRobots(ROBOT_NUMBER);
+        createRandomRobots(robotNumber);
     }
 
     public Player getPlayer() {
@@ -58,7 +57,7 @@ public class Game {
 
     public void createRandomRobots(int limite) {
         for (int nb = 0; nb < limite; nb++) {
-            robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
+            robots.add(new IAFactory(xMax, yMax, quadTree, player, robots).launchFactory());
         }
     }
 

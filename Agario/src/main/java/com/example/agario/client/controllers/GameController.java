@@ -16,9 +16,15 @@ import javafx.animation.ScaleTransition;
 import javafx.animation.TranslateTransition;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
@@ -32,6 +38,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Text;
 import javafx.scene.transform.Scale;
 import javafx.scene.transform.Translate;
 import javafx.stage.Stage;
@@ -42,6 +49,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,6 +65,7 @@ public class GameController implements Initializable {
     @FXML private ListView<String> TchatListView;
     @FXML private GridPane gridPane;
     @FXML private BorderPane GameBorderPane;
+    @FXML private Button buttonSettings;
 
     private Map<Entity, Circle> entitiesCircles = new HashMap<>();
     private Map<Entity, String> pelletColors = new HashMap<>();
@@ -69,11 +78,15 @@ public class GameController implements Initializable {
     private boolean isPlayerAlive = true;
     private boolean transitionSplit = false;
 
-    private static final int HEIGHT = 10000;
-    private static final int WIDTH = 10000;
+
     private static final List<String> PELLET_COLORS = List.of("#ff3107", "#4e07ff", "#caff07","#ff07dc","#7107ff","#07ff2b","#07ff88","#07ff88","#07a8ff","#ff3107","#ff4f00","#ffff00");
     private static final String PLAYER_COLOR = "#7107ff";
     private static final String ROBOT_COLOR = "#07ff82";
+    private static int HEIGHT = 10000;
+    private static int WIDTH = 10000;
+    private static int ROBOT_NUMBER = 25;
+    private static int PELLET_NUMBER = 5000;
+    private static String PLAYER_NAME = "Anonymous";
 
 
     private List<Player> otherPlayers = new ArrayList<>();
@@ -86,13 +99,13 @@ public class GameController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
         setupGame();
         startGameLoop();
         startPelletSpawner();
     }
 
     private void setupGame() {
+
         // Setup game pane
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
@@ -100,13 +113,10 @@ public class GameController implements Initializable {
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
 
-        // Initialize player and game world
-        String name = "GreatPlayer7895";
-
-        gameModel = new Game(new QuadTree(0, dimension), name);
+        gameModel = new Game(new QuadTree(0, dimension), PLAYER_NAME, ROBOT_NUMBER);
         this.player.add(gameModel.getPlayer());
         this.specialSpeed.add(-1.0);
-        gameModel.createRandomPellets(5000);
+        gameModel.createRandomPellets(PELLET_NUMBER);
     }
 
     private void setupBackground() {
@@ -122,6 +132,18 @@ public class GameController implements Initializable {
         GamePane.setBackground(new Background(bgImg));
         GamePane.toFront();
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+
+        LeaderBoardListView.setCellFactory(lv -> new ListCell<String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                setText(item);
+                setTextFill(Paint.valueOf("#ffffff"));
+                setBackground(Background.EMPTY);
+                setStyle("-fx-background-color: transparent;");
+                setPrefHeight(LeaderBoardListView.getHeight()/10.5);
+            }
+        });
     }
 
     private void startGameLoop() {
@@ -281,7 +303,7 @@ public class GameController implements Initializable {
         for(Entity entity : allPlayers){
             counter++;
             MovableEntity joueur = (MovableEntity) entity;
-            LeaderBoardListView.getItems().add("N°"+counter+" - Joueur "+joueur.getName()+", score : "+joueur.getMass());
+            LeaderBoardListView.getItems().add(counter+". "+joueur.getName()+"     "+new DecimalFormat("0.00").format(joueur.getMass()));
             if(counter == 10) break;
         }
 
@@ -562,7 +584,6 @@ public class GameController implements Initializable {
                     l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
             );
 
-
             updateCircle(circle, p);
             GamePane.getChildren().add(circle);
             GamePane.getChildren().add(l);
@@ -785,10 +806,15 @@ public class GameController implements Initializable {
                         if(entity instanceof InvisiblePellet){
                             this.invisiblePelletEffect(movableEntity);
                         }
+                        if(entity instanceof InvisiblePellet){
+                            this.invisiblePelletEffect(movableEntity);
+                        }
 
                     }
+
                     // Ajouter à la liste de suppression
                     entityToRemove.add(entity);
+
 
                     // Augmenter la masse de l'entité
                     double newMass = movableEntity.getMass() + entity.getMass();
@@ -853,4 +879,62 @@ public class GameController implements Initializable {
         }
     }
 
+    public static int getHeight() {
+        return HEIGHT;
+    }
+
+    public static int getWidth() {
+        return WIDTH;
+    }
+
+    public static int getPelletNumber() {
+        return PELLET_NUMBER;
+    }
+
+    public static int getRobotNumber() {
+        return ROBOT_NUMBER;
+    }
+
+    public static String getPlayerName() {
+        return PLAYER_NAME;
+    }
+
+    public static void setHeight(int HEIGHT) {
+        GameController.HEIGHT = HEIGHT;
+    }
+
+    public static void setWidth(int WIDTH) {
+        GameController.WIDTH = WIDTH;
+    }
+
+    public static void setPlayerName(String playerName) {
+        PLAYER_NAME = playerName;
+    }
+
+    public static void setPelletNumber(int pelletNumber) {
+        PELLET_NUMBER = pelletNumber;
+    }
+
+    public static void setRobotNumber(int robotNumber) {
+        ROBOT_NUMBER = robotNumber;
+    }
+
+    @FXML
+    public void openSettingsMenuClick(){
+        try {
+            Stage oldWindowStage = (Stage) this.GameBorderPane.getScene().getWindow();
+            oldWindowStage.close();
+
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/com/example/agario/settings.fxml"));
+            SettingsController settingsController = fxmlLoader.getController();
+            Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+            Stage newStage = new Stage();
+            newStage.setTitle("Settings");
+            newStage.setScene(scene);
+            newStage.show();
+        } catch (IOException e) {
+            System.out.println("ERREUR");
+        }
+    }
 }

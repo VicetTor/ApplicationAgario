@@ -7,94 +7,109 @@ import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class HunterIA implements Strategy{
 
-    //TODO all the classes because copy/paste of GluttonIA
-
-    private final int EATING_AREA_DIMENSION = 500;
-    private Dimension dimension;
     private double x;
     private double y;
-    private double xMax;
-    private double yMax;
-    private double xMin;
-    private double yMin;
-    private QuadTree quadTree;
-
-    private double HEIGHT;
-    private double WIDTH;
-
+    private IA robot;
+    private Dimension dimension;
     private long lastDirectionChangeTime;
     private final int maxTime = 2500;
     private final int minTime = 300;
-
-    private final Random rand = new Random();
-
     private boolean movingRight = true;
     private boolean movingDown = true;
-    private IA robot;
+    private final Random rand = new Random();
+    private final int HUNTING_AREA = 150;
+    private QuadTree quadTree;
+    private Player player;
 
-    public HunterIA(IA robot, QuadTree quadTree){
+    private List<Entity> entities;
+
+    public HunterIA(IA robot, QuadTree quadTree, Player player, List<Entity> entities){
         this.robot = robot;
         this.quadTree = quadTree;
-        WIDTH = quadTree.getDimension().getxMax();
-        HEIGHT = quadTree.getDimension().getyMax();
-        updateXMaxMinYMaxMin();
+        this.player = player;
+        this.dimension = quadTree.getDimension();
+        this.entities = entities;
         lastDirectionChangeTime = System.currentTimeMillis();
     }
 
-    private void updateXMaxMinYMaxMin(){
-        xMax = x + EATING_AREA_DIMENSION;
-        yMax = y + EATING_AREA_DIMENSION;
-        xMin = x - EATING_AREA_DIMENSION;
-        yMin = y - EATING_AREA_DIMENSION;
-        dimension = new Dimension(
-                (xMin < 0)? 0 : xMin,
-                (yMin < 0)? 0 : yMin,
-                (xMax < WIDTH)? WIDTH : xMax ,
-                (yMax < HEIGHT)? HEIGHT : yMax);
-    }
-
+    /**
+     * @return List<Double> of x and y coordinates to make AI move in the direction of the player
+     */
     @Override
-    public List<Double> behaviorIA() {  //PROBLEM BECAUSE DOESNT FIND PLAYER
-        ArrayList<Double> direction = new ArrayList<>();
+    public List<Double> behaviorIA() {
+        this.dimension = new Dimension(
+                robot.getPosX() - HUNTING_AREA,
+                robot.getPosY() - HUNTING_AREA,
+                robot.getPosX() + HUNTING_AREA,
+                robot.getPosY() + HUNTING_AREA
+        );
+        List<Entity> result = new ArrayList<>(entities);
+        result.add(player);
+        result.remove(robot);
 
-        recalculateDimensionArea(x, y);
+        result.sort((botA, botB)->{
+            double distanceBotA = distanceCalculation(robot.getPosX(), robot.getPosY(), botA.getPosX(), botA.getPosY());
+            double distanceBotB = distanceCalculation(robot.getPosX(), robot.getPosY(), botB.getPosX(), botB.getPosY());
+            return Double.compare(distanceBotA, distanceBotB);
+        });
 
-        ArrayList<Entity> objectList = new ArrayList<>();
-        QuadTree.DFSChunk(quadTree, dimension, objectList);// Collect all the pellets in the dimension area
-        for(Entity object: objectList){
-            if(object instanceof Player) {
-                if (dimension.inRange(object.getPosX(), object.getPosY())) { // goes into the coordinates of the pellets
-                    direction.add(object.getPosX());
-                    direction.add(object.getPosY());
-                    return direction;
-                }
-            }
+        if(!result.isEmpty()){
+            Entity closestTarget = result.get(0);
+            if( robot.getMass() >= (closestTarget.getMass()*1.33) && dimension.inRange(closestTarget.getPosX(), closestTarget.getPosY()))
+                return List.of(closestTarget.getPosX(), closestTarget.getPosY());
+            else
+                return eatingPelletDirection();
         }
-        // if the IA doesn't find any player, it goes into random direction into the dimension area
         return randomDirection();
     }
 
+    /**
+     * @return List<Double> of x and y coordinates of the closest pellet in the hunting area
+     */
+    public List<Double> eatingPelletDirection(){
+        List<Entity> result = new ArrayList<>();
+        QuadTree.DFSChunk(quadTree,this.dimension,result);
+
+        result.sort((pelletA, pelletB)->{
+            double distancePelletA = distanceCalculation(robot.getPosX(),robot.getPosY(), pelletA.getPosX(), pelletA.getPosY());
+            double distancePelletB = distanceCalculation(robot.getPosX(),robot.getPosY(), pelletB.getPosX(), pelletB.getPosY());
+            return Double.compare(distancePelletA, distancePelletB);
+        });
+
+        if(!result.isEmpty()){
+            Entity closestPellet = result.get(0);
+            return List.of(closestPellet.getPosX(), closestPellet.getPosY());
+        }
+        return randomDirection();
+    }
+
+    /**
+     * @return euclidian distance of two points
+     */
+    private double distanceCalculation(double x1, double y1, double x2, double y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+
+    /**
+     * @return List<Double> of random x and y coordinates to make AI move
+     */
     private List<Double> randomDirection(){
         int randomTime = rand.nextInt(maxTime - minTime + 1) + minTime;
         if((System.currentTimeMillis()-lastDirectionChangeTime) > randomTime){
-            if (rand.nextInt(100) < 50) { movingRight = !movingRight;}
-            if (rand.nextInt(100) < 50) { movingDown = !movingDown;}
+            if (rand.nextInt(100) < 25) { movingRight = !movingRight;}
+            if (rand.nextInt(100) < 25) { movingDown = !movingDown;}
 
-            x = (movingRight)? + 100 : rand.nextDouble(WIDTH);
-            y = (movingDown)? + 100 : rand.nextDouble(HEIGHT);
+            x = (movingRight)? Math.min(robot.getPosX()+ 300, dimension.getxMax()) : rand.nextDouble(dimension.getxMax());
+            y = (movingDown)? Math.min(robot.getPosY() + 300, dimension.getyMax()) : rand.nextDouble(dimension.getyMax());
             lastDirectionChangeTime = System.currentTimeMillis();
         }
         return List.of(x, y);
-    }
-
-    private void recalculateDimensionArea(double x, double y){
-        this.x = x;
-        this.y = y;
-        updateXMaxMinYMaxMin();
     }
 }

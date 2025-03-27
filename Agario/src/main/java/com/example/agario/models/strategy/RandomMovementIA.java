@@ -31,13 +31,16 @@ public class RandomMovementIA implements Strategy{
         lastDirectionChangeTime = System.currentTimeMillis();
     }
 
+    /**
+     * @return List<Double> of random x and y coordinates to make AI move
+     */
     @Override
     public List<Double> behaviorIA() {
         return randomDirection();
     }
 
     /**
-     * @return List<Double> of random direction to make move the AI
+     * @return List<Double> of random x and y coordinates to make AI move
      */
     private List<Double> randomDirection(){
         int randomTime = rand.nextInt(maxTime - minTime + 1) + minTime;
