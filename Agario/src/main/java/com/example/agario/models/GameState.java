@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Random;
 
 public class GameState implements Serializable {
+    private static final long serialVersionUID = -8862885764214783136L;
     private static GameState instance;
     private final QuadTree quadTree;
 

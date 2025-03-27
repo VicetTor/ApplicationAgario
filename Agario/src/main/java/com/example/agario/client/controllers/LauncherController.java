@@ -3,6 +3,7 @@ package com.example.agario.client.controllers;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -87,15 +88,25 @@ public class LauncherController {
         try {
             Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/example/agario/onlineGame.fxml"));
-            Scene scene = new Scene(loader.load());
 
+            // Load FIRST
+            Parent root = loader.load();
+            Scene scene = new Scene(root);
+
+            // Get controller AFTER loading
             OnlineGameController controller = loader.getController();
-            controller.initialize("127.0.0.1", 8080, "NomDuJoueur", stage);
 
-
-            configureStage(stage, scene, "Agar.Io - Mode En ligne (" + playerName + ")");
+            // Initialize network SECOND
+            Platform.runLater(() -> {
+                try {
+                    controller.initializeNetwork(SERVER_HOST, SERVER_PORT, playerName, stage);
+                    configureStage(stage, scene, "Agar.Io - Online Mode (" + playerName + ")");
+                } catch (Exception e) {
+                    showErrorAlert("Initialization Error", e.getMessage());
+                }
+            });
         } catch (IOException e) {
-            showErrorAlert("Erreur de connexion", "Impossible de se connecter au serveur");
+            showErrorAlert("Loading Error", "Could not load online game UI");
         }
     }
 

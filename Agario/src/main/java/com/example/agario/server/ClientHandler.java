@@ -48,19 +48,26 @@ public class ClientHandler implements Runnable {
             // Étape 5: Boucle principale
             while (true) {
                 PlayerInput input = (PlayerInput) ois.readObject();
+                System.out.printf("Received input from %s: dx=%.2f dy=%.2f%n",
+                        player.getName(), input.dirX, input.dirY);
 
                 synchronized (GameServer.sharedGame) {
-                    player.setDirX(input.dirX);
-                    player.setDirY(input.dirY);
+                    // Calculate actual movement (consider speed and mass)
+                    double speed = player.getSpeed() / (1 + player.getMass()/100); // Mass slows movement
+                    double moveX = input.dirX * speed;
+                    double moveY = input.dirY * speed;
+
                     player.updatePosition(
-                            input.dirX * player.getSpeed(),
-                            input.dirY * player.getSpeed(),
+                            moveX,
+                            moveY,
                             GameServer.sharedGame.getxMax(),
                             GameServer.sharedGame.getyMax()
                     );
+
+                    System.out.printf("Updated %s to (%.1f,%.1f)%n",
+                            player.getName(), player.getPosX(), player.getPosY());
                 }
             }
-
         } catch (Exception e) {
             System.err.println("Erreur client: " + e.getMessage());
         } finally {

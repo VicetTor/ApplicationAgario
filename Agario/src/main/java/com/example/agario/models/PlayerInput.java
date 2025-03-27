@@ -3,6 +3,7 @@ package com.example.agario.models;
 import java.io.Serializable;
 
 public class PlayerInput implements Serializable {
+    private static final long serialVersionUID = 1;
     public double dirX;
     public double dirY;
 

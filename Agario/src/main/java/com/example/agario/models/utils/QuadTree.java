@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Random;
 
 public class QuadTree implements Serializable {
+    private static final long serialVersionUID = -8862885764214783136L;
     private static int MAX_DEPTH = 6;
     private int depth = 0;
     private List<Entity> entities;
