@@ -61,6 +61,7 @@ public class GameController implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
         setupGame();
+        setupNetwork(player);
         startGameLoop();
         startPelletSpawner();
     }
@@ -305,8 +306,9 @@ public class GameController implements Initializable {
     public  void setupNetwork(Player player) {
         try {
             this.socket = GameClient.playOnLine(player);
-            this.oos = new ObjectOutputStream(socket.getOutputStream());
             this.ois = new ObjectInputStream(socket.getInputStream());
+            this.oos = new ObjectOutputStream(socket.getOutputStream());
+
 
             // Envoyer le joueur initial au serveur
             oos.writeObject(player);

@@ -38,6 +38,9 @@ public class ClientHandler implements Runnable {
 
             synchronized (GameServer.clientWriters) {
                 GameServer.clientWriters.add(new PrintWriter(socket.getOutputStream(), true));
+                if (clientWriters.isEmpty()) {
+                    System.out.println("No clients are connected.");
+                }
             }
 
             // Boucle principale pour recevoir les mises à jour du client
