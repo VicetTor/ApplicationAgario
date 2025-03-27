@@ -355,7 +355,11 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
-                if(isPlayerAlive) robotZone.add(player.get(0));
+                if(isPlayerAlive) {
+                    for (Player p : player) {
+                        robotZone.add(p);
+                    }
+                }
                 eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots());
             }
         }
@@ -375,17 +379,23 @@ public class GameController implements Initializable {
         entitiesCircles.remove(entity);
     }
 
-    public void eatPlayer(){
-        this.isPlayerAlive = false;
+    public void eatPlayer(Player playerEntity){
 
-        ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
-        Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.APPLY){
+        entitiesCircles.remove(playerEntity);
+        specialSpeed.remove(playerEntity);
+        player.remove(playerEntity);
+
+        if(player.size() == 0) {
+            this.isPlayerAlive = false;
+            ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
+            Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.APPLY){
+                Platform.exit();
+            }
+            alert.setOnCloseRequest(e -> Platform.exit());
             Platform.exit();
         }
-        alert.setOnCloseRequest(e -> Platform.exit());
-        Platform.exit();
     }
 
     public void animatePelletConsumption(Entity pellet, MovableEntity p) {
@@ -786,7 +796,7 @@ public class GameController implements Initializable {
 
                 if(!(entity instanceof Player && (movableEntity.getName().equals(((Player) entity).getName())))){
                     if(entity instanceof Player && !(movableEntity.getName().equals(((Player) entity).getName()))){
-                        this.eatPlayer();
+                        this.eatPlayer((Player)entity);
                         break;
                     }
                     //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
