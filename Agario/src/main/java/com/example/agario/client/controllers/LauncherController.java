@@ -52,9 +52,9 @@ public class LauncherController {
 
     public void changeSceneOnLine() throws IOException {
         Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
-        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/agario/game.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/com/example/agario/onineGame.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
-        GameController controller = fxmlLoader.getController();
+        OnlineGameController controller = fxmlLoader.getController();
 
         controller.setStage(stage);
         stage.setScene(scene);

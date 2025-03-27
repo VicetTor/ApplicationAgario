@@ -5,6 +5,7 @@ import com.example.agario.models.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
+import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
@@ -61,7 +62,9 @@ public class OnlineGameController implements Initializable {
     private Map<Entity, Circle> entitiesCircles = new HashMap<>();
     private Map<Entity, String> pelletColors = new HashMap<>();
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
-    private Game gameModel;
+    private GameInterface gameModel;
+
+    public GameState gameModelOnline ;
     private List<Player> player = new ArrayList<Player>();
 
     private Stage stage;
@@ -78,6 +81,8 @@ public class OnlineGameController implements Initializable {
 
 
     private List<Player> otherPlayers = new ArrayList<>();
+
+
     private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
@@ -88,25 +93,27 @@ public class OnlineGameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        setupGame();
+        setupGame(Boolean.FALSE);
+
         startGameLoop();
         startPelletSpawner();
     }
 
-    private void setupGame() {
-        // Setup game pane
+    private void setupGame(Boolean online) {
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
 
-        // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
+        String name = "Player" + new Random().nextInt(1000);
+        if(online) {
+            gameModel = GameState.getInstance(new QuadTree(0, dimension), name);
+            this.player.add(gameModel.getPlayer());
+        } else {
+            gameModel = new Game(new QuadTree(0, dimension),name );
+            this.player.add(gameModel.getPlayer());
+            gameModel.createRandomPellets(5000);
+        }
 
-        // Initialize player and game world
-        String name = "GreatPlayer7895";
-
-        gameModel = new Game(new QuadTree(0, dimension), name);
-        this.player.add(gameModel.getPlayer());
-        gameModel.createRandomPellets(5000);
     }
 
     private void setupBackground() {
@@ -178,9 +185,9 @@ public class OnlineGameController implements Initializable {
     private void sendPlayerUpdate() {
         try {
             if (oos != null) {
-                oos.writeObject(player);
+                oos.writeObject(player.get(0));
                 oos.flush();
-                oos.reset(); // Important pour éviter les problèmes de cache
+                oos.reset();
             }
         } catch (IOException e) {
             System.err.println("Erreur d'envoi au serveur");
@@ -596,39 +603,64 @@ public class OnlineGameController implements Initializable {
     public void setupNetwork() {
         try {
             ConnectionResult connection = GameClient.playOnLine(player.get(0));
-            if (connection == null) {
-                throw new IOException("Échec de la connexion au serveur");
-            }
+            if (connection == null) throw new IOException("Échec de connexion");
 
             this.socket = connection.socket;
             this.oos = connection.oos;
             this.ois = connection.ois;
 
-            // Démarrer le thread d'écoute des mises à jour
             startNetworkListener();
-
         } catch (IOException e) {
-            e.printStackTrace();
-            // Gestion d'erreur (fermer les flux, notifier l'utilisateur, etc.)
+            Platform.runLater(() -> {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Erreur");
+                alert.setHeaderText("Connexion échouée");
+                alert.setContentText(e.getMessage());
+                alert.showAndWait();
+            });
         }
     }
+
     private void startNetworkListener() {
         new Thread(() -> {
             try {
                 while (true) {
                     Object received = ois.readObject();
-                    if (received instanceof List) {
+                    if (received instanceof Game) {
+                        GameState serverGame = (GameState) received;
+
                         Platform.runLater(() -> {
-                            otherPlayers.clear();
-                            otherPlayers.addAll((List<Player>) received);
+                            // Mettre à jour l'état local avec les données du serveur
+                            updateLocalGameState(serverGame);
                         });
                     }
                 }
-            } catch (IOException | ClassNotFoundException e) {
-                System.out.println("Déconnexion du serveur");
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    System.out.println("Déconnecté du serveur: " + e.getMessage());
+                });
             }
         }).start();
     }
+
+    private void updateLocalGameState(GameState serverGame) {
+        // Mettre à jour les joueurs
+        otherPlayers.clear();
+        otherPlayers.addAll(serverGame.getPlayers());
+
+
+        gameModel.getQuadTree().getAllPellets();
+        for (Entity entity : serverGame.getAllEntities()) {
+            if (entity instanceof Pellet) {
+                gameModel.getQuadTree().insertNode(entity);
+            }
+        }
+
+        // Mettre à jour les robots
+        gameModel.setRobots(serverGame.getRobots());
+    }
+
+
 
 
     public void setPlayer(Player player){

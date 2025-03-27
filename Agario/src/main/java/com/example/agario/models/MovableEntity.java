@@ -72,9 +72,12 @@ public class MovableEntity extends Entity{
         } else if (a >= screenHeight - 1) {
             a = screenHeight - 2;
         }
-        // System.out.println(a);
-        this.setPosX(q);
-        this.setPosY(a);
+        if(screenHeight != 0 && screenHeight != 0 ){
+            // System.out.println(a);
+            this.setPosX(q);
+            this.setPosY(a);
+        }
+
     }
 
     public double getSpeed() {

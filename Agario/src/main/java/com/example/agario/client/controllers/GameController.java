@@ -5,7 +5,6 @@ import com.example.agario.models.ConnectionResult;
 import com.example.agario.client.GameClient;
 import com.example.agario.client.PlayerInput;
 import com.example.agario.models.*;
-import com.example.agario.models.factory.PlayerFactory;
 import com.example.agario.models.utils.Camera;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
@@ -79,8 +78,6 @@ public class GameController implements Initializable {
 
 
     private List<Player> otherPlayers = new ArrayList<>();
-
-
     private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
@@ -91,27 +88,25 @@ public class GameController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        setupGame(Boolean.FALSE);
-
+        setupGame();
         startGameLoop();
         startPelletSpawner();
     }
 
-    private void setupGame(Boolean online) {
+    private void setupGame() {
+        // Setup game pane
         GamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
 
+        // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
-        String name = "Player" + new Random().nextInt(1000);
 
-        if(!online){
-            gameModel = new Game(new QuadTree(0, dimension), name);
-            this.player.add(gameModel.getPlayer());
-            gameModel.createRandomPellets(5000);
-        } else {
+        // Initialize player and game world
+        String name = "GreatPlayer7895";
 
-            setPlayer(new Player(0, 0, name));
-        }
+        gameModel = new Game(new QuadTree(0, dimension), name);
+        this.player.add(gameModel.getPlayer());
+        gameModel.createRandomPellets(5000);
     }
 
     private void setupBackground() {
@@ -131,16 +126,8 @@ public class GameController implements Initializable {
 
     private void startGameLoop() {
         PlayerInput playerInput = new PlayerInput();
-        Camera camera = new Camera(gameModel.getPlayer());
+        Camera camera = new Camera(player.get(0));
         GamePane.setOnMouseMoved(playerInput);
-
-        GamePane.setOnMouseClicked(event -> {
-
-            splitPlayer();
-
-            System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
-        });
-
 
         new Thread(() -> {
             AtomicReference<Double> dx = new AtomicReference<>(0.0);
@@ -148,22 +135,17 @@ public class GameController implements Initializable {
 
             while (true) {
 
-                // Update mouse position
-                for(Player p : player) {
-                    if (isPlayerAlive) {
-                        GamePane.setOnMouseMoved(e -> {
-                            playerInput.handle(e);
-                            dx.set(playerInput.getMouseX() - p.getPosX());
-                            dy.set(playerInput.getMouseY() - p.getPosY());
-                        });
+                if(isPlayerAlive) {
+                    GamePane.setOnMouseMoved(e -> {
+                        playerInput.handle(e);
+                        dx.set(playerInput.getMouseX() - player.get(0).getPosX());
+                        dy.set(playerInput.getMouseY() - player.get(0).getPosY());
+                    });
 
-                        // Update positions
-                        p.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
-                    }
+                    // Update positions
+                    player.get(0).updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
                 }
                 updateRobots();
-
-                sendPlayerUpdate();
 
                 Platform.runLater(() -> {
                     setEntities((HashMap<Entity, Circle>) entitiesCircles);
@@ -172,25 +154,16 @@ public class GameController implements Initializable {
 
 
                 try {
-                    Thread.sleep(33);
+                    Thread.sleep(33); // ~30 FPS
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
+
     }
 
-    private void sendPlayerUpdate() {
-        try {
-            if (oos != null) {
-                oos.writeObject(player.get(0));
-                oos.flush();
-                oos.reset();
-            }
-        } catch (IOException e) {
-            System.err.println("Erreur d'envoi au serveur");
-        }
-    }
+
     private void updateRobots() {
         List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
         for (Entity robot : robotsCopy) {
@@ -598,54 +571,6 @@ public class GameController implements Initializable {
         GamePane.getChildren().add(circle);
     }
 
-    public void setupNetwork() {
-        try {
-            ConnectionResult connection = GameClient.playOnLine(player.get(0));
-            if (connection == null) throw new IOException("Échec de connexion");
-
-            this.socket = connection.socket;
-            this.oos = connection.oos;
-            this.ois = connection.ois;
-
-            startNetworkListener();
-        } catch (IOException e) {
-            Platform.runLater(() -> {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Erreur");
-                alert.setHeaderText("Connexion échouée");
-                alert.setContentText(e.getMessage());
-                alert.showAndWait();
-            });
-        }
-    }
-
-    private void startNetworkListener() {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    Object received = ois.readObject();
-                    if (received instanceof List) {
-                        Platform.runLater(() -> {
-                            otherPlayers.clear();
-                            otherPlayers.addAll((List<Player>) received);
-
-                            // Mettre à jour notre joueur local si nécessaire
-                            for (Player p : otherPlayers) {
-                                if (p.getName().equals(player.get(0).getName())) {
-                                    player.set(0, p);
-                                }
-                            }
-                        });
-                    }
-                }
-            } catch (Exception e) {
-                Platform.runLater(() -> {
-                    System.out.println("Déconnexion du serveur: " + e.getMessage());
-                });
-            }
-        }).start();
-    }
-
 
 
 
@@ -669,13 +594,13 @@ public class GameController implements Initializable {
 
     public void speedIncreaseEffect(MovableEntity movableEntity){
         new Thread(() -> {
-                this.specialSpeed = 15;
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.specialSpeed = -1;
+            this.specialSpeed = 15;
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.specialSpeed = -1;
         }).start();
     }
 

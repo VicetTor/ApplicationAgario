@@ -27,31 +27,40 @@ public class ClientHandler implements Runnable {
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
 
-            // Ajouter le flux de sortie à la liste
-            GameServer.clientOutputStreams.add(oos);
+            // Recevoir le joueur initial
+            player = (Player) ois.readObject();
+            System.out.println("Joueur connecté: " + player.getName());
 
-            // Recevoir le joueur du client
-            Player player = (Player) ois.readObject();
+            // Enregistrer le joueur et le flux
             synchronized (GameServer.sharedGame) {
                 GameServer.sharedGame.addPlayer(player);
             }
+            GameServer.clientOutputStreams.add(oos);
 
-            // Boucle principale
+            // Envoyer l'état initial
+            oos.writeObject(GameServer.sharedGame);
+            oos.flush();
+
+            // Boucle de réception des mises à jour
             while (true) {
                 Player updatedPlayer = (Player) ois.readObject();
                 synchronized (GameServer.sharedGame) {
-                    // Mettre à jour le joueur dans le jeu partagé
                     GameServer.sharedGame.updatePlayer(updatedPlayer);
                 }
             }
 
-        } catch (IOException |
-                 ClassNotFoundException e) {
-            System.err.println("Déconnexion: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Erreur client: " + e.getMessage());
         } finally {
             try {
+                // Nettoyage
                 if (player != null) {
-                    GameServer.players.remove(player.getName());
+                    synchronized (GameServer.sharedGame) {
+                        GameServer.sharedGame.getPlayers().removeIf(p ->
+                                p.getName().equals(player.getName()));
+                    }
+                }
+                if (oos != null) {
                     GameServer.clientOutputStreams.remove(oos);
                 }
                 socket.close();

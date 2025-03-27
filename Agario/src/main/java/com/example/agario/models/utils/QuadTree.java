@@ -16,7 +16,11 @@ public class QuadTree {
     QuadTree southWest = null;
     QuadTree southEast = null;
     Dimension dimension;
-
+    public List<Entity> getAllPellets() {
+        List<Entity> pellets = new ArrayList<>();
+        DFSChunk(this,this.getDimension(),pellets);
+        return pellets;
+    }
     public QuadTree(int depth, Dimension dimension) {
         this.depth = depth;
         entities = new ArrayList<Entity>();
