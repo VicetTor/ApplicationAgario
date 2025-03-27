@@ -32,7 +32,7 @@ public class Game {
 
         // Initialisation des IA
         this.robots = new ArrayList<>();
-        for(int i = 0; i < ROBOT_NUMBER; i++) {
+        for (int i = 0; i < ROBOT_NUMBER; i++) {
             robots.add(new IAFactory(xMax, yMax, quadTree).launchFactory());
         }
     }
@@ -68,13 +68,15 @@ public class Game {
             double dy = movableEntity.getPosY() - entity.getPosY();
             double squareDistance = dx * dx + dy * dy;
 
-            if (squareDistance <= movableEntity.getRadius() * movableEntity.getRadius()
-                && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
+            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius()*2)
+                    && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
 
                 //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
-                /*if(entity instanceof Pellet){
-                    g.animatePelletConsumption(entity);
-                }*/
+                if (entity instanceof Pellet) {
+                    if (movableEntity instanceof Player) {
+                        g.animatePelletConsumption(entity);
+                    }
+                }
 
                 // Ajouter à la liste de suppression
                 entityToRemove.add(entity);
@@ -83,8 +85,7 @@ public class Game {
                 double newMass = movableEntity.getMass() + entity.getMass();
                 movableEntity.setMass(newMass);
             }
-        }
-
+            }
         // Supprimer les pellets mangés
         for (Entity entity : entityToRemove) {
             quadTree.removeNode(entity, quadTree);
