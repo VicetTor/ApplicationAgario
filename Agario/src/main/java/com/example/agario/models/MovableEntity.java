@@ -26,6 +26,9 @@ public class MovableEntity extends Entity{
     public void setSpecialSpeed(double speed){
         this.speed = speed;
     }
+    public void setSpeedy(double speed){
+        this.speed = speed;
+    }
 
     public void setSpeed(double dx, double dy, double x, double y, double specialSpeed){
 

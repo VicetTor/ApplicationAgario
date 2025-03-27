@@ -46,6 +46,7 @@ public class OnlineGameController implements Initializable {
     private List<Player> allPlayers = new ArrayList<>();
 
     private Stage stage;
+    public double speed ;
     private double specialSpeed = -1;
     private boolean isPlayerAlive = true;
 
@@ -184,14 +185,11 @@ public class OnlineGameController implements Initializable {
             public void handle(long now) {
                 if (!isPlayerAlive) return;
 
+                localPlayer.setSpeed(mouseX, mouseY, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
+
+                speed = localPlayer.getSpeed();
 
 
-                // Normalize direction
-                double length = Math.sqrt(mouseX*mouseX + mouseY*mouseY);
-                if (length > 0) {
-                    mouseX /= length;
-                    mouseY /= length;
-                }
 
                 // Send input to server
                 sendPlayerInput(mouseX, mouseY);
@@ -210,35 +208,6 @@ public class OnlineGameController implements Initializable {
             mouseY = event.getY() - localPlayer.getPosY();
         });
     }
-
-    /*private void updateDisplay() {
-        if (localPlayer == null || camera == null || currentGameState == null) return;
-
-        System.out.printf("Rendering - Player at (%.1f,%.1f) | Zoom: %.2f | Camera: (%.1f,%.1f)%n",
-                localPlayer.getPosX(),
-                localPlayer.getPosY(),
-                calculateZoomScale(),
-                camera.getPositionX(),
-                camera.getPositionY());
-
-        // Clear previous frame
-        gamePane.getChildren().clear();
-        map.getChildren().clear();
-
-        // Update camera
-        camera.updateCameraDimensions();
-        applyCameraTransform();
-
-        // Get visible entities
-        List<Entity> visibleEntities = getVisibleEntities();
-
-        // Render all entities
-        renderEntities(visibleEntities);
-
-        // Update UI elements
-        updateMiniMap();
-        updateLeaderboard();
-    }*/
 
     private void updateDisplay() {
         if (localPlayer == null || currentGameState == null) return;
@@ -272,42 +241,8 @@ public class OnlineGameController implements Initializable {
     }
 
 
-    private List<Entity> getVisibleEntities() {
-        List<Entity> visibleEntities = new ArrayList<>();
-        double scale = 1.0 / camera.getZoomFactor();
-        double translateX = (gamePane.getWidth()/2) - (localPlayer.getPosX() * scale);
-        double translateY = (gamePane.getHeight()/2) - (localPlayer.getPosY() * scale);
 
-        double inverseScale = 1.0 / scale;
-        Dimension cameraView = new Dimension(
-                -translateX * inverseScale,
-                -translateY * inverseScale,
-                (-translateX + gamePane.getWidth()) * inverseScale,
-                (-translateY + gamePane.getHeight()) * inverseScale
-        );
 
-        // Add visible pellets
-        for (Entity pellet : currentGameState.getPellets()) {
-            if (cameraView.inRange(pellet.getPosX(), pellet.getPosY())) {
-                visibleEntities.add(pellet);
-            }
-        }
-
-        // Add all players (visibility checked during rendering)
-        visibleEntities.addAll(currentGameState.getPlayers());
-
-        return visibleEntities;
-    }
-
-    private void renderEntities(List<Entity> entities) {
-        // Render pellets first
-        entities.stream()
-                .filter(e -> e instanceof Pellet)
-                .forEach(this::renderPellet);
-
-        // Render local player last (on top)
-        renderPlayer(localPlayer);
-    }
 
     private void renderPellet(Entity pellet) {
         Circle circle = pelletCircles.computeIfAbsent(pellet, k -> {
@@ -366,6 +301,7 @@ public class OnlineGameController implements Initializable {
         circle.setCenterX(player.getPosX());
         circle.setCenterY(player.getPosY());
         circle.setRadius(player.getRadius());
+        System.out.println("nejnvievijeé"+player.getRadius());
 
         // Gestion du label
         Label nameLabel = playerLabels.computeIfAbsent(player.getName(), k -> {
@@ -387,31 +323,6 @@ public class OnlineGameController implements Initializable {
         if (isLocal) {
             animatePlayerMovement(circle);
         }
-    }
-    private void renderOtherPlayer(Player otherPlayer) {
-        // Remove existing if present
-        gamePane.getChildren().removeIf(node ->
-                node instanceof Circle && ((Circle)node).getUserData() != null &&
-                        ((Circle)node).getUserData().equals(otherPlayer.getName())
-        );
-
-        Circle circle = new Circle(
-                otherPlayer.getPosX(),
-                otherPlayer.getPosY(),
-                otherPlayer.getRadius(),
-                Color.web(OTHER_PLAYER_COLOR)
-        );
-        circle.setUserData(otherPlayer.getName()); // For identification
-        circle.setEffect(new DropShadow(10, Color.RED));
-
-        Label nameLabel = new Label(otherPlayer.getName());
-        nameLabel.setTextFill(Color.WHITE);
-        nameLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-        nameLabel.setEffect(new DropShadow(2, Color.BLACK));
-        nameLabel.setLayoutX(otherPlayer.getPosX() - nameLabel.getWidth()/2);
-        nameLabel.setLayoutY(otherPlayer.getPosY() - otherPlayer.getRadius() - 10);
-
-        gamePane.getChildren().addAll(circle, nameLabel);
     }
 
     private void updateCircle(Circle circle, Entity entity) {
@@ -495,7 +406,7 @@ public class OnlineGameController implements Initializable {
     private void sendPlayerInput(double dx, double dy) {
         if (oos != null) {
             try {
-                oos.writeObject(new PlayerInput(dx, dy));
+                oos.writeObject(new PlayerInput(dx, dy,speed));
                 oos.flush();
             } catch (IOException e) {
                 System.err.println("Error sending input: " + e.getMessage());

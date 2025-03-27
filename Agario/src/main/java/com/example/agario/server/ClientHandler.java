@@ -47,16 +47,17 @@ public class ClientHandler implements Runnable {
             while (true) {
                 PlayerInput input = (PlayerInput) ois.readObject(); // Maintenant sécurisé
                 System.out.printf("Input reçu de %s: (%.2f, %.2f)%n",
-                        player.getName(), input.dirX, input.dirY);
+                        player.getName(), input.dirX, input.dirY, input.speed);
 
                 // Traitement du mouvement...
                 synchronized (GameServer.sharedGame) {
-                    double speed = player.getSpeed() / (1 + player.getMass() / 100);
-                    double moveX = input.dirX * speed;
-                    double moveY = input.dirY * speed;
+                    double speed = input.speed;
+                    double moveX = input.dirX ;
+                    double moveY = input.dirY ;
 
                     System.out.printf("Mouvement calculé pour %s: dx=%.2f dy=%.2f (speed=%.2f mass=%.2f)\n",
                             player.getName(), moveX, moveY, speed, player.getMass());
+                    player.setSpeedy(speed);
 
                     player.updatePosition(
                             moveX,

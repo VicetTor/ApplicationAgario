@@ -30,7 +30,7 @@ public class GameServer {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 16, TimeUnit.MILLISECONDS); // ~60 FPS
+        }, 0, 33, TimeUnit.MILLISECONDS); // ~60 FPS
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
@@ -95,6 +95,7 @@ public class GameServer {
     private static void handleCollision(MovableEntity eater, Entity eaten) {
         // Augmenter la masse du mangeur
         eater.setMass(eater.getMass() + eaten.getMass());
+
 
         // Supprimer l'entité mangée
         if (eaten instanceof Player) {

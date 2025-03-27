@@ -7,9 +7,12 @@ public class PlayerInput implements Serializable {
     public double dirX;
     public double dirY;
 
-    public PlayerInput(double dirX, double dirY) {
+    public double speed;
+
+    public PlayerInput(double dirX, double dirY,double speed) {
         this.dirX = dirX;
         this.dirY = dirY;
+        this.speed = speed ;
     }
 
     public PlayerInput() {
