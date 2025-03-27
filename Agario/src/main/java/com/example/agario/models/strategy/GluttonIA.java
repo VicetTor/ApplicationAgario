@@ -36,6 +36,9 @@ public class GluttonIA implements Strategy{
     }
 
 
+    /**
+     * @return List<Double> of x and y coordinates of the closest pellet in the eating area
+     */
     @Override
     public List<Double> behaviorIA() {
         this.dimension = new Dimension(
@@ -45,29 +48,32 @@ public class GluttonIA implements Strategy{
                 robot.getPosY() + EATING_AREA
             );
 
-        List<Entity> resultat = new ArrayList<>();
-        QuadTree.DFSChunk(quadTree,this.dimension,resultat);
+        List<Entity> result = new ArrayList<>();
+        QuadTree.DFSChunk(quadTree,this.dimension,result);
 
-        resultat.sort((pelletA, pelletB)->{
-            double distancePelletA = calculDistance(robot.getPosX(),robot.getPosY(), pelletA.getPosX(), pelletA.getPosY());
-            double distancePelletB = calculDistance(robot.getPosX(),robot.getPosY(), pelletB.getPosX(), pelletB.getPosY());
+        result.sort((pelletA, pelletB)->{
+            double distancePelletA = distanceCalculation(robot.getPosX(),robot.getPosY(), pelletA.getPosX(), pelletA.getPosY());
+            double distancePelletB = distanceCalculation(robot.getPosX(),robot.getPosY(), pelletB.getPosX(), pelletB.getPosY());
             return Double.compare(distancePelletA, distancePelletB);
         });
 
-        if(!resultat.isEmpty()){
-            Entity closestPellet = resultat.get(0);
+        if(!result.isEmpty()){
+            Entity closestPellet = result.get(0);
             return List.of(closestPellet.getPosX(), closestPellet.getPosY());
         }
 
         return randomDirection();
     }
 
-    private double calculDistance(double x1, double y1, double x2, double y2) {
+    /**
+     * @return euclidian distance of two points
+     */
+    private double distanceCalculation(double x1, double y1, double x2, double y2) {
         return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
     }
 
     /**
-     * @return List<Double> of random coordinate to make move the AI
+     * @return List<Double> of random x and y coordinates to make AI move
      */
     private List<Double> randomDirection(){
         int randomTime = rand.nextInt(maxTime - minTime + 1) + minTime;

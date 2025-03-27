@@ -129,12 +129,12 @@ public class GameController implements Initializable {
         Camera camera = new Camera(gameModel.getPlayer());
         GamePane.setOnMouseMoved(playerInput);
 
-        GamePane.setOnMouseClicked(event -> {
+        /*GamePane.setOnMouseClicked(event -> {
 
             splitPlayer();
 
             System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
-        });
+        });*/
 
 
         new Thread(() -> {
@@ -702,11 +702,12 @@ public class GameController implements Initializable {
                         if(entity instanceof SpeedDecreasePellet){
                             this.speedDecreaseEffect(movableEntity);
                         }
+                        if(entity instanceof InvisiblePellet){
+                            this.invisiblePelletEffect(movableEntity);
+                        }
 
                     }
-                    if(entity instanceof InvisiblePellet){
-                        this.invisiblePelletEffect(movableEntity);
-                    }
+
 
                 }
                 // Ajouter à la liste de suppression
