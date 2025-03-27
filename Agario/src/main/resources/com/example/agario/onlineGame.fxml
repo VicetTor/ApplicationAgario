@@ -16,7 +16,7 @@
 <BorderPane fx:id="GameBorderPane" minHeight="600.0" minWidth="800.0" prefHeight="600.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.agario.client.controllers.OnlineGameController">
     <center>
         <AnchorPane fx:id="OuterPane" style="-fx-background-color: transparent ;">
-            <Pane fx:id="GamePane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+            <Pane fx:id="gamePane" prefHeight="600.0" prefWidth="600.0" style="-fx-background-color: white;" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
         </AnchorPane>
     </center>
 

@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class GameState implements Serializable,GameInterface {
+public class GameState implements Serializable {
     private static GameState instance;
     private final QuadTree quadTree;
 
@@ -62,7 +62,6 @@ public class GameState implements Serializable,GameInterface {
         }
     }
 
-    @Override
     public Player getPlayer() {
         return localPlayer;
     }
@@ -80,6 +79,8 @@ public class GameState implements Serializable,GameInterface {
         }
     }
 
+
+
     // Gestion des entités
     public synchronized void createRandomPellets(int limit) {
         Random rand = new Random();
@@ -94,7 +95,7 @@ public class GameState implements Serializable,GameInterface {
         }
     }
 
-    @Override
+
     public void setRobots(List<Entity> robots) {
         this.robots.clear();
         this.robots.addAll(robots);

@@ -8,6 +8,16 @@ public class MovableEntity extends Entity{
     private double dirX = 0;
     private double dirY = 0;
 
+    public void setNetworkSpeed(double speed) {
+        this.speed = speed;
+    }
+
+
+    public double getCurrentSpeed() {
+        return this.speed;
+    }
+
+
 
     public MovableEntity(double x, double y, double mass) {
         super(x, y, mass);
@@ -79,6 +89,11 @@ public class MovableEntity extends Entity{
         }
 
     }
+
+    public double getDirX() { return dirX; }
+    public double getDirY() { return dirY; }
+    public void setDirX(double dirX) { this.dirX = dirX; }
+    public void setDirY(double dirY) { this.dirY = dirY; }
 
     public double getSpeed() {
         return speed;

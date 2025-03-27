@@ -3,19 +3,22 @@ package com.example.agario.models.utils;
 import com.example.agario.models.Entity;
 import com.example.agario.models.factory.PelletFactory;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class QuadTree {
+public class QuadTree implements Serializable {
     private static int MAX_DEPTH = 6;
     private int depth = 0;
     private List<Entity> entities;
-    QuadTree northWest = null;
-    QuadTree northEast = null;
-    QuadTree southWest = null;
-    QuadTree southEast = null;
-    Dimension dimension;
+    public QuadTree northWest = null;
+    public QuadTree northEast = null;
+    public QuadTree southWest = null;
+    public QuadTree southEast = null;
+    public Dimension dimension;
+
+
     public List<Entity> getAllPellets() {
         List<Entity> pellets = new ArrayList<>();
         DFSChunk(this,this.getDimension(),pellets);
@@ -161,6 +164,14 @@ public class QuadTree {
         DFSChunk(tree.northEast, dimension, resultat);
         DFSChunk(tree.southWest, dimension, resultat);
         DFSChunk(tree.southEast, dimension, resultat);
+    }
+
+    public void clear() {
+        this.northWest = null;
+        this.northEast = null;
+        this.southWest = null;
+        this.southEast = null;
+        entities.clear();
     }
 
     /*public static void main(String args[]) {

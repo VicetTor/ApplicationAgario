@@ -1,15 +1,11 @@
 package com.example.agario.server;
 
-
+import com.example.agario.models.GameStateSnapshot;
+import com.example.agario.models.PlayerInput;
 import com.example.agario.models.Player;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Map;
-
-
-
 
 public class ClientHandler implements Runnable {
     private final Socket socket;
@@ -27,25 +23,41 @@ public class ClientHandler implements Runnable {
             oos = new ObjectOutputStream(socket.getOutputStream());
             ois = new ObjectInputStream(socket.getInputStream());
 
-            // Recevoir le joueur initial
-            player = (Player) ois.readObject();
-            System.out.println("Joueur connecté: " + player.getName());
+            // Étape 1: Recevoir le nom du joueur
+            String playerName = (String) ois.readObject();
 
-            // Enregistrer le joueur et le flux
+            // Étape 2: Créer un nouveau joueur
+            player = new Player(
+                    Math.random() * GameServer.sharedGame.getxMax(),
+                    Math.random() * GameServer.sharedGame.getyMax(),
+                    playerName
+            );
+
+            // Étape 3: Ajouter le joueur au jeu
             synchronized (GameServer.sharedGame) {
                 GameServer.sharedGame.addPlayer(player);
             }
+
+            // Étape 4: Ajouter le flux de sortie
             GameServer.clientOutputStreams.add(oos);
 
             // Envoyer l'état initial
-            oos.writeObject(GameServer.sharedGame);
+            oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
             oos.flush();
 
-            // Boucle de réception des mises à jour
+            // Étape 5: Boucle principale
             while (true) {
-                Player updatedPlayer = (Player) ois.readObject();
+                PlayerInput input = (PlayerInput) ois.readObject();
+
                 synchronized (GameServer.sharedGame) {
-                    GameServer.sharedGame.updatePlayer(updatedPlayer);
+                    player.setDirX(input.dirX);
+                    player.setDirY(input.dirY);
+                    player.updatePosition(
+                            input.dirX * player.getSpeed(),
+                            input.dirY * player.getSpeed(),
+                            GameServer.sharedGame.getxMax(),
+                            GameServer.sharedGame.getyMax()
+                    );
                 }
             }
 
@@ -53,7 +65,6 @@ public class ClientHandler implements Runnable {
             System.err.println("Erreur client: " + e.getMessage());
         } finally {
             try {
-                // Nettoyage
                 if (player != null) {
                     synchronized (GameServer.sharedGame) {
                         GameServer.sharedGame.getPlayers().removeIf(p ->
@@ -69,5 +80,4 @@ public class ClientHandler implements Runnable {
             }
         }
     }
-
 }
