@@ -25,17 +25,17 @@ public class AbsorptionController {
 
     private boolean isPlayerAlive;
     private Map<Entity, Circle> entitiesCircles;
-    private double specialSpeed;
+    private List<Double> specialSpeed;
 
 
-    public AbsorptionController(Map<Entity, Circle> entitiesCircles, double specialSpeed){
+    public AbsorptionController(Map<Entity, Circle> entitiesCircles, List<Double> specialSpeed){
         this.isPlayerAlive = true;
         this.entitiesCircles = entitiesCircles;
         this.specialSpeed = specialSpeed;
     }
 
 
-    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, QuadTree quadTree, List<Entity> robots) {
+    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, QuadTree quadTree, List<Entity> robots, List<Player> player) {
         List<Entity> entityToRemove = new ArrayList<>();
 
         for (Entity entity : entities) {
@@ -43,36 +43,40 @@ public class AbsorptionController {
             double dy = movableEntity.getPosY() - entity.getPosY();
             double squareDistance = dx * dx + dy * dy;
 
-            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius()*2)
+            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius() * 2)
                     && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
-                if(entity instanceof Player){
-                    this.eatPlayer();
-                    break;
-                }
 
-                if (entity instanceof Pellet) {
-                    if (movableEntity instanceof Player) {
-                        this.animatePelletConsumption(entity, movableEntity);
-                        if(entity instanceof SpeedIncreasePellet){
-                            speedIncreaseEffect(movableEntity);
-                        }
-                        if(entity instanceof SpeedDecreasePellet){
-                            speedDecreaseEffect(movableEntity);
-                        }
-                        if(entity instanceof InvisiblePellet){
-                            invisiblePelletEffect(movableEntity);
+                if (!(entity instanceof Player && (movableEntity.getName().equals(((Player) entity).getName())))) {
+                    if (entity instanceof Player && !(movableEntity.getName().equals(((Player) entity).getName()))) {
+                        this.eatPlayer((Player) entity, player);
+                        break;
+                    }
+
+                    if (entity instanceof Pellet) {
+                        if (movableEntity instanceof Player) {
+                            this.animatePelletConsumption(entity, movableEntity);
+                            if (entity instanceof SpeedIncreasePellet) {
+                                speedIncreaseEffect(movableEntity, player);
+                            }
+                            if (entity instanceof SpeedDecreasePellet) {
+                                speedDecreaseEffect(movableEntity, player);
+                            }
+                            if (entity instanceof InvisiblePellet) {
+                                invisiblePelletEffect(movableEntity);
+                            }
                         }
                     }
+                    // Ajouter à la liste de suppression
+                    entityToRemove.add(entity);
+
+
+                    // Augmenter la masse de l'entité
+                    double newMass = movableEntity.getMass() + entity.getMass();
+                    movableEntity.setMass(newMass);
                 }
-                // Ajouter à la liste de suppression
-                entityToRemove.add(entity);
-
-                // Augmenter la masse de l'entité
-                double newMass = movableEntity.getMass() + entity.getMass();
-                movableEntity.setMass(newMass);
-
             }
         }
+
         // Supprimer les pellets mangés
         for (Entity entity : entityToRemove) {
             quadTree.removeNode(entity, quadTree);
@@ -99,63 +103,69 @@ public class AbsorptionController {
         }
     }
 
-    public void eatPlayer(){
-        this.isPlayerAlive = false;
+    public void eatPlayer(Player playerEntity, List<Player> player){
+        entitiesCircles.remove(playerEntity);
+        specialSpeed.remove(playerEntity);
+        player.remove(playerEntity);
 
-        ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
-        Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.APPLY){
+        if(player.size() == 0) {
+            this.isPlayerAlive = false;
+            ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
+            Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
+            Optional<ButtonType> result = alert.showAndWait();
+            if (result.get() == ButtonType.APPLY){
+                Platform.exit();
+            }
+            alert.setOnCloseRequest(e -> Platform.exit());
             Platform.exit();
         }
-        alert.setOnCloseRequest(e -> Platform.exit());
-        Platform.exit();
     }
 
     public boolean isPlayerAlive(){
         return isPlayerAlive;
     }
 
-    public double getSpecialSpeed(){
+    public List<Double> getSpecialSpeed(){
         return this.specialSpeed;
     }
 
     public void invisiblePelletEffect(MovableEntity movableEntity) {
-        if(entitiesCircles.get(movableEntity) != null) {
-            Paint color = entitiesCircles.get(movableEntity).getFill();
-            new Thread(() -> {
-                entitiesCircles.get(movableEntity).setFill(Color.TRANSPARENT);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                entitiesCircles.get(movableEntity).setFill(color);
-            }).start();
-        }
-    }
-
-    public void speedIncreaseEffect(MovableEntity movableEntity){
         new Thread(() -> {
-            this.specialSpeed = 15;
+            if (entitiesCircles.get(movableEntity) != null) {
+                entitiesCircles.get(movableEntity).setOpacity(0.2);
+            }
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            this.specialSpeed = -1;
+            if (entitiesCircles.get(movableEntity) != null) {
+                entitiesCircles.get(movableEntity).setOpacity(1);
+            }
         }).start();
     }
 
-    public void speedDecreaseEffect(MovableEntity movableEntity){
+    public void speedIncreaseEffect(MovableEntity movableEntity, List<Player> player){
         new Thread(() -> {
-            this.specialSpeed = 2;
+            this.specialSpeed.set(player.indexOf(movableEntity),15.0);
             try {
                 Thread.sleep(5000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            this.specialSpeed = -1;
+            this.specialSpeed.set(player.indexOf(movableEntity),-1.0);
+        }).start();
+    }
+
+    public void speedDecreaseEffect(MovableEntity movableEntity, List<Player> player){
+        new Thread(() -> {
+            this.specialSpeed.set(player.indexOf(movableEntity),2.0);
+            try {
+                Thread.sleep(5000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.specialSpeed.set(player.indexOf(movableEntity),-1.0);
         }).start();
     }
 }

@@ -22,6 +22,7 @@ public class MiniMapController {
         this.map = map;
     }
 
+
     public void updateMiniMap(List<Player> player, double width, double height){
         HashMap<Entity, Circle> entities = new HashMap<Entity, Circle>();
 
@@ -38,18 +39,28 @@ public class MiniMapController {
         square.setStroke(Color.RED);
         square.setStrokeWidth(1);
 
-        double centerX = (player.get(0).getPosX() * map.getPrefWidth()) / width;
-        double centerY = (player.get(0).getPosY() * map.getPrefHeight()) / height;
+        double averageXPlayer = 0;
+        double averageYPlayer = 0;
+        for (Player p : player){
+            averageXPlayer += p.getPosX();
+            averageYPlayer += p.getPosY();
+        }
+
+        averageXPlayer = averageXPlayer/player.size();
+        averageYPlayer = averageYPlayer/player.size();
+
+        double centerX = (averageXPlayer * map.getPrefWidth()) / width;
+        double centerY = (averageYPlayer * map.getPrefHeight()) / height;
 
         square.setX(centerX - square.getWidth() / 2);
         square.setY(centerY - square.getHeight() / 2);
 
         map.getChildren().add(square);
 
-        double x1Square = player.get(0).getPosX()-1400;
-        double x2Square = player.get(0).getPosX()+1400;
-        double y1Square = player.get(0).getPosY()+1800;
-        double y2Square = player.get(0).getPosY()-1800;
+        double x1Square = averageXPlayer-1400;
+        double x2Square = averageXPlayer+1400;
+        double y1Square = averageYPlayer+1800;
+        double y2Square = averageYPlayer-1800;
 
         entities.forEach((e,c) ->{
 
@@ -59,7 +70,7 @@ public class MiniMapController {
             if (posXE >= x1Square && posXE <= x2Square && posYE <= y1Square && posYE >= y2Square){
                 Circle circle = new Circle();
                 circle.setFill(c.getFill());
-                circle.setCenterX((posXE * map.getPrefWidth()) / width);
+                circle.setCenterX((posXE * map.getPrefWidth()) / width );
                 circle.setCenterY((posYE * map.getPrefHeight()) / height);
                 circle.setRadius( e.getRadius()/18 );
                 if (!map.getChildren().contains(circle)) {

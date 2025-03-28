@@ -73,10 +73,9 @@ public class GameController implements Initializable {
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private List<Player> player = new ArrayList<Player>();
-
+    private int timer = -1;
     private Stage stage;
-    private double specialSpeed = -1;
-
+    private List<Double> specialSpeed = new ArrayList<Double>();
     private boolean isPlayerAlive = true;
 
     //CONTROLLERS
@@ -85,6 +84,7 @@ public class GameController implements Initializable {
     private AnimationController animationController;
     private RenderController renderController;
     private AbsorptionController absorptionController;
+    private boolean transitionSplit = false;
 
     //SETTINGS
     private static int HEIGHT = 10000;
@@ -121,6 +121,7 @@ public class GameController implements Initializable {
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
 
         gameModel = new Game(new QuadTree(0, dimension), PLAYER_NAME, ROBOT_NUMBER);
+        this.specialSpeed.add(-1.0);
         this.player.add(gameModel.getPlayer());
         gameModel.createRandomPellets(PELLET_NUMBER);
     }
@@ -158,11 +159,119 @@ public class GameController implements Initializable {
         this.cameraController = new CameraController(camera, player, gamePane);
 
         gamePane.setOnMouseMoved(playerInput);
+        gamePane.setOnMouseClicked(event -> {
 
-        /*gamePane.setOnMouseClicked(event -> {
-            splitPlayer();
-            System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
-        });*/
+            splitPlayer(playerInput);
+
+        });
+
+
+        new Thread(() -> {
+            while (true) {
+                synchronized (player) {
+                    try {
+                        timer -= 1;
+
+                        if(isPlayerAlive) {
+                            if (timer < (int) (10 + (player.get(0).getMass() / 100)) - 2) {
+                                Iterator<Player> iterator = player.iterator();
+                                while (iterator.hasNext()) {
+                                    Player p = iterator.next();
+
+                                    for (Player p2 : new ArrayList<>(player)) {
+                                        if (p2 != p) {
+                                            double distance = Math.sqrt(Math.pow(p.getPosX() - p2.getPosX(), 2) + Math.pow(p.getPosY() - p2.getPosY(), 2));
+                                            double threshold = (p.getRadius() + p2.getRadius()) * 0.80;
+
+                                            if (distance <= threshold) {
+                                                if (player.get(0) != p2) {
+                                                    if (p.getSpeed() != 30 && p2.getSpeed() != 30) {
+                                                        double newMass = p.getMass() + p2.getMass();
+
+                                                        double newPosX = (p.getPosX() * p.getMass() + p2.getPosX() * p2.getMass()) / newMass;
+                                                        double newPosY = (p.getPosY() * p.getMass() + p2.getPosY() * p2.getMass()) / newMass;
+
+
+                                                        p.setMass(newMass);
+                                                        p.setPosX(newPosX);
+                                                        p.setPosY(newPosY);
+
+
+                                                        int indexP2 = player.indexOf(p2);
+                                                        if (indexP2 != -1) {
+                                                            entitiesCircles.remove(p2);
+                                                            specialSpeed.remove(indexP2);
+                                                            player.remove(p2);
+
+                                                            timer = (int) (10 + (p.getMass() / 100));
+                                                            if (player.size() <= 1) {
+                                                                timer = -1;
+                                                            }
+
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            timer = -1;
+                            Thread.interrupted();
+                        }
+
+
+                        Thread.sleep(50);
+
+                    } catch (ConcurrentModificationException e) {
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                if (timer == 0) {
+
+                    double sommeMasse = 0;
+                    for (Player pl : player) {
+                        sommeMasse += pl.getMass();
+                    }
+
+                    double averageXPlayer = 0;
+                    double averageYPlayer = 0;
+                    for (Player p : player) {
+                        averageXPlayer += p.getPosX();
+                        averageYPlayer += p.getPosY();
+                    }
+
+                    averageXPlayer = averageXPlayer / player.size();
+                    averageYPlayer = averageYPlayer / player.size();
+
+                    player.get(0).setMass(sommeMasse);
+                    player.get(0).setPosX(averageXPlayer);
+                    player.get(0).setPosY(averageYPlayer);
+
+                    int size = player.size();
+
+                    Platform.runLater(() -> {
+                        for (int i = size - 1; i >= 1; i--) {
+                            entitiesCircles.remove(player.get(i));
+                            specialSpeed.remove(i);
+                            player.remove(i);
+
+                        }
+                    });
+
+                }
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            }).start();
 
 
         new Thread(() -> {
@@ -212,21 +321,9 @@ public class GameController implements Initializable {
         }
     }
 
-    private void sendPlayerUpdate() {
-        try {
-            if (oos != null) {
-                oos.writeObject(player);
-                oos.flush();
-                oos.reset(); // Important pour éviter les problèmes de cache
-            }
-        } catch (IOException e) {
-            System.err.println("Erreur d'envoi au serveur");
-        }
-    }
-
     private void updateGameDisplay(Camera camera, double dx, double dy) {
         // Get a copy of the list to avoid concurrent modification
-        List<Entity> visibleEntities = new ArrayList<>(cameraController.getVisibleEntities(gameModel.getQuadTree(), gameModel.getRobots(), getPaneWidth(), getPaneHeight()));
+        List<Entity> visibleEntities = new ArrayList<>(cameraController.getVisibleEntities(gameModel.getQuadTree(), gameModel.getRobots(), getPaneWidth(), getPaneHeight(), isPlayerAlive));
         if(isPlayerAlive)
             for(Player p : player) {
                 visibleEntities.add(p);
@@ -242,8 +339,10 @@ public class GameController implements Initializable {
         cameraController.applyCameraTransform(getPaneWidth(), getPaneHeight());
 
         // Update player speed
+        int i = 0;
         for(Player p : player) {
-            p.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
+            p.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed.get(i));
+            i++;
         }
         // Render all entities
         renderController.renderEntities(visibleEntities);
@@ -264,10 +363,12 @@ public class GameController implements Initializable {
                 List<Entity> robotZone = new ArrayList<>();
                 QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
                 robotZone.addAll(gameModel.getRobots());
-
-                if(isPlayerAlive) robotZone.add(player.get(0));
-
-                absorptionController.eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots());
+                if(isPlayerAlive) {
+                    for (Player p : player) {
+                        robotZone.add(p);
+                    }
+                }
+                absorptionController.eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots(), player);
                 isPlayerAlive = absorptionController.isPlayerAlive();
             }
         }
@@ -275,7 +376,7 @@ public class GameController implements Initializable {
         // Player absorbs other entities
         if(isPlayerAlive) {
             for (Player p : player) {
-                absorptionController.eatEntity(visibleEntities, p, gameModel.getQuadTree(), gameModel.getRobots());
+                absorptionController.eatEntity(visibleEntities, p, gameModel.getQuadTree(), gameModel.getRobots(), player);
                 specialSpeed = absorptionController.getSpecialSpeed();
                 isPlayerAlive = absorptionController.isPlayerAlive();
             }
@@ -285,28 +386,27 @@ public class GameController implements Initializable {
         updateLeaderBoard();
     }
 
-    private void updateLeaderBoard(){
+    private void updateLeaderBoard() {
         int counter = 0;
         leaderBoardListView.getItems().clear();
 
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
-        if(isPlayerAlive) allPlayers.add(player.get(0));
+        if (isPlayerAlive) allPlayers.add(player.get(0));
         allPlayers.sort(new Comparator<Entity>() {
             @Override
             public int compare(Entity e1, Entity e2) {
                 return Double.compare(e2.getMass(), e1.getMass());
             }
         });
-        for(Entity entity : allPlayers){
+        for (Entity entity : allPlayers) {
             counter++;
             MovableEntity joueur = (MovableEntity) entity;
-            leaderBoardListView.getItems().add(counter+". "+joueur.getName()+"     "+new DecimalFormat("0.00").format(joueur.getMass()));
-            if(counter == 10) break;
+            leaderBoardListView.getItems().add(counter + ". " + joueur.getName() + "     " + new DecimalFormat("0.00").format(joueur.getMass()));
+            if (counter == 10) break;
         }
-
         leaderBoardListView.setMinHeight(counter);
 
-        if(gameModel.getRobots().size() == 5){
+        if (gameModel.getRobots().size() == 5) {
             robotSpawner(5);
         }
     }
@@ -346,33 +446,50 @@ public class GameController implements Initializable {
         gameModel.createRandomRobots(limite);
     }
 
-    //TODO à quoi ça sert cette fonction ?
-    /*public void setPlayer(Player player){
+    public void setPlayer(Player player){
         this.player.set(0,player);
-    }*/
+    }
 
-    //TODO
-    //Player Controller ?
-    public void splitPlayer(){
-        ArrayList<Player> newPlayer = new ArrayList<Player>();
-        for (Player p : player){
-            double weightPlayerDivided = p.getMass()/2;
-            if (weightPlayerDivided > 20){
-                Player newP = new Player(p.getPosX(),p.getPosY(),p.getName());
-                newP.setMass(weightPlayerDivided); //*2
-                newPlayer.add(p);
+    public void splitPlayer(PlayerInput playerInput) {
+
+        double splitDistance = 75;
+
+        List<Player> temporaryListPlayer = new ArrayList<>(player);
+
+        for (Player p : temporaryListPlayer) {
+            double weightPlayerDivided = p.getMass() / 2;
+
+            if (weightPlayerDivided > 20) {
+                p.setMass(weightPlayerDivided);
+
+                double angle = Math.atan2(playerInput.getMouseY() - p.getPosY(), playerInput.getMouseX() - p.getPosX());
+                double offsetX = Math.cos(angle) * splitDistance;
+                double offsetY = Math.sin(angle) * splitDistance;
+
+                Player newP = new Player(p.getPosX() +offsetX, p.getPosY() + offsetY, p.getName());
+                newP.setMass(weightPlayerDivided);
+
+                double speed = newP.getSpeed();
+
+                specialSpeed.add(-1.0);
+                player.add(newP);
+
+                timer = (int) (10 + (newP.getMass()/100));
+
+                new Thread(() -> {
+
+                    this.specialSpeed.set(this.player.indexOf(newP),30.0);
+                        try {
+                            Thread.sleep(500);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        if(this.player.indexOf(newP)!=-1) {
+                            this.specialSpeed.set(this.player.indexOf(newP), speed);
+                        }
+                }).start();
             }
         }
-        this.player.clear();
-        this.player = newPlayer;
-
-        new Thread(() -> {
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
     }
 
     private double getPaneWidth() {return gamePane.getWidth();}
