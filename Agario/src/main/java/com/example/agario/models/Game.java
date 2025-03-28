@@ -20,22 +20,34 @@ public class Game implements GameInterface {
     private QuadTree quadTree;
     private List<Entity> robots;
     private Player player;
-
-    public List<Player> getPlayers() {
-        return players;
-    }
-
-
-    public void setPlayers(List<Player> players) {
-        this.players = players;
-    }
-
     private List<Player> players;
     private double xMin = 0;
     private double yMin = 0;
     private double xMax;
     private double yMax;
 
+    /**
+     * getter for players
+     * @return list of players
+     */
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    /**
+     * setter for players
+     * @param players list of players to apply
+     */
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+
+    /**
+     * constructor for Game
+     * @param quadTree game's QuadTree
+     * @param name name of the player
+     * @param robotNumber number of bots
+     */
     public Game(QuadTree quadTree, String name, int robotNumber) {
         this.quadTree = quadTree;
         this.xMin = quadTree.getDimension().getxMin();

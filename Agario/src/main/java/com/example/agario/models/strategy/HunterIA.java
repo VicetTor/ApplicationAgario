@@ -30,6 +30,13 @@ public class HunterIA implements Strategy{
 
     private List<Entity> entities;
 
+    /**
+     * constructor for HunterIA
+     * @param robot
+     * @param quadTree
+     * @param player
+     * @param entities
+     */
     public HunterIA(IA robot, QuadTree quadTree, Player player, List<Entity> entities){
         this.robot = robot;
         this.quadTree = quadTree;

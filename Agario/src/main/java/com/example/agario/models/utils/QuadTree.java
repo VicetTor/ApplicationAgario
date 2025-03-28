@@ -20,27 +20,50 @@ public class QuadTree implements Serializable {
     public Dimension dimension;
 
 
+    /**
+     * getter for all pellets
+     * @return List<Entity> of every pellets
+     */
     public List<Entity> getAllPellets() {
         List<Entity> pellets = new ArrayList<>();
         DFSChunk(this,this.getDimension(),pellets);
         return pellets;
     }
+
+    /**
+     * constructor for QuadTree
+     * @param depth depth of the QuaaTree
+     * @param dimension dimensions of the QuaaTree
+     */
     public QuadTree(int depth, Dimension dimension) {
         this.depth = depth;
         entities = new ArrayList<Entity>();
         this.dimension = dimension;
     }
 
+    /**
+     * constructor for QuadTree
+     * @param level level of the QuadTree
+     * @param dimension dimensions of the QuaaTree
+     * @param MAX_DEPTH max depth
+     */
     public QuadTree(int level, Dimension dimension, int MAX_DEPTH) {
         this(level, dimension);
         QuadTree.MAX_DEPTH = MAX_DEPTH;
     }
 
+    /**
+     * dimension getter
+     * @return Dimension
+     */
     public Dimension getDimension(){
         return dimension;
     }
 
-    /* Traveling the Graph using Depth First Search*/
+    /**
+     * traveling the graph using Depth First Search
+     * @param tree the tree to travel
+     */
     public static void DepthFirstSearch(QuadTree tree) {
         if (tree == null)
             return;
@@ -63,6 +86,9 @@ public class QuadTree implements Serializable {
         DepthFirstSearch(tree.southEast);
     }
 
+    /**
+     * split the QuadTree
+     */
     public void splitQuadTree() {
         double xOffset = this.dimension.getxMin() + (this.dimension.getxMax() - this.dimension.getxMin()) / 2;
 
@@ -77,6 +103,11 @@ public class QuadTree implements Serializable {
         southEast = new QuadTree(this.depth + 1, new Dimension(xOffset, yOffset, this.dimension.getxMax(), this.dimension.getyMax()));
     }
 
+    /**
+     * generate pellet according to the camera
+     * @param cameraView player's camera
+     * @param minPellets minimum of pellets
+     */
     public void generatePelletsIfNeeded(Dimension cameraView, int minPellets) {
         List<Entity> visiblePellets = new ArrayList<>();
         DFSChunk(this, cameraView, visiblePellets);
@@ -94,6 +125,11 @@ public class QuadTree implements Serializable {
             }
         }
     }
+
+    /**
+     * insert node in QuadTree
+     * @param entity entity to insert
+     */
     public void insertNode(Entity entity) {
         double x = entity.getPosX();
         double y = entity.getPosY();
@@ -127,6 +163,11 @@ public class QuadTree implements Serializable {
             System.out.printf("ERROR : Unhandled partition x : %f   y : %f", x, y);
     }
 
+    /**
+     * remove a node from the QuadTree
+     * @param foe entity to remove
+     * @param tree QuadTree
+     */
     public synchronized void removeNode(Entity foe, QuadTree tree) {
         if (tree == null) return;
 
@@ -141,7 +182,12 @@ public class QuadTree implements Serializable {
         removeNode(foe, tree.southEast);
     }
 
-
+    /**
+     * add to the list the entities in the dimension
+     * @param tree QuadTree
+     * @param dimension dimension concerned
+     * @param resultat list of entities
+     */
     public static void DFSChunk(QuadTree tree, Dimension dimension, List<Entity> resultat) {
         if (tree == null)
             return;
@@ -167,6 +213,9 @@ public class QuadTree implements Serializable {
         DFSChunk(tree.southEast, dimension, resultat);
     }
 
+    /**
+     * clear the QuadTree
+     */
     public void clear() {
         this.northWest = null;
         this.northEast = null;

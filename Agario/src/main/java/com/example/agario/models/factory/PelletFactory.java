@@ -13,12 +13,21 @@ public class PelletFactory extends EntityFactory{
 
     private double y;
 
+    /**
+     * constructor for PelletFactory
+     * @param x position horizontally
+     * @param y position vertically
+     */
     public PelletFactory(double x, double y){
         super();
         this.x = x;
         this.y = y;
     }
 
+    /**
+     * abstract method for Pellet factory, with a random type of pellet
+     * @return Entity the Pellet created by the factory
+     */
     @Override
     public Entity launchFactory() {
         int randomNumber = new Random().nextInt(1000+1);
