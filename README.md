@@ -52,3 +52,9 @@ Avant de pouvoir exécuter le projet, assurez-vous d'avoir installé les éléme
 
 ---
 
+##▶️ Démarrage du jeu
+
+Pour démarrer le jeu, lancez le launcher.
+
+Ensuite, cliquez sur Jouer Local pour une partie en solo ou Jouer en Ligne pour rejoindre un serveur multijoueur.
+
