@@ -17,22 +17,15 @@ public class GameClient {
 
 
 
-    public static ConnectionResult playOnLine(Player player) {
+    public static ConnectionResult playOnLine() {
         try {
-
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
-            oos.flush();
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
 
-            oos.writeObject(player);
-            oos.flush();
-
-            List<Player> existingPlayers = (List<Player>) ois.readObject();
-
             return new ConnectionResult(socket, oos, ois);
-        } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Erreur de connexion: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Connection error: " + e.getMessage());
             return null;
         }
     }

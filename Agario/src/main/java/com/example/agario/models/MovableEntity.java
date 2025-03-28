@@ -9,6 +9,7 @@ public class MovableEntity extends Entity{
     private double dirY = 0;
 
 
+
     public MovableEntity(double x, double y, double mass) {
         super(x, y, mass);
     }
@@ -17,31 +18,33 @@ public class MovableEntity extends Entity{
         this.speed = speed;
     }
 
-    public void setSpeed(double dx, double dy, double x, double y, double specialSpeed){
+    public void setSpeedy(double speed){
+        this.speed = speed;
+    }
 
-        if (specialSpeed != -1){
+    public void setSpeed(double dx, double dy, double x, double y, double specialSpeed) {
+
+        if (specialSpeed != -1) {
             setSpecialSpeed(specialSpeed);
-        }
-
-        else{
+        } else {
 
             double distancePlayerCursor = Math.sqrt(dx * dx + dy * dy);
 
             double maxDistance = x;
-            if (x>y) maxDistance = y;
+            if (x > y) maxDistance = y;
 
 
-            double percentageDistance = distancePlayerCursor/maxDistance;
-            if (percentageDistance>1) percentageDistance = 1;
+            double percentageDistance = distancePlayerCursor / maxDistance;
+            if (percentageDistance > 1) percentageDistance = 1;
 
-            double maxSpeed = (initialSpeed * 15/(this.getMass()*0.1));
-            if(maxSpeed > initialSpeed){
+            double maxSpeed = (initialSpeed * 15 / (this.getMass() * 0.1));
+            if (maxSpeed > initialSpeed) {
                 maxSpeed = initialSpeed;
             }
 
             double minSpeed = 1;
 
-            this.speed = Math.max(minSpeed, maxSpeed*percentageDistance);
+            this.speed = Math.max(minSpeed, maxSpeed * percentageDistance);
         }
     }
 
@@ -81,11 +84,16 @@ public class MovableEntity extends Entity{
             a = screenHeight - 2;
         }
         // System.out.println(a);
-        if (screenWidth != 0 && screenHeight != 0){
+        if (screenWidth != 0 && screenHeight != 0) {
             this.setPosX(q);
             this.setPosY(a);
         }
     }
+
+    public double getDirX() { return dirX; }
+    public double getDirY() { return dirY; }
+    public void setDirX(double dirX) { this.dirX = dirX; }
+    public void setDirY(double dirY) { this.dirY = dirY; }
 
     public double getSpeed() {
         return speed;

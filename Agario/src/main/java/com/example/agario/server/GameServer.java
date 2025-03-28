@@ -1,28 +1,38 @@
 package com.example.agario.server;
 
-
-import com.example.agario.models.Player;
+import com.example.agario.models.*;
 import com.example.agario.models.utils.Dimension;
 import com.example.agario.models.utils.QuadTree;
 
-import java.io.*;
-import java.net.*;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class GameServer {
-    private static final int PORT = 8080; // Changer le port pour correspondre au client
-    static final Map<String, Player> players = new ConcurrentHashMap<>();
-    static final Set<PrintWriter> clientWriters = Collections.synchronizedSet(new HashSet<>());
-    static QuadTree quadTree = new QuadTree(0, new Dimension(0, 0, 10000, 10000));
+    private static final int PORT = 8080;
+    static final Set<ObjectOutputStream> clientOutputStreams = Collections.newSetFromMap(new ConcurrentHashMap<>());
+    static GameState sharedGame = GameState.getInstance(new QuadTree(0, new Dimension(0, 0, 10000, 10000)), "server");
 
     public static void main(String[] args) {
         System.out.println("Le serveur est en marche...");
         ExecutorService pool = Executors.newCachedThreadPool();
+        sharedGame.createRandomPellets(1000);
+
+        // Thread de mise à jour du jeu
+        ScheduledExecutorService gameLoop = Executors.newSingleThreadScheduledExecutor();
+        gameLoop.scheduleAtFixedRate(() -> {
+            try {
+                updateGameState();
+                broadcastGameState();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, 0, 33, TimeUnit.MILLISECONDS); // ~60 FPS
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-            new Thread(GameServer::updateGameState).start();
-
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 System.out.println("Nouvelle connexion acceptée");
@@ -33,52 +43,72 @@ public class GameServer {
         }
     }
 
-    private static void updateGameState() {
-        while (true) {
+    public static synchronized void updateGameState() {
+        handleCollisions();
 
-            synchronized (players) {
-                // Vérifier les collisions entre joueurs
-                List<Player> playerList = new ArrayList<>(players.values());
-                for (int i = 0; i < playerList.size(); i++) {
-                    //System.out.println(playerList.get(i).getPosX());
-                    for (int j = i + 1; j < playerList.size(); j++) {
-                        Player p1 = playerList.get(i);
-                        Player p2 = playerList.get(j);
+        // Debug
+        System.out.println("Nombre de joueurs: " + sharedGame.getPlayers().size());
+        sharedGame.getPlayers().forEach(p ->
+                System.out.printf("%s à (%.1f, %.1f)\n", p.getName(), p.getPosX(), p.getPosY())
+        );
 
-                        double dx = p1.getPosX() - p2.getPosX();
-                        double dy = p1.getPosY() - p2.getPosY();
-                        double distance = Math.sqrt(dx * dx + dy * dy);
+        if (sharedGame.getQuadTree().getAllPellets().size() < 500) {
+            sharedGame.createRandomPellets(100);
+        }
+    }
 
-                        if (distance < p1.getRadius() + p2.getRadius()) {
-                            // Gérer la collision (un joueur mange l'autre)
-                            if (p1.getMass() > p2.getMass() * 1.2) {
-                                p1.setMass(p1.getMass() + p2.getMass());
-                                players.remove(p2.getName());
-                            } else if (p2.getMass() > p1.getMass() * 1.2) {
-                                p2.setMass(p2.getMass() + p1.getMass());
-                                players.remove(p1.getName());
-                            }
-                        }
-                    }
+    public static synchronized void broadcastGameState() {
+        List<ObjectOutputStream> toRemove = new ArrayList<>();
+        GameStateSnapshot snapshot = new GameStateSnapshot(sharedGame);
+
+        synchronized (clientOutputStreams) {
+            for (ObjectOutputStream oos : clientOutputStreams) {
+                try {
+                    oos.writeObject(snapshot);
+                    oos.reset();
+                    oos.flush();
+                } catch (IOException e) {
+                    toRemove.add(oos);
                 }
             }
+            clientOutputStreams.removeAll(toRemove);
+        }
+    }
 
-            // Envoyer l'état du jeu à tous les clients
-            synchronized (clientWriters) {
-                for (PrintWriter writer : clientWriters) {
-                    try {
-                        writer.println(players.values());
-                    } catch (Exception e) {
-                        e.printStackTrace();
+    private static void handleCollisions() {
+        List<Entity> allEntities = new ArrayList<>(sharedGame.getAllEntities());
+        for (int i = 0; i < allEntities.size(); i++) {
+            Entity entity = allEntities.get(i);
+            if (entity instanceof MovableEntity) {
+                MovableEntity mover = (MovableEntity) entity;
+                for (int j = 0; j < allEntities.size(); j++) {
+                    if (i == j) continue;
+                    Entity other = allEntities.get(j);
+                    if (isColliding(mover, other) && mover.getMass() > other.getMass() * 1.33) {
+                        handleCollision(mover, other);
                     }
                 }
-            }
-
-            try {
-                Thread.sleep(33); // ~30 FPS
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
         }
+    }
+
+    private static void handleCollision(MovableEntity eater, Entity eaten) {
+        // Augmenter la masse du mangeur
+        eater.setMass(eater.getMass() + eaten.getMass());
+
+
+        // Supprimer l'entité mangée
+        if (eaten instanceof Player) {
+            sharedGame.getPlayers().remove(eaten);
+        } else if (eaten instanceof Pellet) {
+            sharedGame.getQuadTree().removeNode(eaten, sharedGame.getQuadTree());
+        }
+    }
+
+    private static boolean isColliding(Entity a, Entity b) {
+        double dx = a.getPosX() - b.getPosX();
+        double dy = a.getPosY() - b.getPosY();
+        double distance = Math.sqrt(dx * dx + dy * dy);
+        return distance < (a.getRadius() + b.getRadius());
     }
 }

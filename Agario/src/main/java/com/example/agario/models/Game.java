@@ -14,10 +14,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-public class Game {
+public class Game implements GameInterface {
+
+    private static Game instance;
     private QuadTree quadTree;
     private List<Entity> robots;
     private Player player;
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+
+    public void setPlayers(List<Player> players) {
+        this.players = players;
+    }
+
+    private List<Player> players;
     private double xMin = 0;
     private double yMin = 0;
     private double xMax;
@@ -30,7 +43,7 @@ public class Game {
         this.xMax = quadTree.getDimension().getxMax();
         this.yMax = quadTree.getDimension().getyMax();
         this.player = (Player) new PlayerFactory(name, xMax, yMax).launchFactory();;
-
+        this.players = new ArrayList<>();
         // Initialisation des IA
         this.robots = new ArrayList<>();
         createRandomRobots(robotNumber);
@@ -55,6 +68,26 @@ public class Game {
         }
     }
 
+    public synchronized void updatePlayer(Player updatedPlayer) {
+        for (int i = 0; i < players.size(); i++) {
+            if (players.get(i).getName().equals(updatedPlayer.getName())) {
+                players.set(i, updatedPlayer);
+                break;
+            }
+        }
+    }
+
+    public synchronized void addPlayer(Player player) {
+        this.players.add(player);
+    }
+
+    /*public static synchronized Game getInstance(QuadTree quadTree, String name) {
+        if (instance == null) {
+            instance = new Game(quadTree, name);
+        }
+        return instance;
+    }*/
+
     public void createRandomRobots(int limite) {
         for (int nb = 0; nb < limite; nb++) {
             robots.add(new IAFactory(xMax, yMax, quadTree, player, robots).launchFactory());
@@ -63,5 +96,50 @@ public class Game {
 
     public void updateWorld() {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
+    }
+
+
+    public void setQuadTree(QuadTree quadTree) {
+        this.quadTree = quadTree;
+    }
+
+    public void setRobots(List<Entity> robots) {
+        this.robots = robots;
+    }
+
+    public void setPlayer(Player player) {
+        this.player = player;
+    }
+
+    public double getxMin() {
+        return xMin;
+    }
+
+    public void setxMin(double xMin) {
+        this.xMin = xMin;
+    }
+
+    public double getyMin() {
+        return yMin;
+    }
+
+    public void setyMin(double yMin) {
+        this.yMin = yMin;
+    }
+
+    public double getxMax() {
+        return xMax;
+    }
+
+    public void setxMax(double xMax) {
+        this.xMax = xMax;
+    }
+
+    public double getyMax() {
+        return yMax;
+    }
+
+    public void setyMax(double yMax) {
+        this.yMax = yMax;
     }
 }

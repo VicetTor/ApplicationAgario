@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class Entity implements Serializable {
+    private static final long serialVersionUID = -1329751809095675046L;
     private static final AtomicInteger idCounter = new AtomicInteger(0);
     private final int id;
     protected double posX;

@@ -69,11 +69,14 @@ public class GameController implements Initializable {
     @FXML private Button buttonSettings;
 
     private Map<Entity, Circle> entitiesCircles = new HashMap<>();
+    private Map<Entity, String> pelletColors = new HashMap<>();
+    private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private List<Player> player = new ArrayList<Player>();
 
     private Stage stage;
     private double specialSpeed = -1;
+
     private boolean isPlayerAlive = true;
 
     //CONTROLLERS
@@ -185,8 +188,6 @@ public class GameController implements Initializable {
                 }
                 updateRobots();
 
-                sendPlayerUpdate();
-
                 Platform.runLater(() -> {
                     miniMapController.updateMiniMap(player, WIDTH, HEIGHT);
                     updateGameDisplay(camera, dx.get(), dy.get());
@@ -194,7 +195,7 @@ public class GameController implements Initializable {
 
 
                 try {
-                    Thread.sleep(33);
+                    Thread.sleep(33); // ~30 FPS
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -326,44 +327,6 @@ public class GameController implements Initializable {
         } catch (IOException e) {
             System.out.println("ERREUR");
         }
-    }
-
-    public void setupNetwork() {
-        try {
-            ConnectionResult connection = GameClient.playOnLine(player.get(0));
-            if (connection == null) {
-                throw new IOException("Échec de la connexion au serveur");
-            }
-
-            this.socket = connection.socket;
-            this.oos = connection.oos;
-            this.ois = connection.ois;
-
-            // Démarrer le thread d'écoute des mises à jour
-            startNetworkListener();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            // Gestion d'erreur (fermer les flux, notifier l'utilisateur, etc.)
-        }
-    }
-
-    private void startNetworkListener() {
-        new Thread(() -> {
-            try {
-                while (true) {
-                    Object received = ois.readObject();
-                    if (received instanceof List) {
-                        Platform.runLater(() -> {
-                            otherPlayers.clear();
-                            otherPlayers.addAll((List<Player>) received);
-                        });
-                    }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                System.out.println("Déconnexion du serveur");
-            }
-        }).start();
     }
 
     private void startPelletSpawner() {

@@ -68,4 +68,8 @@ public class Camera extends Dimension {
     public double getHeight() {
         return this.getBottom() - this.getTop();
     }
+
+    public void setPlayer(Player localPlayer) {
+        this.player=localPlayer;
+    }
 }

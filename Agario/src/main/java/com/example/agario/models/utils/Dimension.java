@@ -1,6 +1,9 @@
 package com.example.agario.models.utils;
 
-public class Dimension {
+import java.io.Serializable;
+
+public class Dimension implements Serializable {
+    private static final long serialVersionUID = -8862885764214783136L;
     private double xMin;
     private double yMin;
     private double xMax;
