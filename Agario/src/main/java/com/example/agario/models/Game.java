@@ -61,18 +61,32 @@ public class Game implements GameInterface {
         createRandomRobots(robotNumber);
     }
 
+    /**
+     * @return the player of the game
+     */
     public Player getPlayer() {
         return player;
     }
 
+    /**
+     * @return the robots in the game
+     */
     public List<Entity> getRobots() {
         return robots;
     }
 
+    /**
+     * @return the data structure quadTree of the game
+     */
     public QuadTree getQuadTree() {
         return quadTree;
     }
 
+    /**
+     * create new pellets in different places
+     *
+     * @param limite number of new pellets
+     */
     public void createRandomPellets(int limite) {
         for (int nb = 0; nb < limite; nb++) {
             Random rand = new Random();
@@ -80,6 +94,11 @@ public class Game implements GameInterface {
         }
     }
 
+    /**
+     * update the object player
+     *
+     * @param updatedPlayer player
+     */
     public synchronized void updatePlayer(Player updatedPlayer) {
         for (int i = 0; i < players.size(); i++) {
             if (players.get(i).getName().equals(updatedPlayer.getName())) {
@@ -89,6 +108,12 @@ public class Game implements GameInterface {
         }
     }
 
+
+    /**
+     * add a player to the game
+     *
+     * @param player new player
+     */
     public synchronized void addPlayer(Player player) {
         this.players.add(player);
     }
@@ -100,6 +125,11 @@ public class Game implements GameInterface {
         return instance;
     }*/
 
+    /**
+     * create new robots in different places in the game
+     *
+     * @param limite number of new robots
+     */
     public void createRandomRobots(int limite) {
         for (int nb = 0; nb < limite; nb++) {
             robots.add(new IAFactory(xMax, yMax, quadTree, player, robots).launchFactory());
@@ -110,7 +140,11 @@ public class Game implements GameInterface {
         HashMap<Player, List<Entity>> playerEntities = new HashMap<>();
     }
 
-
+    /**
+     *
+     * getters and setters of the class
+     *
+     */
     public void setQuadTree(QuadTree quadTree) {
         this.quadTree = quadTree;
     }

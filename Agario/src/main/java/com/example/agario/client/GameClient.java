@@ -9,7 +9,7 @@ import java.net.*;
 import java.util.List;
 
 public class GameClient {
-    private static final String SERVER_ADDRESS = "10.42.17.83";
+    private static final String SERVER_ADDRESS = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;

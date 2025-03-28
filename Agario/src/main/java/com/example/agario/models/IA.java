@@ -17,6 +17,16 @@ public class IA extends MovableEntity{
     private AtomicReference<Double> dx;
     private AtomicReference<Double> dy;
 
+
+    /**
+     * Constructor
+     *
+     * @param x coordinate x
+     * @param y coordinate y
+     * @param quadTree data structure of the game
+     * @param player player in the local game
+     * @param entities entities in the game
+     */
     public IA(double x, double y, QuadTree quadTree, Player player, List<Entity> entities) {
         super(x, y,15);
         this.setName("FakePlayer"+ this.getId());
@@ -35,10 +45,18 @@ public class IA extends MovableEntity{
         dy = new AtomicReference<>(newCoord.get(1) - this.getPosY());
     }
 
+    /**
+     * set strategy of the IA
+     *
+     * @param strategy behaviour of the game
+     */
     public void setStrategy(Strategy strategy){
         this.strategy = strategy;
     }
 
+    /**
+     * update the position of the IA
+     */
     public void setPositionIA(){
         List<Double> newCoord = strategy.behaviorIA();
         dx.set(newCoord.get(0) - this.getPosX());
