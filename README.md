@@ -21,6 +21,9 @@ Ce projet propose une version simplifiée du jeu en utilisant **JavaFX** pour l'
 - 🌱 **Mécanisme de croissance :** Les cellules mangent les plus petites cellules pour grandir.
 - 🛑 **Éviter les plus grosses cellules :** Les joueurs doivent éviter de se faire manger par des cellules plus grandes.
 - 💻 **Interface graphique :** Une interface conviviale utilisant JavaFX pour une expérience utilisateur optimale.
+- :tada: **Classement :** Être premier sur le leaderboard!
+- :bug: **Split :** Division de la cellule en plusieurs petites cellules.
+- :alien: **IA :** Un jeu challengeant grâce aux IAs aux comportements divers et variés.
 
 ---
 
@@ -59,4 +62,14 @@ Pour démarrer le jeu, lancez le launcher.
 Ensuite, cliquez sur Jouer en local pour une partie en solo ou jouer en ligne pour rejoindre un serveur multijoueur.
 
 Serveur : pour vous connecter à l'adresse du serveur -> cheangez l'adresse dans gameclient et dans le launcher controller.
+
+## :mag: Branches intéressantes
+
+Voici quelques branches intéressantes à visiter :
+1. main (le projet final)
+2. GluttonIA (développement des IAs)
+3. splitGameController (refactoring du code de GameController)
+4. mergeServer (merge local et serveur, et documentation)
+5. betterAI (amélioration des IAs)
+6. SpecialPellets (implémentation des pastilles spéciales)
 
