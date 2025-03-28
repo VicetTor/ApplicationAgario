@@ -145,8 +145,7 @@ public class OnlineGameController implements Initializable {
 
                 if (localPlayer != null) {
                     this.camera = new Camera(localPlayer);
-                    System.out.println("DEBUG: Joueur local trouvé. Position initiale: " +
-                            localPlayer.getPosX() + "," + localPlayer.getPosY());
+
                 }
 
                 // Boucle de réception des mises à jour
@@ -169,6 +168,7 @@ public class OnlineGameController implements Initializable {
                         });
                     }
                     else if (received instanceof ChatMessage) {
+                        System.out.println("JAI RECU UN MSG DSFJHKSHDKJFSDFJHBKDSFJKHSDFQJHKBDFSHJKISDFHJKDSFJHKISDFHJKNDFSHJKSDFHJNKSDFJHKSDFJHKNDFSJHK");
                         ChatMessage chatMessage = (ChatMessage) received;
                         Platform.runLater(() -> {
                             TchatListView.getItems().add(chatMessage.getSender() + ": " + chatMessage.getMessage());
@@ -241,7 +241,7 @@ public class OnlineGameController implements Initializable {
         // Update camera
         applyCameraTransform(camera);
 
-        System.out.println(camera.getZoomFactor()+":zoom apres Y:");
+        //System.out.println(camera.getZoomFactor()+":zoom apres Y:");
 
         // Render all pellets
         for (Entity pellet : currentGameState.getPellets()) {
@@ -281,17 +281,17 @@ public class OnlineGameController implements Initializable {
 
     private void renderPlayer(Player player) {
         if (player == null) {
-            System.out.println("DEBUG: Tentative de rendu d'un joueur null");
+            //System.out.println("DEBUG: Tentative de rendu d'un joueur null");
             return;
         }
 
-        System.out.printf("DEBUG: Rendu joueur %s à (%.1f,%.1f)\n",
-                player.getName(), player.getPosX(), player.getPosY());
+        //System.out.printf("DEBUG: Rendu joueur %s à (%.1f,%.1f)\n",
+               // player.getName(), player.getPosX(), player.getPosY());
 
         boolean isLocal = player.getName().equals(localPlayer.getName());
         String color = isLocal ? PLAYER_COLOR : OTHER_PLAYER_COLOR;
 
-        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
+        //System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
 
 
         Circle circle = playerCircles.computeIfAbsent(player.getName(), k -> {
@@ -303,7 +303,7 @@ public class OnlineGameController implements Initializable {
         });
 
         updateCircle(circle,player);
-        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
+        //System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
 
         // Gestion du label
         Label nameLabel = playerLabels.computeIfAbsent(player.getName(), k -> {
