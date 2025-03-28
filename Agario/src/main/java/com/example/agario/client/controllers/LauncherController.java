@@ -35,7 +35,7 @@ public class LauncherController {
 
     @FXML
     protected void onOnlineGameButtonClick() {
-        requestPlayerName().ifPresent(this::handleOnlineGameConnection);
+        requestPlayerName().ifPresent(this::launchOnlineGame);
     }
 
     private Optional<String> requestPlayerName() {
@@ -46,28 +46,10 @@ public class LauncherController {
         return dialog.showAndWait();
     }
 
-    private void handleOnlineGameConnection(String playerName) {
-        showLoadingAlert("Connexion au serveur en cours...");
 
-        CompletableFuture.supplyAsync(() -> testServerConnection())
-                .thenAccept(isConnected -> Platform.runLater(() -> {
-                    if (isConnected) {
-                        closeLoadingAlert();
-                        launchOnlineGame(playerName);
-                    } else {
-                        closeLoadingAlert();
-                        showConnectionError();
-                    }
-                }));
-    }
 
-    private boolean testServerConnection() {
-        try (Socket testSocket = new Socket(SERVER_HOST, SERVER_PORT)) {
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
+
+
 
     private void launchOfflineGame() {
         try {
