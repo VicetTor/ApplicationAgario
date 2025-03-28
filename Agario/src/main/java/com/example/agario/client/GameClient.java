@@ -9,8 +9,8 @@ import java.net.*;
 import java.util.List;
 
 public class GameClient {
-    private static final String SERVER_ADDRESS = "127.0.0.1";
-    private static final int SERVER_PORT = 8080;
+    private static final String SERVER_ADDRESS = "10.42.17.83";
+    private static final int SERVER_PORT = 12345;
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private Socket socket;
@@ -22,7 +22,7 @@ public class GameClient {
             Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
-
+            System.out.println("Connected");
             return new ConnectionResult(socket, oos, ois);
         } catch (IOException e) {
             System.err.println("Connection error: " + e.getMessage());
@@ -52,4 +52,17 @@ public class GameClient {
 
     }
 
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket(SERVER_ADDRESS, SERVER_PORT);
+            ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
+            ObjectInputStream ois = new ObjectInputStream(socket.getInputStream());
+
+            System.out.println("je suis connecté");
+          //  return new ConnectionResult(socket, oos, ois);
+        } catch (IOException e) {
+            System.err.println("Connection error: " + e.getMessage());
+         //   return null;
+        }
+    }
 }

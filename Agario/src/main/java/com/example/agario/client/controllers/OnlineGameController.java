@@ -14,6 +14,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -69,6 +70,8 @@ public class OnlineGameController implements Initializable {
     private AnimationTimer gameLoop;
     private Camera camera;
 
+    private String message;
+
     private Map<String, Circle> playerCircles = new HashMap<>(); // Suivi des cercles des joueurs
     private Map<String, Label> playerLabels = new HashMap<>();  // Suivi des labels des joueurs
     private Map<Entity, Circle> pelletCircles = new HashMap<>(); // Séparé des joueurs
@@ -88,6 +91,7 @@ public class OnlineGameController implements Initializable {
 
         setupGamePane();
         setupBackground();
+        setupChatTextField();
         isInitialized = true;
     }
 
@@ -141,28 +145,37 @@ public class OnlineGameController implements Initializable {
 
                 if (localPlayer != null) {
                     this.camera = new Camera(localPlayer);
-                    System.out.println("DEBUG: Joueur local trouvé. Position initiale: " +
-                            localPlayer.getPosX() + "," + localPlayer.getPosY());
+
                 }
 
-                // NOUVEAU: Boucle de réception des mises à jour
+                // Boucle de réception des mises à jour
                 while (!socket.isClosed()) {
-                    GameStateSnapshot newState = (GameStateSnapshot) ois.readObject();
-                    Platform.runLater(() -> {
-                        currentGameState = newState;
-                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-                        if (updatedPlayer != null) {
-                            localPlayer = updatedPlayer;
-                            if (this.camera == null) {
-                                this.camera = new Camera(localPlayer);
-                            } else {
-                                this.camera.setPlayer(localPlayer); // Ajoutez cette méthode dans Camera
-                            }
-                            System.out.printf("DEBUG: Mise à jour position - X:%.1f Y:%.1f\n",
-                                    localPlayer.getPosX(), localPlayer.getPosY());
-                        }
+                    Object received = ois.readObject();
 
-                    });
+                    if (received instanceof GameStateSnapshot) {
+                        GameStateSnapshot newState = (GameStateSnapshot) received;
+                        Platform.runLater(() -> {
+                            currentGameState = newState;
+                            Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
+                            if (updatedPlayer != null) {
+                                localPlayer = updatedPlayer;
+                                if (this.camera == null) {
+                                    this.camera = new Camera(localPlayer);
+                                } else {
+                                    this.camera.setPlayer(localPlayer);
+                                }
+                            }
+                        });
+                    }
+                    else if (received instanceof ChatMessage) {
+                        System.out.println("JAI RECU UN MSG DSFJHKSHDKJFSDFJHBKDSFJKHSDFQJHKBDFSHJKISDFHJKDSFJHKISDFHJKNDFSHJKSDFHJNKSDFJHKSDFJHKNDFSJHK");
+                        ChatMessage chatMessage = (ChatMessage) received;
+                        Platform.runLater(() -> {
+                            TchatListView.getItems().add(chatMessage.getSender() + ": " + chatMessage.getMessage());
+                            // Faire défiler vers le bas automatiquement
+                            TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+                        });
+                    }
                 }
             } catch (Exception e) {
                 Platform.runLater(() ->
@@ -171,7 +184,6 @@ public class OnlineGameController implements Initializable {
             }
         });
     }
-
     private void showErrorAlert(String connectionError, String message) {
         System.out.println(connectionError+message);
     }
@@ -229,7 +241,7 @@ public class OnlineGameController implements Initializable {
         // Update camera
         applyCameraTransform(camera);
 
-        System.out.println(camera.getZoomFactor()+":zoom apres Y:");
+        //System.out.println(camera.getZoomFactor()+":zoom apres Y:");
 
         // Render all pellets
         for (Entity pellet : currentGameState.getPellets()) {
@@ -256,51 +268,30 @@ public class OnlineGameController implements Initializable {
 
 
     private void renderPellet(Entity pellet) {
-        Circle circle = pelletCircles.computeIfAbsent(pellet, k -> {
-            Circle c = new Circle();
+        Circle circle = pelletCircles.computeIfAbsent(pellet, k -> new Circle());
 
-            if (pellet instanceof InvisiblePellet) {
-                c.setFill(Color.web("#b5dbe8"));
-                c.setOpacity(0.5);
-                c.setStroke(Color.BLANCHEDALMOND);
-                c.setEffect(new DropShadow(10, Color.BLUE));
-            }
-            else if (pellet instanceof SpeedIncreasePellet) {
-                c.setFill(Color.web("#ffff99"));
-                c.setOpacity(0.5);
-                c.setStroke(Color.YELLOW);
-                c.setEffect(new DropShadow(10, Color.YELLOW));
-            }
-            else if (pellet instanceof SpeedDecreasePellet) {
-                c.setFill(Color.web("#ff0000"));
-                c.setOpacity(0.5);
-                c.setStroke(Color.RED);
-                c.setEffect(new DropShadow(10, Color.RED));
-            }
-            else {
-                String color = PELLET_COLORS.get(Math.abs(pellet.hashCode()) % PELLET_COLORS.size());
-                c.setFill(Color.web(color));
-            }
-            return c;
-        });
+        // Transformer les coordonnées en teinte de couleur
+        double hue = ((pellet.getPosX() + pellet.getPosY()) % 360); // Variation en fonction de X + Y
+        Color pelletColor = Color.hsb(hue, 1.0, 1.0);
 
+        circle.setFill(pelletColor);
         updateCircle(circle, pellet);
         gamePane.getChildren().add(circle);
     }
 
     private void renderPlayer(Player player) {
         if (player == null) {
-            System.out.println("DEBUG: Tentative de rendu d'un joueur null");
+            //System.out.println("DEBUG: Tentative de rendu d'un joueur null");
             return;
         }
 
-        System.out.printf("DEBUG: Rendu joueur %s à (%.1f,%.1f)\n",
-                player.getName(), player.getPosX(), player.getPosY());
+        //System.out.printf("DEBUG: Rendu joueur %s à (%.1f,%.1f)\n",
+               // player.getName(), player.getPosX(), player.getPosY());
 
         boolean isLocal = player.getName().equals(localPlayer.getName());
         String color = isLocal ? PLAYER_COLOR : OTHER_PLAYER_COLOR;
 
-        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
+        //System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
 
 
         Circle circle = playerCircles.computeIfAbsent(player.getName(), k -> {
@@ -312,7 +303,7 @@ public class OnlineGameController implements Initializable {
         });
 
         updateCircle(circle,player);
-        System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
+        //System.out.println("mass: "+player.getMass()+ " radius: "+player.getRadius());
 
         // Gestion du label
         Label nameLabel = playerLabels.computeIfAbsent(player.getName(), k -> {
@@ -400,6 +391,32 @@ public class OnlineGameController implements Initializable {
         }
 
         LeaderBoardListView.getItems().setAll(leaderboardEntries);
+    }
+
+    private void setupChatTextField() {
+        TchatTextField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String message = TchatTextField.getText().trim();
+                if (!message.isEmpty()) {
+                    try {
+                        // Créer et envoyer le message chat
+                        ChatMessage chatMessage = new ChatMessage(playerName, message);
+                        oos.writeObject(chatMessage);
+                        oos.flush();
+
+                        // Ajouter le message localement
+                        TchatListView.getItems().add("Vous: " + message);
+                        TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+
+                        // Vider le champ de texte
+                        TchatTextField.clear();
+                    } catch (IOException e) {
+                        System.err.println("Erreur lors de l'envoi du message: " + e.getMessage());
+                    }
+                }
+                event.consume();
+            }
+        });
     }
 
     private void sendPlayerInput(double dx, double dy) {
