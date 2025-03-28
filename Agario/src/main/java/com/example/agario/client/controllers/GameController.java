@@ -114,8 +114,8 @@ public class GameController implements Initializable {
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
 
         gameModel = new Game(new QuadTree(0, dimension), PLAYER_NAME, ROBOT_NUMBER);
-        this.player.add(gameModel.getPlayer());
         this.specialSpeed.add(-1.0);
+        this.player.add(gameModel.getPlayer());
         gameModel.createRandomPellets(PELLET_NUMBER);
     }
 
@@ -155,48 +155,71 @@ public class GameController implements Initializable {
 
             splitPlayer(playerInput);
 
-            System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
         });
 
         new Thread(() -> {
             while (true) {
+                synchronized (player) {
+                    try {
+                        timer -= 1;
 
-                timer -= 1;
-                if (timer < (int) (10 + (player.get(0).getMass() / 100)) - 2) {
-                    List<Player> temporaryPlayer = new ArrayList<Player>(player);
-                    for (Player p : temporaryPlayer) {
-                        for (Player p2 : temporaryPlayer) {
-                            if (p2 != p) {
-                                int indexP2 = player.indexOf(p2);
-                                double distance = Math.sqrt(Math.pow(p.getPosX() - p2.getPosX(), 2) + Math.pow(p.getPosY() - p2.getPosY(), 2));
-                                double threshold = (p.getRadius() + p2.getRadius()) * 0.80;
 
-                                if (distance <= threshold) {
-                                    if (player.get(0) != p2) {
-                                        p.setMass(p.getMass() + p2.getMass());
-                                        p.setPosX((p.getPosX() + p2.getPosX()) / 2);
-                                        p.setPosY((p.getPosY() + p2.getPosY()) / 2);
-                                        entitiesCircles.remove(p2);
-                                        specialSpeed.remove(indexP2);
-                                        player.remove(p2);
+                        if (timer < (int) (10 + (player.get(0).getMass() / 100)) - 2) {
+                            Iterator<Player> iterator = player.iterator();
+                            while (iterator.hasNext()) {
+                                Player p = iterator.next();
 
-                                        timer = (int) (10 + (p.getMass() / 100));
+                                for (Player p2 : new ArrayList<>(player)) {
+                                    if (p2 != p) {
+                                        double distance = Math.sqrt(Math.pow(p.getPosX() - p2.getPosX(), 2) + Math.pow(p.getPosY() - p2.getPosY(), 2));
+                                        double threshold = (p.getRadius() + p2.getRadius()) * 0.80;
 
-                                        if (player.size() <= 1) {
-                                            timer = -1;
+                                        if (distance <= threshold) {
+                                            if (player.get(0) != p2) {
+                                                if (p.getSpeed() != 30 && p2.getSpeed() != 30) {
+                                                    double newMass = p.getMass() + p2.getMass();
+
+                                                    double newPosX = (p.getPosX() * p.getMass() + p2.getPosX() * p2.getMass()) / newMass;
+                                                    double newPosY = (p.getPosY() * p.getMass() + p2.getPosY() * p2.getMass()) / newMass;
+
+
+                                                    p.setMass(newMass);
+                                                    p.setPosX(newPosX);
+                                                    p.setPosY(newPosY);
+
+
+                                                    int indexP2 = player.indexOf(p2);
+                                                    if (indexP2 != -1) {
+                                                        entitiesCircles.remove(p2);
+                                                        specialSpeed.remove(indexP2);
+                                                        player.remove(p2);
+
+                                                        timer = (int) (10 + (p.getMass() / 100));
+                                                        if (player.size() <= 1) {
+                                                            timer = -1;
+                                                        }
+
+                                                    }
+                                                }
+                                            }
                                         }
-
-                                        System.out.println("fekzfpoekfoekf");
                                     }
                                 }
                             }
                         }
+
+
+                        Thread.sleep(50);
+
+                    } catch (ConcurrentModificationException e) {
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
 
                 if (timer == 0) {
 
-                    System.out.println("Fusion des joueurs!");
                     double sommeMasse = 0;
                     for (Player pl : player) {
                         sommeMasse += pl.getMass();
@@ -204,13 +227,13 @@ public class GameController implements Initializable {
 
                     double averageXPlayer = 0;
                     double averageYPlayer = 0;
-                    for (Player p : player){
+                    for (Player p : player) {
                         averageXPlayer += p.getPosX();
                         averageYPlayer += p.getPosY();
                     }
 
-                    averageXPlayer = averageXPlayer/player.size();
-                    averageYPlayer = averageYPlayer/player.size();
+                    averageXPlayer = averageXPlayer / player.size();
+                    averageYPlayer = averageYPlayer / player.size();
 
                     player.get(0).setMass(sommeMasse);
                     player.get(0).setPosX(averageXPlayer);
@@ -219,7 +242,7 @@ public class GameController implements Initializable {
                     int size = player.size();
 
                     Platform.runLater(() -> {
-                        for (int i = size-1; i >=1; i--) {
+                        for (int i = size - 1; i >= 1; i--) {
                             entitiesCircles.remove(player.get(i));
                             specialSpeed.remove(i);
                             player.remove(i);
@@ -234,7 +257,7 @@ public class GameController implements Initializable {
                     e.printStackTrace();
                 }
             }
-        }).start();
+            }).start();
 
 
 
@@ -758,13 +781,15 @@ public class GameController implements Initializable {
     public void invisiblePelletEffect(MovableEntity movableEntity) {
         new Thread(() -> {
             if (entitiesCircles.get(movableEntity) != null) {
-                entitiesCircles.get(movableEntity).setFill(Color.TRANSPARENT);
+                entitiesCircles.get(movableEntity).setOpacity(0.2);
+            }
                 try {
                     Thread.sleep(5000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                entitiesCircles.get(movableEntity).setFill(Paint.valueOf(PLAYER_COLOR));
+            if (entitiesCircles.get(movableEntity) != null) {
+                entitiesCircles.get(movableEntity).setOpacity(1);
             }
         }).start();
     }
@@ -891,10 +916,6 @@ public class GameController implements Initializable {
                         }
                     this.specialSpeed.set(this.player.indexOf(newP),speed);
                 }).start();
-
-
-
-
             }
         }
     }
