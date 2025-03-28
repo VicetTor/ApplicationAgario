@@ -9,18 +9,42 @@ public class MovableEntity extends Entity{
     private double dirY = 0;
 
 
-
+    /**
+     * constructor for Pellet
+     * @param x Entity X coo
+     * @param y Entity Y coo
+     * @mass mass of the Entity
+     */
     public MovableEntity(double x, double y, double mass) {
         super(x, y, mass);
     }
 
+    /**
+     *method for Movable entity, that se the speed of the entity
+     * @params speed , speed of the entity
+     */
     public void setSpecialSpeed(double speed){
         this.speed = speed;
     }
 
+
+    /**
+     *method for Movable entity, that se the speed of the entity
+     * @params speed , speed of the entity
+     */
     public void setSpeedy(double speed){
         this.speed = speed;
     }
+
+
+    /**
+     *method for Movable entity, that se the speed of the entity
+     * @params dx , distance x-axis of the entity
+     * @params dy , distance y-axis of the entity
+     * @params x , x-axis of the entity
+     * @params y , y-axis of the entity
+     * @params speed , speed of the entity
+     */
 
     public void setSpeed(double dx, double dy, double x, double y, double specialSpeed) {
 
@@ -48,6 +72,9 @@ public class MovableEntity extends Entity{
         }
     }
 
+    /**
+     *method for Movable entity, that se the speed of the IA
+     */
     public void setSpeedIA(){
         double maxSpeed = (initialSpeed * 15/(this.getMass()*0.4));
         if(maxSpeed > initialSpeed){
@@ -57,6 +84,14 @@ public class MovableEntity extends Entity{
         this.speed = Math.max(minSpeed, maxSpeed);
     }
 
+
+    /**
+     *method for Movable entity, that update the position of an entity
+     * @params dx , distance x-axis of the entity
+     * @params dy , distance y-axis of the entity
+     * @params screenWidth , size of the screen in width
+     * @params screenHeight ,  size of the screen in height
+     */
     public void updatePosition(double dx, double dy, double screenWidth, double screenHeight) {
 
         double distanceEuclidienne = Math.sqrt(dx * dx + dy * dy);
@@ -89,6 +124,7 @@ public class MovableEntity extends Entity{
             this.setPosY(a);
         }
     }
+
 
     public double getDirX() { return dirX; }
     public double getDirY() { return dirY; }
