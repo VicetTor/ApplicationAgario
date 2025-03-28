@@ -57,46 +57,46 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class GameController implements Initializable {
 
+    //FXML
     @FXML private Pane map;
-    @FXML private TextField TchatTextField;
-    @FXML private Pane GamePane;
-    @FXML private AnchorPane OuterPane;
-    @FXML private ListView<String> LeaderBoardListView;
-    @FXML private ListView<String> TchatListView;
-    @FXML private GridPane gridPane;
-    @FXML private BorderPane GameBorderPane;
+    @FXML private TextField tchatTextField;
+    @FXML private Pane gamePane;
+    @FXML private AnchorPane outerPane;
+    @FXML private ListView<String> leaderBoardListView;
+    @FXML private ListView<String> tchatListView;
+    @FXML private GridPane gridPane;  //TODO aucune utilité ?
+    @FXML private BorderPane gameBorderPane;
     @FXML private Button buttonSettings;
 
     private Map<Entity, Circle> entitiesCircles = new HashMap<>();
-    private Map<Entity, String> pelletColors = new HashMap<>();
-    private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
     private Game gameModel;
     private List<Player> player = new ArrayList<Player>();
 
     private Stage stage;
     private double specialSpeed = -1;
-
     private boolean isPlayerAlive = true;
 
+    //CONTROLLERS
+    private CameraController cameraController;
+    private MiniMapController miniMapController;
+    private AnimationController animationController;
+    private RenderController renderController;
+    private AbsorptionController absorptionController;
 
-
-    private static final List<String> PELLET_COLORS = List.of("#ff3107", "#4e07ff", "#caff07","#ff07dc","#7107ff","#07ff2b","#07ff88","#07ff88","#07a8ff","#ff3107","#ff4f00","#ffff00");
-    private static final String PLAYER_COLOR = "#7107ff";
-    private static final String ROBOT_COLOR = "#07ff82";
+    //SETTINGS
     private static int HEIGHT = 10000;
     private static int WIDTH = 10000;
     private static int ROBOT_NUMBER = 25;
     private static int PELLET_NUMBER = 5000;
     private static String PLAYER_NAME = "Anonymous";
 
-
+    //SERVER
     private List<Player> otherPlayers = new ArrayList<>();
     private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private ObjectOutputStream oos;
     private ObjectInputStream ois;
     private Socket socket;
 
-    //private final List<Entity> visibleEntities = Collections.synchronizedList(new ArrayList<>());
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -106,10 +106,13 @@ public class GameController implements Initializable {
     }
 
     private void setupGame() {
-
         // Setup game pane
-        GamePane.setMinSize(WIDTH, HEIGHT);
+        gamePane.setMinSize(WIDTH, HEIGHT);
         setupBackground();
+
+        this.miniMapController = new MiniMapController(entitiesCircles, map);
+        this.renderController = new RenderController(entitiesCircles, gamePane, player);
+        this.absorptionController = new AbsorptionController(entitiesCircles, specialSpeed);
 
         // Initialize game model
         Dimension dimension = new Dimension(0, 0, WIDTH, HEIGHT);
@@ -120,7 +123,7 @@ public class GameController implements Initializable {
     }
 
     private void setupBackground() {
-        GamePane.setStyle(null);
+        gamePane.setStyle(null);
         Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
         BackgroundImage bgImg = new BackgroundImage(
                 backgroundImage,
@@ -129,11 +132,11 @@ public class GameController implements Initializable {
                 BackgroundPosition.DEFAULT,
                 BackgroundSize.DEFAULT
         );
-        GamePane.setBackground(new Background(bgImg));
-        GamePane.toFront();
-        GameBorderPane.setStyle("-fx-background-color:#d8504d;");
+        gamePane.setBackground(new Background(bgImg));
+        gamePane.toFront();
+        gameBorderPane.setStyle("-fx-background-color:#d8504d;");
 
-        LeaderBoardListView.setCellFactory(lv -> new ListCell<String>() {
+        leaderBoardListView.setCellFactory(lv -> new ListCell<String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -141,7 +144,7 @@ public class GameController implements Initializable {
                 setTextFill(Paint.valueOf("#ffffff"));
                 setBackground(Background.EMPTY);
                 setStyle("-fx-background-color: transparent;");
-                setPrefHeight(LeaderBoardListView.getHeight()/10.5);
+                setPrefHeight(leaderBoardListView.getHeight()/10.5);
             }
         });
     }
@@ -149,12 +152,12 @@ public class GameController implements Initializable {
     private void startGameLoop() {
         PlayerInput playerInput = new PlayerInput();
         Camera camera = new Camera(gameModel.getPlayer());
-        GamePane.setOnMouseMoved(playerInput);
+        this.cameraController = new CameraController(camera, player, gamePane);
 
-        /*GamePane.setOnMouseClicked(event -> {
+        gamePane.setOnMouseMoved(playerInput);
 
+        /*gamePane.setOnMouseClicked(event -> {
             splitPlayer();
-
             System.out.println("Clic détecté aux coordonnées : X=" + event.getX() + " Y=" + event.getY());
         });*/
 
@@ -164,18 +167,20 @@ public class GameController implements Initializable {
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
 
             while (true) {
+                // Check if player is alive
+                this.isPlayerAlive = absorptionController.isPlayerAlive();
 
                 // Update mouse position
                 for(Player p : player) {
                     if (isPlayerAlive) {
-                        GamePane.setOnMouseMoved(e -> {
+                        gamePane.setOnMouseMoved(e -> {
                             playerInput.handle(e);
                             dx.set(playerInput.getMouseX() - p.getPosX());
                             dy.set(playerInput.getMouseY() - p.getPosY());
                         });
 
                         // Update positions
-                        p.updatePosition(dx.get(), dy.get(), GamePane.getWidth(), GamePane.getHeight());
+                        p.updatePosition(dx.get(), dy.get(), gamePane.getWidth(), gamePane.getHeight());
                     }
                 }
                 updateRobots();
@@ -183,7 +188,7 @@ public class GameController implements Initializable {
                 sendPlayerUpdate();
 
                 Platform.runLater(() -> {
-                    setEntities((HashMap<Entity, Circle>) entitiesCircles);
+                    miniMapController.updateMiniMap(player, WIDTH, HEIGHT);
                     updateGameDisplay(camera, dx.get(), dy.get());
                 });
 
@@ -197,6 +202,15 @@ public class GameController implements Initializable {
         }).start();
     }
 
+    private void updateRobots() {
+        List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
+        for (Entity robot : robotsCopy) {
+            if (robot instanceof IA) {
+                ((IA) robot).setPositionIA();
+            }
+        }
+    }
+
     private void sendPlayerUpdate() {
         try {
             if (oos != null) {
@@ -208,18 +222,71 @@ public class GameController implements Initializable {
             System.err.println("Erreur d'envoi au serveur");
         }
     }
-    private void updateRobots() {
-        List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
-        for (Entity robot : robotsCopy) {
+
+    private void updateGameDisplay(Camera camera, double dx, double dy) {
+        // Get a copy of the list to avoid concurrent modification
+        List<Entity> visibleEntities = new ArrayList<>(cameraController.getVisibleEntities(gameModel.getQuadTree(), gameModel.getRobots(), getPaneWidth(), getPaneHeight()));
+        if(isPlayerAlive)
+            for(Player p : player) {
+                visibleEntities.add(p);
+            }
+
+        // Clear previous frame
+        gamePane.getChildren().clear();
+
+        // Update camera
+        camera.updateCameraDimensions();
+
+        // Apply camera transformations
+        cameraController.applyCameraTransform(getPaneWidth(), getPaneHeight());
+
+        // Update player speed
+        for(Player p : player) {
+            p.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
+        }
+        // Render all entities
+        renderController.renderEntities(visibleEntities);
+
+
+        otherPlayers.forEach(otherPlayer -> {
+            if (!otherPlayer.getName().equals(player.get(0).getName())) {
+                renderController.renderOtherPlayer(otherPlayer);
+            }
+        });
+
+        // Robots absorb other entities
+        for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
             if (robot instanceof IA) {
-                ((IA) robot).setPositionIA();
+                int cameraRobotSize = 50;
+                Dimension robotView = new Dimension(robot.getPosX()-cameraRobotSize, robot.getPosY()-cameraRobotSize,
+                        robot.getPosX()+cameraRobotSize,robot.getPosY()+cameraRobotSize);
+                List<Entity> robotZone = new ArrayList<>();
+                QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
+                robotZone.addAll(gameModel.getRobots());
+
+                if(isPlayerAlive) robotZone.add(player.get(0));
+
+                absorptionController.eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots());
+                isPlayerAlive = absorptionController.isPlayerAlive();
             }
         }
+
+        // Player absorbs other entities
+        if(isPlayerAlive) {
+            for (Player p : player) {
+                absorptionController.eatEntity(visibleEntities, p, gameModel.getQuadTree(), gameModel.getRobots());
+                specialSpeed = absorptionController.getSpecialSpeed();
+                isPlayerAlive = absorptionController.isPlayerAlive();
+            }
+        }
+
+        // Update leaderboard
+        updateLeaderBoard();
     }
 
     private void updateLeaderBoard(){
         int counter = 0;
-        LeaderBoardListView.getItems().clear();
+        leaderBoardListView.getItems().clear();
 
         List<Entity> allPlayers = new ArrayList<>(gameModel.getRobots());
         if(isPlayerAlive) allPlayers.add(player.get(0));
@@ -232,387 +299,33 @@ public class GameController implements Initializable {
         for(Entity entity : allPlayers){
             counter++;
             MovableEntity joueur = (MovableEntity) entity;
-            LeaderBoardListView.getItems().add(counter+". "+joueur.getName()+"     "+new DecimalFormat("0.00").format(joueur.getMass()));
+            leaderBoardListView.getItems().add(counter+". "+joueur.getName()+"     "+new DecimalFormat("0.00").format(joueur.getMass()));
             if(counter == 10) break;
         }
 
-        LeaderBoardListView.setMinHeight(counter);
+        leaderBoardListView.setMinHeight(counter);
 
         if(gameModel.getRobots().size() == 5){
             robotSpawner(5);
         }
     }
 
-    private void robotSpawner(int limite) {
-        gameModel.createRandomRobots(limite);
-    }
+    public void openSettingsMenuClick(){
+        try {
+            Stage oldWindowStage = (Stage) this.gameBorderPane.getScene().getWindow();
+            oldWindowStage.close();
 
-    private void updateGameDisplay(Camera camera, double dx, double dy) {
-        // Get a copy of the list to avoid concurrent modification
-        List<Entity> visibleEntities = new ArrayList<>(getVisibleEntities(camera));
-
-        // Clear previous frame
-        GamePane.getChildren().clear();
-
-        // Update camera
-        camera.updateCameraDimensions();
-
-        // Apply camera transformations
-        applyCameraTransform(camera);
-
-        // Update player speed
-        for(Player p : player) {
-            p.setSpeed(dx, dy, stage.getHeight() / 2, stage.getWidth() / 2, specialSpeed);
+            FXMLLoader fxmlLoader = new FXMLLoader();
+            fxmlLoader.setLocation(getClass().getResource("/com/example/agario/settings.fxml"));
+            SettingsController settingsController = fxmlLoader.getController();
+            Scene scene = new Scene(fxmlLoader.load(), 600, 400);
+            Stage newStage = new Stage();
+            newStage.setTitle("Settings");
+            newStage.setScene(scene);
+            newStage.show();
+        } catch (IOException e) {
+            System.out.println("ERREUR");
         }
-        // Render all entities
-        renderEntities(visibleEntities);
-
-
-        otherPlayers.forEach(otherPlayer -> {
-            if (!otherPlayer.getName().equals(player.get(0).getName())) {
-                renderOtherPlayer(otherPlayer);
-            }
-        });
-
-        // Robots absorb other entities
-        for (Entity robot : new ArrayList<>(gameModel.getRobots())) {
-            if (robot instanceof IA) {
-                int cameraSize = 50;
-                Dimension robotView = new Dimension(robot.getPosX()-cameraSize, robot.getPosY()-cameraSize,robot.getPosX()+cameraSize,robot.getPosY()+cameraSize);
-                List<Entity> robotZone = new ArrayList<>();
-                QuadTree.DFSChunk(gameModel.getQuadTree(), robotView, robotZone);
-                robotZone.addAll(gameModel.getRobots());
-                if(isPlayerAlive) robotZone.add(player.get(0));
-                eatEntity(robotZone, (MovableEntity) robot, gameModel.getQuadTree(), gameModel.getRobots());
-            }
-        }
-
-        // Player absorbs other entities
-        if(isPlayerAlive) {
-            for (Player p : player) {
-                eatEntity(visibleEntities, p, gameModel.getQuadTree(), gameModel.getRobots());
-            }
-        }
-
-        // Update leaderboard
-        updateLeaderBoard();
-    }
-
-    public void removeEntityFromHashMap(Entity entity){
-        entitiesCircles.remove(entity);
-    }
-
-    public void eatPlayer(){
-        this.isPlayerAlive = false;
-
-        ButtonType exit = new ButtonType("Quitter", ButtonBar.ButtonData.APPLY);
-        Alert alert = new Alert(Alert.AlertType.NONE, "Vous êtes mort ! Veuillez recommencer.", exit);
-        Optional<ButtonType> result = alert.showAndWait();
-        if (result.get() == ButtonType.APPLY){
-            Platform.exit();
-        }
-        alert.setOnCloseRequest(e -> Platform.exit());
-        Platform.exit();
-    }
-
-    public void animatePelletConsumption(Entity pellet, MovableEntity p) {
-        try{
-            TranslateTransition transition = new TranslateTransition();
-            transition.setNode(entitiesCircles.get(pellet));
-            transition.setDuration(Duration.millis(50));
-            transition.setToX(p.getPosX() - entitiesCircles.get(pellet).getCenterX());
-            transition.setToY(p.getPosY() - entitiesCircles.get(pellet).getCenterY());
-            transition.setAutoReverse(true);
-            transition.setInterpolator(Interpolator.EASE_OUT);
-            transition.play();
-        }
-        catch(NullPointerException e){
-            System.out.println("Elément mangé alors qu'il n'a pas encore été instancié");
-        }
-    }
-
-
-
-    private void animatePlayerMovement(Circle player, double dx, double dy) {
-        double movementIntensity = Math.sqrt(dx * dx + dy * dy) / 50;
-        movementIntensity = Math.min(movementIntensity, 1);
-
-        double scaleFactor = 1 + movementIntensity * 0.1;
-
-        ScaleTransition scaleTransition = new ScaleTransition(Duration.millis(10), player);
-        scaleTransition.setToX(scaleFactor);
-        scaleTransition.setToY(scaleFactor);
-        scaleTransition.setAutoReverse(true);
-
-        TranslateTransition translateTransition = new TranslateTransition(Duration.millis(10), player);
-        translateTransition.setByX((Math.random() - 0.5) * 2.5);
-        translateTransition.setByY((Math.random() - 0.5) * 2.5);
-        translateTransition.setAutoReverse(true);
-
-        ParallelTransition parallelTransition = new ParallelTransition(scaleTransition, translateTransition);
-        parallelTransition.setInterpolator(Interpolator.EASE_OUT);
-        parallelTransition.play();
-    }
-
-
-    private void applyCameraTransform(Camera camera) {
-        double scale = 1.0 / camera.getZoomFactor();
-        double screenCenterX = getPaneWidth() / 2;
-        double screenCenterY = getPaneHeight() / 2;
-
-        double translateX = screenCenterX - (player.get(0).getPosX() * scale);
-        double translateY = screenCenterY - (player.get(0).getPosY() * scale);
-
-        GamePane.getTransforms().clear();
-        GamePane.getTransforms().addAll(
-                new Translate(translateX, translateY),
-                new Scale(scale, scale, 0, 0)
-        );
-    }
-
-    private List<Entity> getVisibleEntities(Camera camera) {
-        List<Entity> visibleEntities = new ArrayList<>();
-        double scale = 1.0 / camera.getZoomFactor();
-        double translateX = (getPaneWidth() / 2) - (player.get(0).getPosX() * scale);
-        double translateY = (getPaneHeight() / 2) - (player.get(0).getPosY() * scale);
-
-        double inverseScale = 1.0 / scale;
-        Dimension cameraView = new Dimension(
-                -translateX * inverseScale,
-                -translateY * inverseScale,
-                (-translateX + getPaneWidth()) * inverseScale,
-                (-translateY + getPaneHeight()) * inverseScale
-        );
-
-        QuadTree.DFSChunk(gameModel.getQuadTree(), cameraView, visibleEntities);
-        visibleEntities.addAll(gameModel.getRobots());
-        if(isPlayerAlive)
-            for(Player p : player) {
-                visibleEntities.add(p);
-            }
-
-        return visibleEntities;
-    }
-
-    private void renderEntities(List<Entity> entities) {
-        // Render pellets first
-        entities.stream()
-                .filter(e -> !(e instanceof Player) && !(e instanceof IA))
-                .forEach(this::renderPellet);
-
-        // Render robots
-        entities.stream()
-                .filter(e -> e instanceof IA)
-                .forEach(this::renderRobot);
-
-        // Render player on top
-        renderPlayer();
-    }
-
-    private void renderPellet(Entity pellet) {
-        if(pellet instanceof InvisiblePellet){
-            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
-                Circle c = new Circle();
-                String color = "#b5dbe8";
-                pelletColors.put(pellet, color);
-                c.setFill(Paint.valueOf(color));
-                c.setOpacity(0.5);
-                c.setStroke(Color.BLANCHEDALMOND);
-                DropShadow glow = new DropShadow();
-                glow.setColor(Color.BLUE);
-                glow.setRadius(10);
-                c.setEffect(glow);
-                return c;
-            });
-            updateCircle(circle, pellet);
-            GamePane.getChildren().add(circle);
-        }
-        else if(pellet instanceof SpeedIncreasePellet){
-            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
-                Circle c = new Circle();
-                String color = "#ffff99";
-                pelletColors.put(pellet, color);
-                c.setFill(Paint.valueOf(color));
-                c.setOpacity(0.5);
-                c.setStroke(Color.YELLOW);
-                DropShadow glow = new DropShadow();
-                glow.setColor(Color.YELLOW);
-                glow.setRadius(10);
-                c.setEffect(glow);
-                return c;
-            });
-            updateCircle(circle, pellet);
-            GamePane.getChildren().add(circle);
-        }
-        else if(pellet instanceof SpeedDecreasePellet){
-            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
-                Circle c = new Circle();
-                String color = "#ff0000";
-                pelletColors.put(pellet, color);
-                c.setFill(Paint.valueOf(color));
-                c.setOpacity(0.5);
-                c.setStroke(Color.RED);
-                DropShadow glow = new DropShadow();
-                glow.setColor(Color.RED);
-                glow.setRadius(10);
-                c.setEffect(glow);
-                return c;
-            });
-            updateCircle(circle, pellet);
-            GamePane.getChildren().add(circle);
-        }
-        else {
-            Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
-                Circle c = new Circle();
-                String color = PELLET_COLORS.get(new Random().nextInt(PELLET_COLORS.size()));
-                pelletColors.put(pellet, color);
-                c.setFill(Paint.valueOf(color));
-                return c;
-            });
-            updateCircle(circle, pellet);
-            GamePane.getChildren().add(circle);
-        }
-    }
-
-    private void renderRobot(Entity robot) {
-        Circle circle = entitiesCircles.computeIfAbsent(robot, k -> {
-            Circle c = new Circle();
-            c.setFill(Paint.valueOf(ROBOT_COLOR));
-            return c;
-        });
-
-        updateCircle(circle, robot);
-        GamePane.getChildren().add(circle);
-    }
-
-    private void renderPlayer() {
-        for(Player p : player) {
-            Circle circle = entitiesCircles.computeIfAbsent(p, k -> {
-                Circle c = new Circle();
-                c.setFill(Paint.valueOf(PLAYER_COLOR));
-                return c;
-            });
-            Label l = new Label(p.getName());
-            l.setLabelFor(circle);
-            l.setTextFill(Color.WHITE);
-            l.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
-
-            DropShadow shadow = new DropShadow();
-            shadow.setOffsetX(1);
-            shadow.setOffsetY(1);
-            shadow.setColor(Color.BLACK);
-            l.setEffect(shadow);
-
-            l.widthProperty().addListener((obs, oldVal, newVal) ->
-                    l.setLayoutX(circle.getCenterX() - newVal.doubleValue() / 2)
-            );
-
-            circle.centerXProperty().addListener((obs, oldVal, newVal) ->
-                    l.setLayoutX(newVal.doubleValue() - l.getWidth() / 2)
-            );
-            circle.centerYProperty().addListener((obs, oldVal, newVal) ->
-                    l.setLayoutY(newVal.doubleValue() - (l.getHeight()/2) -10)
-            );
-
-            //animatePlayerMovement(circle, p.getPosX(), p.getPosY());
-
-            updateCircle(circle, p);
-            GamePane.getChildren().add(circle);
-            GamePane.getChildren().add(l);
-        }
-    }
-
-    private void updateCircle(Circle circle, Entity entity) {
-        circle.setCenterX(entity.getPosX());
-        circle.setCenterY(entity.getPosY());
-        circle.setRadius(entity.getRadius());
-    }
-
-    public void setEntities(HashMap<Entity, Circle> entities) {
-        this.entitiesMap = new HashMap<>();
-
-        entities.forEach((e,c) ->{
-            if(e instanceof MovableEntity){
-                this.entitiesMap.put(e,c);
-            }
-        });
-
-        updateMiniMap(entitiesMap);
-    }
-
-    public void updateMiniMap(HashMap<Entity, Circle> entities){
-        map.getChildren().clear();
-
-        Rectangle square = new Rectangle(50, 50);
-        square.setFill(null);
-        square.setStroke(Color.RED);
-        square.setStrokeWidth(1);
-
-        double centerX = (player.get(0).getPosX() * map.getPrefWidth()) / WIDTH;
-        double centerY = (player.get(0).getPosY() * map.getPrefHeight()) / HEIGHT;
-
-        square.setX(centerX - square.getWidth() / 2);
-        square.setY(centerY - square.getHeight() / 2);
-
-        map.getChildren().add(square);
-
-        double x1Square = player.get(0).getPosX()-1400;
-        double x2Square = player.get(0).getPosX()+1400;
-        double y1Square = player.get(0).getPosY()+1800;
-        double y2Square = player.get(0).getPosY()-1800;
-
-        entities.forEach((e,c) ->{
-
-            double posXE = c.getCenterX();
-            double posYE = c.getCenterY();
-
-            if (posXE >= x1Square && posXE <= x2Square && posYE <= y1Square && posYE >= y2Square){
-                Circle circle = new Circle();
-                circle.setFill(c.getFill());
-                circle.setCenterX((posXE * map.getPrefWidth()) / WIDTH );
-                circle.setCenterY((posYE * map.getPrefHeight()) / HEIGHT);
-                circle.setRadius( e.getRadius()/18 );
-                if (!map.getChildren().contains(circle)) {
-                    map.getChildren().add(circle);
-                }
-            }
-        });
-
-    }
-
-    private void startPelletSpawner() {
-        new Thread(() -> {
-            while (true) {
-                gameModel.createRandomPellets(2);
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    public void setStage(Stage stage) {
-        this.stage = stage;
-    }
-
-    private double getPaneWidth() {
-        return GamePane.getWidth();
-    }
-
-    private double getPaneHeight() {
-        return GamePane.getHeight();
-    }
-
-    private void renderOtherPlayer(Player otherPlayer) {
-        Circle circle = entitiesCircles.computeIfAbsent(otherPlayer, k -> {
-            Circle c = new Circle();
-            c.setFill(Paint.valueOf("#FF0000")); // Rouge pour les autres joueurs
-            return c;
-        });
-        updateCircle(circle, otherPlayer);
-        GamePane.getChildren().add(circle);
     }
 
     public void setupNetwork() {
@@ -634,6 +347,7 @@ public class GameController implements Initializable {
             // Gestion d'erreur (fermer les flux, notifier l'utilisateur, etc.)
         }
     }
+
     private void startNetworkListener() {
         new Thread(() -> {
             try {
@@ -652,105 +366,30 @@ public class GameController implements Initializable {
         }).start();
     }
 
+    private void startPelletSpawner() {
+        new Thread(() -> {
+            while (true) {
+                gameModel.createRandomPellets(2);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
 
-    public void setPlayer(Player player){
+    private void robotSpawner(int limite) {
+        gameModel.createRandomRobots(limite);
+    }
+
+    //TODO à quoi ça sert cette fonction ?
+    /*public void setPlayer(Player player){
         this.player.set(0,player);
-    }
+    }*/
 
-    public void invisiblePelletEffect(MovableEntity movableEntity) {
-        new Thread(() -> {
-            if (entitiesCircles.get(movableEntity) != null) {
-                entitiesCircles.get(movableEntity).setFill(Color.TRANSPARENT);
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                entitiesCircles.get(movableEntity).setFill(Paint.valueOf(PLAYER_COLOR));
-            }
-        }).start();
-    }
-
-    public void speedIncreaseEffect(MovableEntity movableEntity){
-        new Thread(() -> {
-                this.specialSpeed = 15;
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                this.specialSpeed = -1;
-        }).start();
-    }
-
-    public void speedDecreaseEffect(MovableEntity movableEntity){
-        new Thread(() -> {
-            this.specialSpeed = 2;
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            this.specialSpeed = -1;
-        }).start();
-    }
-
-    public void eatEntity(List<Entity> entities, MovableEntity movableEntity, QuadTree quadTree, List<Entity> robots) {
-        List<Entity> entityToRemove = new ArrayList<>();
-
-        for (Entity entity : entities) {
-            double dx = movableEntity.getPosX() - entity.getPosX();
-            double dy = movableEntity.getPosY() - entity.getPosY();
-            double squareDistance = dx * dx + dy * dy;
-
-            if (squareDistance <= movableEntity.getRadius() * (movableEntity.getRadius()*2)
-                    && movableEntity.getMass() >= (entity.getMass() * 1.33)) {
-
-
-                if(entity instanceof Player){
-                    this.eatPlayer();
-                    break;
-                }
-
-                //TODO BUG ANIMATION AVEC LES PELLETS DES ROBOTS PAS A COTE DU JOUEUR
-                if (entity instanceof Pellet) {
-
-                    if (movableEntity instanceof Player) {
-
-                        this.animatePelletConsumption(entity, movableEntity);
-                        if(entity instanceof SpeedIncreasePellet){
-                            this.speedIncreaseEffect(movableEntity);
-                        }
-                        if(entity instanceof SpeedDecreasePellet){
-                            this.speedDecreaseEffect(movableEntity);
-                        }
-                        if(entity instanceof InvisiblePellet){
-                            this.invisiblePelletEffect(movableEntity);
-                        }
-
-                    }
-
-
-                }
-                // Ajouter à la liste de suppression
-                entityToRemove.add(entity);
-
-                // Augmenter la masse de l'entité
-                double newMass = movableEntity.getMass() + entity.getMass();
-                movableEntity.setMass(newMass);
-
-            }
-        }
-        // Supprimer les pellets mangés
-        for (Entity entity : entityToRemove) {
-            quadTree.removeNode(entity, quadTree);
-            if (entity instanceof IA)
-                robots.remove(entity);
-            entities.remove(entity);
-            this.removeEntityFromHashMap(entity);
-        }
-    }
-
+    //TODO
+    //Player Controller ?
     public void splitPlayer(){
         ArrayList<Player> newPlayer = new ArrayList<Player>();
         for (Player p : player){
@@ -773,62 +412,30 @@ public class GameController implements Initializable {
         }).start();
     }
 
-    public static int getHeight() {
-        return HEIGHT;
-    }
+    private double getPaneWidth() {return gamePane.getWidth();}
 
-    public static int getWidth() {
-        return WIDTH;
-    }
+    private double getPaneHeight() {return gamePane.getHeight();}
 
-    public static int getPelletNumber() {
-        return PELLET_NUMBER;
-    }
+    public static int getHeight() { return HEIGHT; }
 
-    public static int getRobotNumber() {
-        return ROBOT_NUMBER;
-    }
+    public static int getWidth() {return WIDTH;}
 
-    public static String getPlayerName() {
-        return PLAYER_NAME;
-    }
+    public static int getPelletNumber() {return PELLET_NUMBER;}
 
-    public static void setHeight(int HEIGHT) {
-        GameController.HEIGHT = HEIGHT;
-    }
+    public static int getRobotNumber() {return ROBOT_NUMBER;}
 
-    public static void setWidth(int WIDTH) {
-        GameController.WIDTH = WIDTH;
-    }
+    public static String getPlayerName() {return PLAYER_NAME;}
 
-    public static void setPlayerName(String playerName) {
-        PLAYER_NAME = playerName;
-    }
 
-    public static void setPelletNumber(int pelletNumber) {
-        PELLET_NUMBER = pelletNumber;
-    }
+    public void setStage(Stage stage) {this.stage = stage;}
 
-    public static void setRobotNumber(int robotNumber) {
-        ROBOT_NUMBER = robotNumber;
-    }
+    public static void setHeight(int HEIGHT) {GameController.HEIGHT = HEIGHT;}
 
-    @FXML
-    public void openSettingsMenuClick(){
-        try {
-            Stage oldWindowStage = (Stage) this.GameBorderPane.getScene().getWindow();
-            oldWindowStage.close();
+    public static void setWidth(int WIDTH) {GameController.WIDTH = WIDTH;}
 
-            FXMLLoader fxmlLoader = new FXMLLoader();
-            fxmlLoader.setLocation(getClass().getResource("/com/example/agario/settings.fxml"));
-            SettingsController settingsController = fxmlLoader.getController();
-            Scene scene = new Scene(fxmlLoader.load(), 600, 400);
-            Stage newStage = new Stage();
-            newStage.setTitle("Settings");
-            newStage.setScene(scene);
-            newStage.show();
-        } catch (IOException e) {
-            System.out.println("ERREUR");
-        }
-    }
+    public static void setPlayerName(String playerName) {PLAYER_NAME = playerName;}
+
+    public static void setPelletNumber(int pelletNumber) {PELLET_NUMBER = pelletNumber;}
+
+    public static void setRobotNumber(int robotNumber) {ROBOT_NUMBER = robotNumber;}
 }

@@ -1,6 +1,9 @@
 package com.example.agario.models.factory;
 
 import com.example.agario.models.*;
+import com.example.agario.models.specialPellet.InvisiblePellet;
+import com.example.agario.models.specialPellet.SpeedDecreasePellet;
+import com.example.agario.models.specialPellet.SpeedIncreasePellet;
 
 import java.util.Random;
 
