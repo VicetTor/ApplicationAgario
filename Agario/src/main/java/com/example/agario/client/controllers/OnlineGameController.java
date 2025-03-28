@@ -78,6 +78,8 @@ public class OnlineGameController implements Initializable {
     private GameStateSnapshot currentGameState;
     private String playerName;
 
+    private boolean chatFocused = false;
+
     private boolean isInitialized = false;
 
     @Override
@@ -86,6 +88,10 @@ public class OnlineGameController implements Initializable {
             throw new IllegalStateException("FXML injection failed");
         }
 
+        TchatTextField.setOnAction(event -> handleChatEnter());
+        TchatTextField.focusedProperty().addListener((obs, oldVal, newVal) -> {
+            chatFocused = newVal;
+        });
         setupGamePane();
         setupBackground();
         isInitialized = true;
@@ -147,22 +153,28 @@ public class OnlineGameController implements Initializable {
 
                 // NOUVEAU: Boucle de réception des mises à jour
                 while (!socket.isClosed()) {
-                    GameStateSnapshot newState = (GameStateSnapshot) ois.readObject();
-                    Platform.runLater(() -> {
-                        currentGameState = newState;
-                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-                        if (updatedPlayer != null) {
-                            localPlayer = updatedPlayer;
-                            if (this.camera == null) {
-                                this.camera = new Camera(localPlayer);
-                            } else {
-                                this.camera.setPlayer(localPlayer); // Ajoutez cette méthode dans Camera
-                            }
-                            System.out.printf("DEBUG: Mise à jour position - X:%.1f Y:%.1f\n",
-                                    localPlayer.getPosX(), localPlayer.getPosY());
-                        }
+                    Object received = ois.readObject(); // Modifié pour recevoir tout type d'objet
 
-                    });
+                    if (received instanceof GameStateSnapshot) {
+                        GameStateSnapshot newState = (GameStateSnapshot) received;
+                        Platform.runLater(() -> {
+                            currentGameState = newState;
+                            Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
+                            if (updatedPlayer != null) {
+                                localPlayer = updatedPlayer;
+                                if (this.camera == null) {
+                                    this.camera = new Camera(localPlayer);
+                                } else {
+                                    this.camera.setPlayer(localPlayer);
+                                }
+                            }
+                            updateDisplay(); // Mise à jour de l'affichage
+                        });
+                    }
+                    else if (received instanceof ChatMessage) {
+                        ChatMessage chatMessage = (ChatMessage) received;
+                        displayChatMessage(chatMessage.getSender(), chatMessage.getMessage());
+                    }
                 }
             } catch (Exception e) {
                 Platform.runLater(() ->
@@ -411,5 +423,39 @@ public class OnlineGameController implements Initializable {
                 System.err.println("Error sending input: " + e.getMessage());
             }
         }
+    }
+
+    @FXML
+    private void handleChatEnter() {
+        String message = TchatTextField.getText().trim();
+        if (!message.isEmpty()) {
+            sendChatMessage(message);
+            TchatTextField.clear();
+        }
+    }
+
+    private void sendChatMessage(String message) {
+        if (oos != null) {
+            try {
+                System.out.println("Envoi du message chat: " + message); // Debug
+                oos.writeObject(new ChatMessage(playerName, message));
+                oos.flush();
+                System.out.println("Message envoyé avec succès"); // Debug
+            } catch (IOException e) {
+                System.err.println("Error sending chat message: " + e.getMessage());
+                e.printStackTrace(); // Afficher la stack trace
+            }
+        } else {
+            System.err.println("ObjectOutputStream est null!"); // Debug
+        }
+    }
+
+    public void displayChatMessage(String sender, String message) {
+        Platform.runLater(() -> {
+            String formattedMessage = String.format("%s: %s", sender, message);
+            TchatListView.getItems().add(formattedMessage);
+            // Auto-scroll to bottom
+            TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+        });
     }
 }

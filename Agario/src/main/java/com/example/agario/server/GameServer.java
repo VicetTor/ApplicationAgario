@@ -16,6 +16,9 @@ public class GameServer {
     static final Set<ObjectOutputStream> clientOutputStreams = Collections.newSetFromMap(new ConcurrentHashMap<>());
     static GameState sharedGame = GameState.getInstance(new QuadTree(0, new Dimension(0, 0, 10000, 10000)), "server");
 
+    private static final ConcurrentLinkedQueue<ChatMessage> chatHistory = new ConcurrentLinkedQueue<>();
+    private static final int MAX_CHAT_HISTORY = 100;
+
     public static void main(String[] args) {
         System.out.println("Le serveur est en marche...");
         ExecutorService pool = Executors.newCachedThreadPool();
@@ -43,6 +46,28 @@ public class GameServer {
         }
     }
 
+    public static synchronized void broadcastChatMessage(ChatMessage message) {
+        // Add to history and trim if needed
+        chatHistory.add(message);
+        while (chatHistory.size() > MAX_CHAT_HISTORY) {
+            chatHistory.poll();
+        }
+
+        List<ObjectOutputStream> toRemove = new ArrayList<>();
+        synchronized (clientOutputStreams) {
+            for (ObjectOutputStream oos : clientOutputStreams) {
+                try {
+                    oos.writeObject(message);
+                    oos.reset();
+                    oos.flush();
+                } catch (IOException e) {
+                    toRemove.add(oos);
+                }
+            }
+            clientOutputStreams.removeAll(toRemove);
+        }
+    }
+
     public static synchronized void updateGameState() {
         handleCollisions();
 
@@ -65,6 +90,13 @@ public class GameServer {
             for (ObjectOutputStream oos : clientOutputStreams) {
                 try {
                     oos.writeObject(snapshot);
+                    // Send chat history to new clients
+                    if (snapshot.isInitialSnapshot()) {
+                        for (ChatMessage message : chatHistory) {
+                            System.out.println("message renvoyé par le serveur: "+ message);
+                            oos.writeObject(message);
+                        }
+                    }
                     oos.reset();
                     oos.flush();
                 } catch (IOException e) {
