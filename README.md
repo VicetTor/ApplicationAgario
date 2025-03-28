@@ -58,3 +58,5 @@ Pour démarrer le jeu, lancez le launcher.
 
 Ensuite, cliquez sur Jouer en local pour une partie en solo ou jouer en ligne pour rejoindre un serveur multijoueur.
 
+Serveur : pour vous connecter à l'adresse du serveur -> cheangez l'adresse dans gameclient et dans le launcher controller.
+
