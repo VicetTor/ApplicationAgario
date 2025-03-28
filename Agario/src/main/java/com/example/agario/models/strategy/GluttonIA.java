@@ -28,6 +28,11 @@ public class GluttonIA implements Strategy{
 
     private Entity target;
 
+    /**
+     * constructor for GuttonIA
+     * @param robot
+     * @param quadTree
+     */
     public GluttonIA(IA robot, QuadTree quadTree){
         this.robot = robot;
         this.quadTree = quadTree;

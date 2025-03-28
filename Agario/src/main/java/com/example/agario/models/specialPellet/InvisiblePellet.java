@@ -7,6 +7,12 @@ import com.example.agario.models.MovableEntity;
 import java.util.Map;
 
 public class InvisiblePellet extends SpecialPellet {
+
+    /**
+     * constructor for InvisiblePellet
+     * @param x horizontal position
+     * @param y vertical position
+     */
     public InvisiblePellet(double x, double y) {
         super(x, y);
         this.setMass(2);

@@ -25,6 +25,11 @@ public class RandomMovementIA implements Strategy{
 
     private final Random rand = new Random();
 
+    /**
+     * constructor for RandomMovementIA
+     * @param robot
+     * @param dimension
+     */
     public RandomMovementIA(IA robot, Dimension dimension){
         this.robot = robot;
         this.dimension = dimension;
