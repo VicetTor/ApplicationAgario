@@ -55,9 +55,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * controller which controls the flow of the game
+ */
 public class GameController implements Initializable {
 
-    //FXML
+    //FXML attributes
     @FXML private Pane map;
     @FXML private TextField tchatTextField;
     @FXML private Pane gamePane;
@@ -68,6 +71,7 @@ public class GameController implements Initializable {
     @FXML private BorderPane gameBorderPane;
     @FXML private Button buttonSettings;
 
+    //attributes
     private Map<Entity, Circle> entitiesCircles = new HashMap<>();
     private Map<Entity, String> pelletColors = new HashMap<>();
     private HashMap<Entity, Circle> entitiesMap = new HashMap<>();
@@ -78,7 +82,7 @@ public class GameController implements Initializable {
     private List<Double> specialSpeed = new ArrayList<Double>();
     private boolean isPlayerAlive = true;
 
-    //CONTROLLERS
+    //CONTROLLERS attributes
     private CameraController cameraController;
     private MiniMapController miniMapController;
     private AnimationController animationController;
@@ -86,14 +90,14 @@ public class GameController implements Initializable {
     private AbsorptionController absorptionController;
     private boolean transitionSplit = false;
 
-    //SETTINGS
+    //SETTINGS attributes
     private static int HEIGHT = 10000;
     private static int WIDTH = 10000;
     private static int ROBOT_NUMBER = 25;
     private static int PELLET_NUMBER = 5000;
     private static String PLAYER_NAME = "Anonymous";
 
-    //SERVER
+    //SERVER attributes
     private List<Player> otherPlayers = new ArrayList<>();
     private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private ObjectOutputStream oos;
@@ -101,6 +105,12 @@ public class GameController implements Initializable {
     private Socket socket;
 
 
+    /**
+     * Initialize the view of the game
+     *
+     * @param url
+     * @param resourceBundle
+     */
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupGame();
@@ -108,6 +118,9 @@ public class GameController implements Initializable {
         startPelletSpawner();
     }
 
+    /**
+     * set the game's parameters
+     */
     private void setupGame() {
         // Setup game pane
         gamePane.setMinSize(WIDTH, HEIGHT);
@@ -126,6 +139,9 @@ public class GameController implements Initializable {
         gameModel.createRandomPellets(PELLET_NUMBER);
     }
 
+    /**
+     * set the background of the game field
+     */
     private void setupBackground() {
         gamePane.setStyle(null);
         Image backgroundImage = new Image(getClass().getResource("/com/example/agario/quadrillage.png").toExternalForm());
@@ -153,6 +169,9 @@ public class GameController implements Initializable {
         });
     }
 
+    /**
+     * start the game : the player can play the game
+     */
     private void startGameLoop() {
         PlayerInput playerInput = new PlayerInput();
         Camera camera = new Camera(gameModel.getPlayer());
@@ -165,7 +184,7 @@ public class GameController implements Initializable {
 
         });
 
-
+        //Thread which manages the split of the player
         new Thread(() -> {
             while (true) {
                 synchronized (player) {
@@ -274,6 +293,7 @@ public class GameController implements Initializable {
             }).start();
 
 
+        //Update positions of entities in the game
         new Thread(() -> {
             AtomicReference<Double> dx = new AtomicReference<>(0.0);
             AtomicReference<Double> dy = new AtomicReference<>(0.0);
@@ -312,6 +332,9 @@ public class GameController implements Initializable {
         }).start();
     }
 
+    /**
+     * update the robots' position
+     */
     private void updateRobots() {
         List<Entity> robotsCopy = new ArrayList<>(gameModel.getRobots());
         for (Entity robot : robotsCopy) {
@@ -321,6 +344,13 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * update the display of the game
+     *
+     * @param camera camera which follows the player
+     * @param dx coordinate x of the player
+     * @param dy coordinate y of the player
+     */
     private void updateGameDisplay(Camera camera, double dx, double dy) {
         // Get a copy of the list to avoid concurrent modification
         List<Entity> visibleEntities = new ArrayList<>(cameraController.getVisibleEntities(gameModel.getQuadTree(), gameModel.getRobots(), getPaneWidth(), getPaneHeight(), isPlayerAlive));
@@ -386,6 +416,10 @@ public class GameController implements Initializable {
         updateLeaderBoard();
     }
 
+
+    /**
+     * update the leaderboard of the game, with the top ten players
+     */
     private void updateLeaderBoard() {
         int counter = 0;
         leaderBoardListView.getItems().clear();
@@ -411,6 +445,9 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * open the settings' menu
+     */
     public void openSettingsMenuClick(){
         try {
             Stage oldWindowStage = (Stage) this.gameBorderPane.getScene().getWindow();
@@ -429,6 +466,9 @@ public class GameController implements Initializable {
         }
     }
 
+    /**
+     * add 2 pellets in different places in the map, every second
+     */
     private void startPelletSpawner() {
         new Thread(() -> {
             while (true) {
@@ -442,14 +482,29 @@ public class GameController implements Initializable {
         }).start();
     }
 
+    /**
+     * add robots to the game
+     *
+     * @param limite number of robots to create
+     */
     private void robotSpawner(int limite) {
         gameModel.createRandomRobots(limite);
     }
 
+    /**
+     * set instance of player
+     *
+     * @param player player of the game
+     */
     public void setPlayer(Player player){
         this.player.set(0,player);
     }
 
+    /**
+     * functionality to split the player during the game
+     *
+     * @param playerInput the inputs made by the player
+     */
     public void splitPlayer(PlayerInput playerInput) {
 
         double splitDistance = 75;
@@ -492,6 +547,12 @@ public class GameController implements Initializable {
         }
     }
 
+
+    /**
+     *
+     * getters of the attributes
+     *
+     */
     private double getPaneWidth() {return gamePane.getWidth();}
 
     private double getPaneHeight() {return gamePane.getHeight();}
@@ -506,7 +567,11 @@ public class GameController implements Initializable {
 
     public static String getPlayerName() {return PLAYER_NAME;}
 
-
+    /**
+     *
+     * setters of the attributes
+     *
+     */
     public void setStage(Stage stage) {this.stage = stage;}
 
     public static void setHeight(int HEIGHT) {GameController.HEIGHT = HEIGHT;}

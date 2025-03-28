@@ -19,12 +19,25 @@ public class CameraController {
     private List<Player> player;
     private Pane gamePane;
 
+    /**
+     * Constructor of CameraController
+     *
+     * @param camera camera of the player
+     * @param player instances' of player
+     * @param gamePane gaming field
+     */
     public CameraController(Camera camera, List<Player> player, Pane gamePane){
         this.camera = camera;
         this.player = player;
         this.gamePane = gamePane;
     }
 
+    /**
+     * Apply the change of camera to the player
+     *
+     * @param paneWidth width of visible gaming field
+     * @param paneHeight height of visible gaming field
+     */
     public void applyCameraTransform(double paneWidth, double paneHeight) {
         double scale = 1.0 / camera.getZoomFactor();
         double screenCenterX = paneWidth / 2;
@@ -51,7 +64,16 @@ public class CameraController {
     }
 
 
-
+    /**
+     * Return the list of visible entities in a given dimension
+     *
+     * @param quadTree data structure with the pellets of the game
+     * @param robots robots' list of the game
+     * @param paneWidth width of visible gaming field
+     * @param paneHeight height of visible gaming field
+     * @param isPlayerAlive true if the player is alive else false
+     * @return
+     */
     public List<Entity> getVisibleEntities(QuadTree quadTree, List<Entity> robots, double paneWidth, double paneHeight, boolean isPlayerAlive) {
         List<Entity> visibleEntities = new ArrayList<>();
         double scale = 1.0 / camera.getZoomFactor();

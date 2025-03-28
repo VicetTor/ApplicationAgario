@@ -23,21 +23,33 @@ public class LauncherController {
     private static final int SERVER_PORT = 8080;
     private Alert loadingAlert;
 
-    @FXML
-    private void initialize() {
-        // Initialisation des styles ou autres configurations si nécessaire
-    }
 
+    /**
+     * Initialise styles or other configurations if necessary
+     */
+    @FXML
+    private void initialize() {}
+
+
+    /**
+     * launch the local game
+     */
     @FXML
     protected void onOfflineGameButtonClick() {
         launchOfflineGame();
     }
 
+    /**
+     * launch the online game
+     */
     @FXML
     protected void onOnlineGameButtonClick() {
         requestPlayerName().ifPresent(this::handleOnlineGameConnection);
     }
 
+    /**
+     * alert to enter the player's name
+     */
     private Optional<String> requestPlayerName() {
         TextInputDialog dialog = new TextInputDialog("Player" + (int)(Math.random() * 1000));
         dialog.setTitle("Connexion au serveur");
@@ -46,6 +58,11 @@ public class LauncherController {
         return dialog.showAndWait();
     }
 
+    /**
+     * Manage the online connection to the game
+     *
+     * @param playerName name of the player
+     */
     private void handleOnlineGameConnection(String playerName) {
         showLoadingAlert("Connexion au serveur en cours...");
 
@@ -61,6 +78,11 @@ public class LauncherController {
                 }));
     }
 
+    /**
+     * Test if the server connection is working
+     *
+     * @return true if the connection is working, else false
+     */
     private boolean testServerConnection() {
         try (Socket testSocket = new Socket(SERVER_HOST, SERVER_PORT)) {
             return true;
@@ -69,6 +91,9 @@ public class LauncherController {
         }
     }
 
+    /**
+     * launch the local game
+     */
     private void launchOfflineGame() {
         try {
             Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
@@ -84,6 +109,11 @@ public class LauncherController {
         }
     }
 
+    /**
+     * launch the online game
+     *
+     * @param playerName the player's name
+     */
     private void launchOnlineGame(String playerName) {
         try {
             Stage stage = (Stage) LauncherAnchorPane.getScene().getWindow();
@@ -110,6 +140,13 @@ public class LauncherController {
         }
     }
 
+    /**
+     * Configure the window of the game
+     *
+     * @param stage stage
+     * @param scene scene
+     * @param title window's title
+     */
     private void configureStage(Stage stage, Scene scene, String title) {
         stage.setScene(scene);
         stage.setTitle(title);
@@ -122,6 +159,11 @@ public class LauncherController {
         });
     }
 
+    /**
+     * show an alert message given in the parameters during the loading of the game
+     *
+     * @param message text of the alert
+     */
     private void showLoadingAlert(String message) {
         loadingAlert = new Alert(Alert.AlertType.INFORMATION);
         loadingAlert.setTitle("Connexion");
@@ -135,12 +177,19 @@ public class LauncherController {
         loadingAlert.show();
     }
 
+
+    /**
+     * close the loading alert
+     */
     private void closeLoadingAlert() {
         if (loadingAlert != null && loadingAlert.isShowing()) {
             loadingAlert.close();
         }
     }
 
+    /**
+     * show the alert of failed connection
+     */
     private void showConnectionError() {
         showErrorAlert(
                 "Erreur de connexion",
@@ -148,6 +197,12 @@ public class LauncherController {
         );
     }
 
+    /**
+     * constructor of the error alert
+     *
+     * @param title title of the alert
+     * @param message message of the alert
+     */
     private void showErrorAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);

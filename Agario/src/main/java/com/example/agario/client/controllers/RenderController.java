@@ -30,12 +30,24 @@ public class RenderController {
     private Map<Entity, String> pelletColors = new HashMap<>();
 
 
+    /**
+     * Constructor of the RenderController
+     *
+     * @param entitiesCircles hashmap of entities link to their circle in the game
+     * @param gamePane pane of the game
+     * @param player players' instance
+     */
     public RenderController(Map<Entity, Circle> entitiesCircles, Pane gamePane, List<Player> player){
         this.entitiesCircles = entitiesCircles;
         this.gamePane = gamePane;
         this.player = player;
     }
 
+    /**
+     * add and update forms of the entities during the game
+     *
+     * @param entities entities in the game
+     */
     public void renderEntities(List<Entity> entities) {
         // Render pellets first
         entities.stream()
@@ -51,6 +63,11 @@ public class RenderController {
         renderPlayer(player);
     }
 
+    /**
+     * add and update forms of the pellets during the game
+     *
+     * @param pellet pellet
+     */
     private void renderPellet(Entity pellet) {
         if(pellet instanceof SpecialPellet){
             Circle circle = entitiesCircles.computeIfAbsent(pellet, k -> {
@@ -95,6 +112,11 @@ public class RenderController {
         }
     }
 
+    /**
+     * add and update forms of the robots during the game
+     *
+     * @param robot robot
+     */
     private void renderRobot(Entity robot) {
         Circle circle = entitiesCircles.computeIfAbsent(robot, k -> {
             Circle c = new Circle();
@@ -106,6 +128,11 @@ public class RenderController {
         gamePane.getChildren().add(circle);
     }
 
+    /**
+     * add and update form of the player during the game
+     *
+     * @param player instances' player
+     */
     private void renderPlayer(List<Player> player) {
         for(Player p : player) {
             Circle circle = entitiesCircles.computeIfAbsent(p, k -> {
@@ -143,6 +170,11 @@ public class RenderController {
         }
     }
 
+    /**
+     * add and update forms of the players during the online game
+     *
+     * @param otherPlayer player on online game
+     */
     public void renderOtherPlayer(Player otherPlayer) {
         Circle circle = entitiesCircles.computeIfAbsent(otherPlayer, k -> {
             Circle c = new Circle();
@@ -153,6 +185,13 @@ public class RenderController {
         gamePane.getChildren().add(circle);
     }
 
+    /**
+     *
+     * update circles' position in the game
+     *
+     * @param circle circle
+     * @param entity entity linked to the circle
+     */
     private void updateCircle(Circle circle, Entity entity) {
         circle.setCenterX(entity.getPosX());
         circle.setCenterY(entity.getPosY());

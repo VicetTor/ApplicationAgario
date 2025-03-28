@@ -17,12 +17,25 @@ public class MiniMapController {
     private Map<Entity, Circle> entitiesCircles;
     private Pane map;
 
+    /**
+     * Constructor of the MiniMapController
+     *
+     * @param entitiesCircles hashmap of entities link to their circle in the game
+     * @param map minimap of the game
+     */
     public MiniMapController(Map<Entity, Circle> entitiesCircles, Pane map){
         this.entitiesCircles = entitiesCircles;
         this.map = map;
     }
 
 
+    /**
+     * update the minimap of the game with the movable entity
+     *
+     * @param player instances' player
+     * @param width max width of the game's map
+     * @param height max height of the game's map
+     */
     public void updateMiniMap(List<Player> player, double width, double height){
         HashMap<Entity, Circle> entities = new HashMap<Entity, Circle>();
 

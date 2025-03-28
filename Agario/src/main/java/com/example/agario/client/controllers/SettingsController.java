@@ -44,6 +44,9 @@ public class SettingsController implements Initializable {
         heightMapTextField.setText(GameController.getHeight()+"");
     }
 
+    /**
+     * quit the settings menu and relaunch the game
+     */
     @FXML
     public void quitButtonClick() {
         try {
@@ -69,6 +72,9 @@ public class SettingsController implements Initializable {
         }
     }
 
+    /**
+     * apply the modifications if valid
+     */
     @FXML
     public void applyButtonClick(){
         List<Boolean> validator = new ArrayList<>();

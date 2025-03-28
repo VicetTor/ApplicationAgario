@@ -28,6 +28,12 @@ public class AbsorptionController {
     private List<Double> specialSpeed;
 
 
+    /**
+     * Constructor of the AbsorptionController
+     *
+     * @param entitiesCircles hashmap of entities link to their circle in the game
+     * @param specialSpeed speed given by special pellets
+     */
     public AbsorptionController(Map<Entity, Circle> entitiesCircles, List<Double> specialSpeed){
         this.isPlayerAlive = true;
         this.entitiesCircles = entitiesCircles;
@@ -35,6 +41,15 @@ public class AbsorptionController {
     }
 
 
+    /**
+     * Implements the functionality for the movable entity to eat and remove the eaten entity from all the lists
+     *
+     * @param entities list of visible entities to the movableEntity
+     * @param movableEntity the entity eating
+     * @param quadTree data structure with the pellets
+     * @param robots list of the robots in the game
+     * @param player actual player in the game
+     */
     public void eatEntity(List<Entity> entities, MovableEntity movableEntity, QuadTree quadTree, List<Entity> robots, List<Player> player) {
         List<Entity> entityToRemove = new ArrayList<>();
 
@@ -87,6 +102,12 @@ public class AbsorptionController {
         }
     }
 
+    /**
+     * Animate the eating animation for the player
+     *
+     * @param pellet the eaten entity
+     * @param p the player
+     */
     public void animatePelletConsumption(Entity pellet, MovableEntity p) {
         try{
             TranslateTransition transition = new TranslateTransition();
@@ -103,6 +124,12 @@ public class AbsorptionController {
         }
     }
 
+    /**
+     * functionality which trigger the player's absorption or death
+     *
+     * @param playerEntity one instance of the player
+     * @param player the list of the instances of player
+     */
     public void eatPlayer(Player playerEntity, List<Player> player){
         entitiesCircles.remove(playerEntity);
         specialSpeed.remove(playerEntity);
@@ -121,14 +148,25 @@ public class AbsorptionController {
         }
     }
 
+    /**
+     * @return if the player is alive
+     */
     public boolean isPlayerAlive(){
         return isPlayerAlive;
     }
 
+    /**
+     * @return the special speed given by the special pellets
+     */
     public List<Double> getSpecialSpeed(){
         return this.specialSpeed;
     }
 
+    /**
+     * Give an invisible effect to the player
+     *
+     * @param movableEntity the entity who is given th effect
+     */
     public void invisiblePelletEffect(MovableEntity movableEntity) {
         new Thread(() -> {
             if (entitiesCircles.get(movableEntity) != null) {
@@ -145,6 +183,12 @@ public class AbsorptionController {
         }).start();
     }
 
+    /**
+     * Give a speed increase effect to the player
+     *
+     * @param movableEntity the entity who is given th effect
+     * @param player instances' list of the player
+     */
     public void speedIncreaseEffect(MovableEntity movableEntity, List<Player> player){
         new Thread(() -> {
             this.specialSpeed.set(player.indexOf(movableEntity),15.0);
@@ -157,6 +201,12 @@ public class AbsorptionController {
         }).start();
     }
 
+    /**
+     * Give a speed decrease effect to the player
+     *
+     * @param movableEntity the entity who is given th effect
+     * @param player instances' list of the player
+     */
     public void speedDecreaseEffect(MovableEntity movableEntity, List<Player> player){
         new Thread(() -> {
             this.specialSpeed.set(player.indexOf(movableEntity),2.0);
