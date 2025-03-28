@@ -1,5 +1,6 @@
 package com.example.agario.server;
 
+import com.example.agario.models.ChatMessage;
 import com.example.agario.models.GameStateSnapshot;
 import com.example.agario.models.PlayerInput;
 import com.example.agario.models.Player;
@@ -45,36 +46,42 @@ public class ClientHandler implements Runnable {
 
             // 4. Boucle principale : Lire uniquement PlayerInput
             while (true) {
-                PlayerInput input = (PlayerInput) ois.readObject(); // Maintenant sécurisé
-                System.out.printf("Input reçu de %s: (%.2f, %.2f)%n",
-                        player.getName(), input.dirX, input.dirY, input.speed);
+                Object input = ois.readObject();
+                System.out.println("Objet reçu de type: " +
+                        (input != null ? input.getClass() : "null")); // Debug
 
-                // Traitement du mouvement...
-                synchronized (GameServer.sharedGame) {
-                    double speed = input.speed;
-                    double moveX = input.dirX ;
-                    double moveY = input.dirY ;
-
-                    System.out.printf("Mouvement calculé pour %s: dx=%.2f dy=%.2f (speed=%.2f mass=%.2f)\n",
-                            player.getName(), moveX, moveY, speed, player.getMass());
-                    player.setSpeedy(speed);
-
-                    player.updatePosition(
-                            moveX,
-                            moveY,
-                            GameServer.sharedGame.getxMax(),
-                            GameServer.sharedGame.getyMax()
-                    );
-
-                    oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
-                    oos.reset(); // Important pour éviter les problèmes de cache
-                    oos.flush();
+                if (input instanceof PlayerInput) {
+                    PlayerInput playerInput = (PlayerInput) input;
+                    // Handle player movement as before
+                    synchronized (GameServer.sharedGame) {
+                        double speed = playerInput.speed;
 
 
-                    // Debug: Afficher la nouvelle position
-                    System.out.printf("Nouvelle position: %.1f, %.1f\n",
-                            player.getPosX(), player.getPosY());
+                        double moveX = playerInput.dirX;
+                        double moveY = playerInput.dirY;
+
+                        player.setSpeedy(speed);
+                        player.updatePosition(
+                                moveX,
+                                moveY,
+                                GameServer.sharedGame.getxMax(),
+                                GameServer.sharedGame.getyMax()
+                        );
+
+
+
+                        oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
+                        oos.reset();
+                        oos.flush();
+                    }
                 }
+                else if (input instanceof ChatMessage) {
+                    // Diffuser le message à tous les clients
+                    ChatMessage chatMessage = (ChatMessage) input;
+                    System.out.println("Message chat reçu de " + chatMessage.getSender() + ": " + chatMessage.getMessage());
+                    GameServer.broadcastChatMessage(chatMessage);
+                }
+
             }
         } catch (Exception e) {
             System.err.println("Erreur client: " + e.getMessage());

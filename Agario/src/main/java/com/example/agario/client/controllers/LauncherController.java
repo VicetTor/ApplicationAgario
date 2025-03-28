@@ -19,8 +19,8 @@ public class LauncherController {
     @FXML private Button OnlineGameButton;
     @FXML private AnchorPane LauncherAnchorPane;
 
-    private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 8080;
+    private static final String SERVER_HOST = "127.0.0.1";
+    private static final int SERVER_PORT = 12345;
     private Alert loadingAlert;
 
     @FXML
@@ -65,6 +65,7 @@ public class LauncherController {
         try (Socket testSocket = new Socket(SERVER_HOST, SERVER_PORT)) {
             return true;
         } catch (IOException e) {
+            System.out.println(e);
             return false;
         }
     }

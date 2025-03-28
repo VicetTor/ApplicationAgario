@@ -14,6 +14,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -69,6 +70,8 @@ public class OnlineGameController implements Initializable {
     private AnimationTimer gameLoop;
     private Camera camera;
 
+    private String message;
+
     private Map<String, Circle> playerCircles = new HashMap<>(); // Suivi des cercles des joueurs
     private Map<String, Label> playerLabels = new HashMap<>();  // Suivi des labels des joueurs
     private Map<Entity, Circle> pelletCircles = new HashMap<>(); // Séparé des joueurs
@@ -88,6 +91,7 @@ public class OnlineGameController implements Initializable {
 
         setupGamePane();
         setupBackground();
+        setupChatTextField();
         isInitialized = true;
     }
 
@@ -145,24 +149,33 @@ public class OnlineGameController implements Initializable {
                             localPlayer.getPosX() + "," + localPlayer.getPosY());
                 }
 
-                // NOUVEAU: Boucle de réception des mises à jour
+                // Boucle de réception des mises à jour
                 while (!socket.isClosed()) {
-                    GameStateSnapshot newState = (GameStateSnapshot) ois.readObject();
-                    Platform.runLater(() -> {
-                        currentGameState = newState;
-                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-                        if (updatedPlayer != null) {
-                            localPlayer = updatedPlayer;
-                            if (this.camera == null) {
-                                this.camera = new Camera(localPlayer);
-                            } else {
-                                this.camera.setPlayer(localPlayer); // Ajoutez cette méthode dans Camera
-                            }
-                            System.out.printf("DEBUG: Mise à jour position - X:%.1f Y:%.1f\n",
-                                    localPlayer.getPosX(), localPlayer.getPosY());
-                        }
+                    Object received = ois.readObject();
 
-                    });
+                    if (received instanceof GameStateSnapshot) {
+                        GameStateSnapshot newState = (GameStateSnapshot) received;
+                        Platform.runLater(() -> {
+                            currentGameState = newState;
+                            Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
+                            if (updatedPlayer != null) {
+                                localPlayer = updatedPlayer;
+                                if (this.camera == null) {
+                                    this.camera = new Camera(localPlayer);
+                                } else {
+                                    this.camera.setPlayer(localPlayer);
+                                }
+                            }
+                        });
+                    }
+                    else if (received instanceof ChatMessage) {
+                        ChatMessage chatMessage = (ChatMessage) received;
+                        Platform.runLater(() -> {
+                            TchatListView.getItems().add(chatMessage.getSender() + ": " + chatMessage.getMessage());
+                            // Faire défiler vers le bas automatiquement
+                            TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+                        });
+                    }
                 }
             } catch (Exception e) {
                 Platform.runLater(() ->
@@ -171,7 +184,6 @@ public class OnlineGameController implements Initializable {
             }
         });
     }
-
     private void showErrorAlert(String connectionError, String message) {
         System.out.println(connectionError+message);
     }
@@ -379,6 +391,32 @@ public class OnlineGameController implements Initializable {
         }
 
         LeaderBoardListView.getItems().setAll(leaderboardEntries);
+    }
+
+    private void setupChatTextField() {
+        TchatTextField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String message = TchatTextField.getText().trim();
+                if (!message.isEmpty()) {
+                    try {
+                        // Créer et envoyer le message chat
+                        ChatMessage chatMessage = new ChatMessage(playerName, message);
+                        oos.writeObject(chatMessage);
+                        oos.flush();
+
+                        // Ajouter le message localement
+                        TchatListView.getItems().add("Vous: " + message);
+                        TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+
+                        // Vider le champ de texte
+                        TchatTextField.clear();
+                    } catch (IOException e) {
+                        System.err.println("Erreur lors de l'envoi du message: " + e.getMessage());
+                    }
+                }
+                event.consume();
+            }
+        });
     }
 
     private void sendPlayerInput(double dx, double dy) {

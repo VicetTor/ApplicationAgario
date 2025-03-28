@@ -12,9 +12,13 @@ import java.util.*;
 import java.util.concurrent.*;
 
 public class GameServer {
-    private static final int PORT = 8080;
+    private static final int PORT = 12345;
     static final Set<ObjectOutputStream> clientOutputStreams = Collections.newSetFromMap(new ConcurrentHashMap<>());
     static GameState sharedGame = GameState.getInstance(new QuadTree(0, new Dimension(0, 0, 10000, 10000)), "server");
+
+
+    private static final ConcurrentLinkedQueue<ChatMessage> chatHistory = new ConcurrentLinkedQueue<>();
+    private static final int MAX_CHAT_HISTORY = 100;
 
     public static void main(String[] args) {
         System.out.println("Le serveur est en marche...");
@@ -30,7 +34,7 @@ public class GameServer {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 33, TimeUnit.MILLISECONDS); // ~60 FPS
+        }, 0, 33, TimeUnit.MILLISECONDS); // ~30 FPS
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             while (true) {
@@ -40,6 +44,28 @@ public class GameServer {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public static synchronized void broadcastChatMessage(ChatMessage message) {
+        // Add to history and trim if needed
+        chatHistory.add(message);
+        while (chatHistory.size() > MAX_CHAT_HISTORY) {
+            chatHistory.poll();
+        }
+
+        List<ObjectOutputStream> toRemove = new ArrayList<>();
+        synchronized (clientOutputStreams) {
+            for (ObjectOutputStream oos : clientOutputStreams) {
+                try {
+                    oos.writeObject(message);
+                    oos.reset();
+                    oos.flush();
+                } catch (IOException e) {
+                    toRemove.add(oos);
+                }
+            }
+            clientOutputStreams.removeAll(toRemove);
         }
     }
 
@@ -65,6 +91,12 @@ public class GameServer {
             for (ObjectOutputStream oos : clientOutputStreams) {
                 try {
                     oos.writeObject(snapshot);
+                    // Send chat history to new clients
+                    if (snapshot.isInitialSnapshot()) {
+                        for (ChatMessage message : chatHistory) {
+                            oos.writeObject(message);
+                        }
+                    }
                     oos.reset();
                     oos.flush();
                 } catch (IOException e) {
@@ -91,6 +123,7 @@ public class GameServer {
             }
         }
     }
+
 
     private static void handleCollision(MovableEntity eater, Entity eaten) {
         // Augmenter la masse du mangeur
