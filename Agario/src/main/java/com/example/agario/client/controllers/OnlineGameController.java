@@ -127,6 +127,35 @@ public class OnlineGameController implements Initializable {
         GameBorderPane.setStyle("-fx-background-color:#d8504d;");
     }
 
+    private void listenForServerMessages() {
+        try {
+            while (!socket.isClosed()) {
+                Object received = ois.readObject();
+
+                Platform.runLater(() -> {
+                    if (received instanceof GameStateSnapshot) {
+                        currentGameState = (GameStateSnapshot) received;
+                        Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
+                        if (updatedPlayer != null) {
+                            localPlayer = updatedPlayer;
+                            if (this.camera == null) {
+                                this.camera = new Camera(localPlayer);
+                            } else {
+                                this.camera.setPlayer(localPlayer);
+                            }
+                        }
+                    } else if (received instanceof ChatMessage) {
+                        ChatMessage chatMessage = (ChatMessage) received;
+                        TchatListView.getItems().add(chatMessage.getSender() + ": " + chatMessage.getMessage());
+                        TchatListView.scrollTo(TchatListView.getItems().size() - 1);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            Platform.runLater(() -> showErrorAlert("Erreur", "Problème avec la réception des messages: " + e.getMessage()));
+        }
+    }
+
     private void connectToServer() {
         networkExecutor.execute(() -> {
             try {
@@ -149,34 +178,7 @@ public class OnlineGameController implements Initializable {
                 }
 
                 // Boucle de réception des mises à jour
-                while (!socket.isClosed()) {
-                    Object received = ois.readObject();
-
-                    if (received instanceof GameStateSnapshot) {
-                        GameStateSnapshot newState = (GameStateSnapshot) received;
-                        Platform.runLater(() -> {
-                            currentGameState = newState;
-                            Player updatedPlayer = findPlayerByName(currentGameState.getPlayers(), playerName);
-                            if (updatedPlayer != null) {
-                                localPlayer = updatedPlayer;
-                                if (this.camera == null) {
-                                    this.camera = new Camera(localPlayer);
-                                } else {
-                                    this.camera.setPlayer(localPlayer);
-                                }
-                            }
-                        });
-                    }
-                    else if (received instanceof ChatMessage) {
-                        System.out.println("JAI RECU UN MSG DSFJHKSHDKJFSDFJHBKDSFJKHSDFQJHKBDFSHJKISDFHJKDSFJHKISDFHJKNDFSHJKSDFHJNKSDFJHKSDFJHKNDFSJHK");
-                        ChatMessage chatMessage = (ChatMessage) received;
-                        Platform.runLater(() -> {
-                            TchatListView.getItems().add(chatMessage.getSender() + ": " + chatMessage.getMessage());
-                            // Faire défiler vers le bas automatiquement
-                            TchatListView.scrollTo(TchatListView.getItems().size() - 1);
-                        });
-                    }
-                }
+                new Thread(this::listenForServerMessages).start();
             } catch (Exception e) {
                 Platform.runLater(() ->
                         showErrorAlert("Erreur", "Déconnexion: " + e.getMessage())

@@ -9,7 +9,7 @@ public class GameStateSnapshot implements Serializable {
 
     private final List<Player> players;
 
-    private final List<String> messages;
+
     private final List<Entity> pellets;
     private final boolean initialSnapshot;
 
@@ -21,7 +21,7 @@ public class GameStateSnapshot implements Serializable {
         this.players = game.getPlayers();
         this.pellets = game.getQuadTree().getAllPellets();
         this.initialSnapshot = initialSnapshot;
-        this.messages = new ArrayList<>();
+
     }
 
     public List<Player> getPlayers() {
@@ -32,9 +32,7 @@ public class GameStateSnapshot implements Serializable {
         return pellets;
     }
 
-    public List<String> getMessages() {
-        return messages;
-    }
+
 
     public boolean isInitialSnapshot() {
         return initialSnapshot;

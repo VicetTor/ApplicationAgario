@@ -40,6 +40,7 @@ public class ClientHandler implements Runnable {
                 GameServer.sharedGame.addPlayer(player);
             }
 
+
             // 3. Envoyer l'état initial (GameStateSnapshot)
             oos.writeObject(new GameStateSnapshot(GameServer.sharedGame));
             oos.flush();

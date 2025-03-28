@@ -31,6 +31,7 @@ public class GameServer {
             try {
                 updateGameState();
                 broadcastGameState();
+                broadcastChatMessage(new ChatMessage("de","azda"));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -48,7 +49,9 @@ public class GameServer {
     }
 
     public static synchronized void broadcastChatMessage(ChatMessage message) {
-        // Add to history and trim if needed
+        // Debug
+        System.out.println("Envoi du message : " + message.getSender() + " -> " + message.getMessage());
+
         chatHistory.add(message);
         while (chatHistory.size() > MAX_CHAT_HISTORY) {
             chatHistory.poll();
@@ -62,12 +65,14 @@ public class GameServer {
                     oos.reset();
                     oos.flush();
                 } catch (IOException e) {
+                    e.printStackTrace();
                     toRemove.add(oos);
                 }
             }
             clientOutputStreams.removeAll(toRemove);
         }
     }
+
 
     public static synchronized void updateGameState() {
         handleCollisions();
@@ -93,6 +98,8 @@ public class GameServer {
                     oos.writeObject(snapshot);
                     // Send chat history to new clients
                     if (snapshot.isInitialSnapshot()) {
+
+                        System.out.println("oç-odroooo-oyoodrooootyodirooooyoroooooooooo");
                         for (ChatMessage message : chatHistory) {
                             oos.writeObject(message);
                         }
