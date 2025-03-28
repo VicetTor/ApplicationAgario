@@ -52,7 +52,7 @@ Avant de pouvoir exécuter le projet, assurez-vous d'avoir installé les éléme
 
 ---
 
-##▶️ Démarrage du jeu
+## ▶️ Démarrage du jeu
 
 Pour démarrer le jeu, lancez le launcher.
 
